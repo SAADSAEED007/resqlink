@@ -133,7 +133,8 @@ async function setup(page: Page, fail?: number | "network") {
   return { writes, teamId: team._id };
 }
 async function openIncident(page: Page) {
-  await page.goto("/dashboard?demo=false");
+  await page.goto("/dashboard");
+  await expect(page.getByText("API records", { exact: true })).toBeVisible();
   await page.locator(".rqCommandIncident").first().click();
   await expect(page.getByRole("dialog")).toBeVisible();
 }
