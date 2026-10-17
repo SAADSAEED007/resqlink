@@ -314,7 +314,7 @@ export async function recommendTeams(id: string) {
             team,
             approximateDistanceKm: Math.round(distanceKm(incident.location as Location, team.location) * 100) / 100,
             capacityWarning:
-                team.capacity < incident.peopleAffected
+                typeof incident.peopleAffected === 'number' && team.capacity < incident.peopleAffected
                     ? 'Capacity below reported people; multiple trips or additional resources may be needed'
                     : null
         }))
