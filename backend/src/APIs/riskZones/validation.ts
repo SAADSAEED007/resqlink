@@ -75,6 +75,8 @@ const paging = {
 
 export const riskZoneQuerySchema = Joi.object({
     ...paging,
+    search: text(150),
+    isSimulated: Joi.boolean(),
     hazardSeverity: Joi.string().valid(...HAZARD_SEVERITIES),
     assessmentStatus: Joi.string().valid(...ASSESSMENT_STATUSES),
     district: text(100),

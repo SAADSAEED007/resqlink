@@ -1,6 +1,7 @@
 import responseRouter from './APIs/response'
 import riskZonesRouter from './APIs/riskZones'
 import sheltersRouter from './APIs/shelters'
+import weatherRouter from './APIs/weather'
 import config from './config/config'
 import express, { Application } from 'express'
 import path from 'path'
@@ -30,6 +31,7 @@ app.use(express.static(path.join(__dirname, '../', 'public')))
 // app.use('/v1', router)
 app.use('/api/community-risk-zones', riskZonesRouter)
 app.use('/api/shelters', sheltersRouter)
+app.use('/api/weather', weatherRouter)
 app.use('/api', responseRouter)
 router(app)
 

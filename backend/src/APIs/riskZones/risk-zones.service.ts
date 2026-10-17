@@ -14,6 +14,8 @@ export interface RiskZoneQuery extends Page {
     assessmentStatus?: AssessmentStatus
     district?: string
     connectivityStatus?: ConnectivityStatus
+    search?: string
+    isSimulated?: boolean
     sort: 'severity' | 'oldest' | 'newest'
 }
 
@@ -53,10 +55,13 @@ export async function createRiskZone(input: CommunityRiskZoneInput) {
 export async function listRiskZones(query: RiskZoneQuery) {
     const filter: FilterQuery<CommunityRiskZoneRecord> = {}
 
+    const escape = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    if (query.search) filter.communityName = new RegExp(escape(query.search.trim()), 'i')
+    if (query.isSimulated !== undefined) filter.isSimulated = query.isSimulated
     if (query.hazardSeverity) filter.hazardSeverity = query.hazardSeverity
     if (query.assessmentStatus) filter.assessmentStatus = query.assessmentStatus
     if (query.connectivityStatus) filter.connectivityStatus = query.connectivityStatus
-    if (query.district) filter.district = new RegExp(`^${query.district.trim()}$`, 'i')
+    if (query.district) filter.district = new RegExp(`^${escape(query.district.trim())}$`, 'i')
 
     let sort: Record<string, 1 | -1>
     if (query.sort === 'newest') {
@@ -119,6 +124,8 @@ export async function requestFieldAssessment(id: string, input: FieldAssessmentI
     const prevStatus = zone.assessmentStatus
     const newStatus: AssessmentStatus = 'ASSESSMENT_DISPATCHED'
 
+    zone.assessments = zone.assessments || []
+    if (!zone.assessments.length && zone.fieldAssessment) zone.assessments.push(zone.fieldAssessment)
     zone.fieldAssessment = {
         priorityUrgency: input.priorityUrgency,
         assignedOfficer: input.assignedOfficer || null,
@@ -128,6 +135,7 @@ export async function requestFieldAssessment(id: string, input: FieldAssessmentI
         completedAt: null
     }
 
+    zone.assessments.push(zone.fieldAssessment)
     zone.assessmentStatus = newStatus
     zone.statusHistory.push({
         previousStatus: prevStatus,
@@ -153,6 +161,8 @@ export async function updateAssessmentStatus(id: string, status: AssessmentStatu
     zone.assessmentStatus = status
     if (status === 'ASSESSMENT_COMPLETED' && zone.fieldAssessment && !zone.fieldAssessment.completedAt) {
         zone.fieldAssessment.completedAt = new Date()
+        const latest = zone.assessments?.[zone.assessments.length - 1]
+        if (latest) latest.completedAt = zone.fieldAssessment.completedAt
     }
 
     zone.statusHistory.push({

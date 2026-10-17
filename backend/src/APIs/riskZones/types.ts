@@ -66,6 +66,7 @@ export interface ICommunityRiskZone {
     informationConfidence: ConfidenceLevel
     confidenceReasons?: string[]
     assessmentStatus: AssessmentStatus
+    assessments?: FieldAssessment[]
     fieldAssessment?: FieldAssessment | null
     statusHistory: StatusHistory[]
     notes?: string
