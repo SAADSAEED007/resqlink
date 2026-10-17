@@ -484,6 +484,7 @@ describe('shelters - HTTP router & RBAC protection', () => {
     const userId = new mongoose.Types.ObjectId()
     const validShelterId = new mongoose.Types.ObjectId().toHexString()
 
+    config.TOKENS.ACCESS.SECRET = config.TOKENS.ACCESS.SECRET || 'test-secret-key-32-bytes-minimum-length-needed'
     const adminCookie = `accessToken=${jwt.generateToken({ userId: String(adminId) }, config.TOKENS.ACCESS.SECRET, 3600)}`
     const userCookie = `accessToken=${jwt.generateToken({ userId: String(userId) }, config.TOKENS.ACCESS.SECRET, 3600)}`
 

@@ -202,3 +202,4 @@ async function fetchIncidentTimeline(incidentId: string): Promise<ActivityItem[]
   return body.data.items
 }
 ```
+
