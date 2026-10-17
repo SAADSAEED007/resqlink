@@ -317,6 +317,79 @@
   padding: 12px;
   background: var(--command-surface);
 }
+.rqCommandIncidentBody {
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+}
+.rqCommandIncidentContent {
+  min-width: 0;
+  flex: 1;
+}
+.rqIncidentVisual {
+  position: relative;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--command-border);
+  background: var(--command-soft);
+  color: var(--command-blue);
+}
+.rqIncidentVisual-card {
+  width: 62px;
+  height: 62px;
+  border-radius: 9px;
+}
+.rqIncidentVisual-hero {
+  width: 104px;
+  height: 104px;
+  border-radius: 12px;
+}
+.rqIncidentVisual > svg {
+  width: 25px;
+  height: 25px;
+  stroke-width: 1.8;
+}
+.rqIncidentVisual > span {
+  position: absolute;
+  inset: auto 4px 4px;
+  z-index: 1;
+  overflow: hidden;
+  color: currentColor;
+  font-size: 8px;
+  font-weight: 750;
+  line-height: 1.2;
+  text-align: center;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.rqIncidentVisual-card:not(.is-demo) > span {
+  display: none;
+}
+.rqIncidentVisual.is-demo {
+  color: white;
+  background: #0b1d33;
+}
+.rqIncidentVisual.is-demo::after {
+  position: absolute;
+  content: "";
+  inset: 0;
+  background: linear-gradient(180deg, transparent 35%, #06172bbd 100%);
+}
+.rqIncidentVisual.is-demo > span {
+  color: #fff;
+  font-size: 7px;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+.rqIncidentVisual-flood { color: #1672d6; background: #eaf4ff; }
+.rqIncidentVisual-medical { color: #c9364e; background: #fff0f2; }
+.rqIncidentVisual-fire { color: #b54a12; background: #fff5eb; }
+.rqIncidentVisual-stranded { color: #7353bf; background: #f4efff; }
+.rqIncidentVisual-supplies { color: #92700a; background: #fff9e4; }
+.rqIncidentVisual-other { color: #536b85; background: #eef2f7; }
 .rqCommandIncident:hover,
 .rqCommandIncident.is-selected {
   border-color: var(--command-blue);
@@ -382,6 +455,11 @@
 .rqCommandIncidentMeta {
   margin-top: 10px;
   flex-wrap: wrap;
+}
+.rqCommandIncidentMeta time {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 .rqCommandIncident small {
   display: block;
@@ -656,6 +734,47 @@
   align-items: center;
   justify-content: space-between;
 }
+.rqCommandDetailTags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+.rqCommandDetailStatus {
+  color: var(--command-muted);
+  font-size: 10px;
+  font-weight: 650;
+}
+.rqCommandDetailHero {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin: 18px 0 4px;
+}
+.rqCommandDetailHero > div:last-child {
+  min-width: 0;
+}
+.rqCommandDetailCategory,
+.rqCommandDetailLocation,
+.rqCommandDetailReporter {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.rqCommandDetailCategory {
+  color: var(--command-blue) !important;
+  font-size: 10px !important;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.rqCommandDetailLocation,
+.rqCommandDetailReporter {
+  margin-top: 6px;
+}
+.rqCommandDetailHero h2 {
+  margin: 6px 0 8px;
+}
 .rqCommandDetail button {
   min-height: 44px;
   padding: 8px 12px;
@@ -757,6 +876,20 @@
 .rqCommand[data-theme="dark"] .rqCommandIncident.is-selected {
   background: var(--command-soft);
 }
+.rqCommand[data-theme="dark"] .rqIncidentVisual-flood { color: #75baff; background: #123558; }
+.rqCommand[data-theme="dark"] .rqIncidentVisual-medical { color: #ff8395; background: #512735; }
+.rqCommand[data-theme="dark"] .rqIncidentVisual-fire { color: #ffc08b; background: #543521; }
+.rqCommand[data-theme="dark"] .rqIncidentVisual-stranded { color: #c4afff; background: #362a58; }
+.rqCommand[data-theme="dark"] .rqIncidentVisual-supplies { color: #f4d573; background: #4b401d; }
+.rqCommand[data-theme="dark"] .rqIncidentVisual-other { color: #c5d3e3; background: #293b50; }
+.rqIncidentPage { max-width: 1320px; margin: 0 auto; }
+.rqIncidentPageHead { display:flex; justify-content:space-between; gap:20px; align-items:flex-start; margin-bottom:20px; }
+.rqIncidentEyebrow { color:var(--command-blue); font-size:10px; font-weight:750; letter-spacing:.1em; text-transform:uppercase; }
+.rqIncidentPageHead h1 { font-size:28px; letter-spacing:-.04em; margin:5px 0; }.rqIncidentPageHead p,.rqIncidentPageHead small { color:var(--command-muted); font-size:12px; }.rqIncidentPageHead > div:last-child { display:flex; align-items:center; gap:10px; }.rqIncidentPage button,.rqIncidentFilters select { min-height:38px; border:1px solid var(--command-border); border-radius:8px; background:var(--command-surface); padding:0 10px; color:var(--command-ink); font-size:12px; }.rqIncidentPageHead button,.rqIncidentFilters button { display:inline-flex; align-items:center; gap:6px; }
+.rqIncidentMetrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:14px; }.rqIncidentMetrics div { padding:14px; border:1px solid var(--command-border); border-radius:10px; background:var(--command-surface); }.rqIncidentMetrics span,.rqIncidentMetrics strong { display:block; }.rqIncidentMetrics span { color:var(--command-muted); font-size:10px; }.rqIncidentMetrics strong { margin-top:5px; font-size:24px; }
+.rqIncidentFilters { display:flex; flex-wrap:wrap; gap:8px; padding:12px; background:var(--command-surface); border:1px solid var(--command-border); border-radius:10px; }.rqIncidentFilters label { display:flex; align-items:center; gap:7px; flex:1 1 210px; min-height:38px; padding:0 10px; border:1px solid var(--command-border); border-radius:8px; color:var(--command-muted); }.rqIncidentFilters input { min-width:0; width:100%; background:transparent; font-size:12px; }
+.rqIncidentList { margin-top:14px; border:1px solid var(--command-border); border-radius:12px; background:var(--command-surface); overflow:hidden; }.rqIncidentList > p { padding:32px; color:var(--command-muted); text-align:center; }.rqIncidentRow { display:grid; grid-template-columns:62px minmax(0,1fr) auto; gap:12px; align-items:center; width:100%; padding:11px 14px; text-align:left; border-bottom:1px solid var(--command-border); }.rqIncidentRow:hover { background:var(--command-soft); }.rqIncidentRow strong { display:flex; align-items:center; gap:7px; font-size:13px; }.rqIncidentRow p { display:flex; gap:4px; align-items:center; color:var(--command-muted); font-size:11px; margin-top:5px; }.rqIncidentRow small,.rqIncidentRow time { color:var(--command-muted); font-size:10px; }.rqIncidentRow time { text-align:right; }.rqIncidentPagination { display:flex; justify-content:flex-end; align-items:center; gap:8px; margin-top:14px; color:var(--command-muted); font-size:11px; }.rqIncidentPagination span { margin-right:auto; }.rqIncidentNotice,.rqIncidentError { padding:14px; border:1px solid var(--command-border); border-radius:10px; background:var(--command-surface); color:var(--command-muted); }.rqIncidentError { color:var(--command-red); }
+@media(max-width:700px){.rqIncidentPageHead{display:block}.rqIncidentPageHead>div:last-child{margin-top:12px}.rqIncidentMetrics{grid-template-columns:repeat(2,1fr)}.rqIncidentRow{grid-template-columns:52px minmax(0,1fr)}.rqIncidentRow time{display:none}.rqIncidentPagination{flex-wrap:wrap}.rqIncidentPagination span{width:100%;margin-bottom:4px}.rqIncidentFilters select{flex:1 1 42%}}
 .rqCommand[data-theme="dark"] .rqCommandSeverity {
   background: #293b50;
   color: var(--command-muted);
@@ -782,6 +915,32 @@
   }
   .rqCommandHeading h1 {
     font-size: 20px;
+  }
+}
+@media (max-width: 480px) {
+  .rqCommandIncident {
+    padding: 10px;
+  }
+  .rqIncidentVisual-card {
+    width: 52px;
+    height: 52px;
+  }
+  .rqCommandIncident h3 {
+    margin-top: 7px;
+  }
+  .rqCommandIncidentDescription {
+    -webkit-line-clamp: 1 !important;
+    margin-bottom: 5px !important;
+  }
+  .rqCommandDetailHero {
+    gap: 12px;
+  }
+  .rqIncidentVisual-hero {
+    width: 74px;
+    height: 74px;
+  }
+  .rqCommandDetailHero .rqIncidentVisual-hero > span {
+    display: none;
   }
 }
 
@@ -965,3 +1124,125 @@
 }
 
 .rqCommandAccount {margin-left:auto;}
+
+/* Reference-inspired presentation, scoped to the existing command workspace. */
+.rqCommand .sidebar { overflow-y: auto; gap: 12px; padding: 18px 14px; }
+.rqCommand .sidebar-nav { gap: 3px; margin-top: 4px; flex-shrink: 0; }
+.rqCommand .sidebar-nav > a, .rqCommand .sidebar-nav > button { gap: 10px; }
+.rqCommand .sidebar-nav svg { width: 21px; height: 21px; flex-shrink: 0; }
+.rqCommandNavNote { padding: 8px 12px; font-size: 10px; line-height: 1.6; }
+.rqCommand .public-return { margin-top: 8px; }
+.rqCommandPromo { position: relative; min-height: 218px; flex-shrink: 0; margin-top: auto; border: 1px solid var(--command-border); border-radius: 13px; overflow: hidden; background: #07182c; }
+.rqCommandPromo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, #07182c10, #07182c65 35%, #07182cf5 100%); }
+.rqCommandPromo > div { position: absolute; inset: auto 12px 15px; z-index: 1; color: #f8fafc; }
+.rqCommandPromo p { font-size: 19px; font-weight: 650; line-height: 1.25; letter-spacing: -.03em; }
+.rqCommandPromo span { display: block; width: 30px; height: 2px; background: #3b82f6; margin: 13px 0 10px; }
+.rqCommandPromo small { display: block; font-size: 9px; color: #afc2da; }
+.rqCommand .rqCommandMetric { height: 108px; border-left: 3px solid var(--metric-accent); background: linear-gradient(115deg, color-mix(in srgb, var(--metric-accent) 8%, var(--command-surface)), var(--command-surface) 75%); box-shadow: 0 5px 20px #020c1910; }
+.rqCommandMetric > div:first-child > div:first-child { width: 48px; height: 52px; border-radius: 12px; color: var(--metric-accent); }
+.rqCommandMetric svg { width: 27px; height: 27px; }
+.rqCommandMetric .rqMetricSparkline { position: absolute; right: 12px; bottom: 16px; opacity: .9; }
+.rqCommandMetric .rqMetricSparkline svg { width: 60px; height: 28px; }
+.rqMetricSparkline small { display: block; text-align: right; font-size: 8px; color: var(--command-muted); }
+.rqCommandMetric:has(.rqMetricSparkline) > div:first-child { padding-right: 48px; }
+@media (min-width: 1280px) and (max-width: 1500px) { .rqCommandMetric .rqMetricSparkline { display: none; } .rqCommandMetric:has(.rqMetricSparkline) > div:first-child { padding-right: 0; } }
+.rqCommandMetric p:first-child { text-transform: none; font-size: 12px; letter-spacing: 0; font-weight: 550; color: var(--command-ink); white-space: normal; }
+.rqCommandMetric span.text-2xl { font-size: 32px; line-height: 1.15; font-weight: 700; font-variant-numeric: tabular-nums; }
+.rqCommandMetric p:last-child { white-space: normal; }
+.rqCommandMap h2 { display: flex; align-items: center; gap: 9px; }
+.rqCommandMapMode { margin-left: auto; font-size: 10px; color: var(--command-blue); white-space: nowrap; }
+.rqCommand .rqCommandMapLegend { background: color-mix(in srgb, var(--command-surface) 94%, transparent); backdrop-filter: blur(8px); gap: 7px; }
+.rqCommand .rqCommandMapLegend span { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 500; color: var(--command-ink); }
+.rqLegendIconImg { width: 20px; height: 20px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45)); }
+.rqCommandMapLegend img[alt*="Critical"], .rqCommandMapLegend img[alt*="critical"] { filter: drop-shadow(0 0 5px rgba(238, 53, 75, 0.85)); }
+.rqCommandMapLegend img[alt*="High"], .rqCommandMapLegend img[alt*="high"] { filter: drop-shadow(0 0 5px rgba(241, 132, 41, 0.85)); }
+.rqCommandMapLegend img[alt*="Medium"], .rqCommandMapLegend img[alt*="medium"] { filter: drop-shadow(0 0 5px rgba(37, 137, 250, 0.85)); }
+.rqCommandMapLegend img[alt*="Low"], .rqCommandMapLegend img[alt*="low"] { filter: drop-shadow(0 0 4px rgba(101, 125, 152, 0.8)); }
+.rqCommandMapLegend img[alt*="Available"], .rqCommandMapLegend img[alt*="available"] { filter: drop-shadow(0 0 5px rgba(9, 172, 113, 0.85)); }
+.rqCommandMapLegend img[alt*="Mission"], .rqCommandMapLegend img[alt*="busy"] { filter: drop-shadow(0 0 5px rgba(40, 121, 220, 0.85)); }
+
+.rqMapSymbol { display: block; position: relative; width: 100%; height: 100%; border-radius: 50%; background: transparent; border: none; box-shadow: none; transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.18s ease; cursor: pointer; pointer-events: auto; }
+.rqMapSymbol::before { content: ""; position: absolute; inset: -7px; border-radius: 50%; pointer-events: none; z-index: -1; transition: transform 0.25s ease, opacity 0.25s ease; }
+.rqMapSymbol img.rqMapIconImg { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; -webkit-user-drag: none; }
+
+/* Blushing light radial auras matching each category's color */
+.rqMapSymbol.critical::before { background: radial-gradient(circle, rgba(238, 53, 75, 0.52) 0%, rgba(238, 53, 75, 0.25) 55%, rgba(238, 53, 75, 0) 78%); filter: blur(4px); animation: rqCriticalBlush 2.4s ease-in-out infinite; }
+.rqMapSymbol.critical img.rqMapIconImg { filter: drop-shadow(0 0 7px rgba(238, 53, 75, 0.85)) drop-shadow(0 2px 7px rgba(0, 0, 0, 0.55)); }
+
+.rqMapSymbol.high::before { background: radial-gradient(circle, rgba(241, 132, 41, 0.52) 0%, rgba(241, 132, 41, 0.25) 55%, rgba(241, 132, 41, 0) 78%); filter: blur(4px); animation: rqHighBlush 2.6s ease-in-out infinite; }
+.rqMapSymbol.high img.rqMapIconImg { filter: drop-shadow(0 0 7px rgba(241, 132, 41, 0.85)) drop-shadow(0 2px 7px rgba(0, 0, 0, 0.55)); }
+
+.rqMapSymbol.medium::before { background: radial-gradient(circle, rgba(37, 137, 250, 0.52) 0%, rgba(37, 137, 250, 0.25) 55%, rgba(37, 137, 250, 0) 78%); filter: blur(4px); animation: rqMediumBlush 2.8s ease-in-out infinite; }
+.rqMapSymbol.medium img.rqMapIconImg { filter: drop-shadow(0 0 7px rgba(37, 137, 250, 0.85)) drop-shadow(0 2px 7px rgba(0, 0, 0, 0.55)); }
+
+.rqMapSymbol.low::before { background: radial-gradient(circle, rgba(101, 125, 152, 0.45) 0%, rgba(101, 125, 152, 0.22) 55%, rgba(101, 125, 152, 0) 78%); filter: blur(4px); animation: rqLowBlush 3.1s ease-in-out infinite; }
+.rqMapSymbol.low img.rqMapIconImg { filter: drop-shadow(0 0 6px rgba(101, 125, 152, 0.75)) drop-shadow(0 2px 7px rgba(0, 0, 0, 0.55)); }
+
+.rqMapSymbol.available::before { background: radial-gradient(circle, rgba(9, 172, 113, 0.55) 0%, rgba(9, 172, 113, 0.26) 55%, rgba(9, 172, 113, 0) 78%); filter: blur(4px); animation: rqAvailableBlush 2.5s ease-in-out infinite; }
+.rqMapSymbol.available img.rqMapIconImg { filter: drop-shadow(0 0 7px rgba(9, 172, 113, 0.85)) drop-shadow(0 2px 7px rgba(0, 0, 0, 0.55)); }
+
+.rqMapSymbol.busy::before { background: radial-gradient(circle, rgba(40, 121, 220, 0.55) 0%, rgba(40, 121, 220, 0.26) 55%, rgba(40, 121, 220, 0) 78%); filter: blur(4px); animation: rqBusyBlush 2.4s ease-in-out infinite; }
+.rqMapSymbol.busy img.rqMapIconImg { filter: drop-shadow(0 0 7px rgba(40, 121, 220, 0.85)) drop-shadow(0 2px 7px rgba(0, 0, 0, 0.55)); }
+
+/* Interactive Hover & Selection */
+.rqMapMarker:hover .rqMapSymbol { transform: scale(1.09); filter: brightness(1.15); }
+.rqMapMarker:hover .rqMapSymbol::before { transform: scale(1.35); opacity: 1; }
+.rqMapSymbol.is-selected, .rqMapMarker:focus-visible .rqMapSymbol { outline: none; filter: drop-shadow(0 0 9px #ffffff) drop-shadow(0 0 18px rgba(255, 255, 255, 0.9)); transform: scale(1.14); }
+.rqMapSymbol.is-selected::before { transform: scale(1.4); opacity: 1; }
+
+/* Blushing light pulsations */
+@keyframes rqCriticalBlush { 0%, 100% { transform: scale(0.92); opacity: 0.65; } 50% { transform: scale(1.35); opacity: 1; } }
+@keyframes rqHighBlush { 0%, 100% { transform: scale(0.92); opacity: 0.6; } 50% { transform: scale(1.32); opacity: 0.95; } }
+@keyframes rqMediumBlush { 0%, 100% { transform: scale(0.92); opacity: 0.6; } 50% { transform: scale(1.3); opacity: 0.95; } }
+@keyframes rqLowBlush { 0%, 100% { transform: scale(0.94); opacity: 0.55; } 50% { transform: scale(1.25); opacity: 0.9; } }
+@keyframes rqAvailableBlush { 0%, 100% { transform: scale(0.92); opacity: 0.65; } 50% { transform: scale(1.32); opacity: 1; } }
+@keyframes rqBusyBlush { 0%, 100% { transform: scale(0.92); opacity: 0.65; } 50% { transform: scale(1.35); opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .rqMapSymbol.critical::before, .rqMapSymbol.high::before, .rqMapSymbol.medium::before,
+  .rqMapSymbol.low::before, .rqMapSymbol.available::before, .rqMapSymbol.busy::before { animation: none; opacity: 0.8; }
+  .rqMapSymbol, .rqMapSymbol::before { transition: none; }
+}
+.rqCommand .leaflet-tooltip { background: var(--command-surface); border-color: var(--command-border); color: var(--command-ink); }
+.rqCommandIncident { border-left: 3px solid var(--command-border); padding: 10px; }
+.rqCommandIncident:has(.critical) { border-left-color: var(--command-red); }
+.rqCommandIncident:has(.high) { border-left-color: var(--command-amber); }
+.rqCommandIncident:has(.medium) { border-left-color: var(--command-blue); }
+.rqCommandIncident h3 { margin: 6px 0 4px; }
+.rqCommandQueue .rqIncidentVisual-card { width: 74px; height: 86px; }
+.rqCommandQueue .rqIncidentVisual.is-demo > span { white-space: normal; font-size: 8px; }
+.rqCommandIncidentMeta { margin-top: 7px; font-size: 10px; }
+.rqTeamRoster .rqTeamVisual { width: 44px; height: 44px; background: color-mix(in srgb, var(--command-green) 13%, var(--command-surface)); border-radius: 10px; }
+.rqTeamVisual svg { width: 26px; height: 26px; stroke-width: 1.7; }
+.rqTeamRoster button { border-left: 3px solid var(--command-green); padding: 8px; }
+.rqTeamRoster button[data-status="BUSY"] { border-left-color: var(--command-blue); }
+.rqTeamRoster button[data-status="OFFLINE"] { border-left-color: var(--command-muted); }
+.rqTeamRoster button > div:last-child { flex-direction: column; align-items: flex-end; gap: 5px; }
+.rqActivityRow p { white-space: normal; overflow-wrap: anywhere; }
+.rqActivityRow { align-items: flex-start; }
+.rqActivityRow > div:first-child { align-items: flex-start; gap: 8px; }
+.rqActivityRow > div:first-child > span { width: 48px; font-family: inherit; white-space: normal; }
+.rqActivityRow > div:first-child > div:first-of-type { background: color-mix(in srgb, var(--command-blue) 12%, var(--command-ground)); }
+.rqCommand[data-theme="dark"] .sidebar { background: linear-gradient(165deg, #10253d, #081a2d); }
+.rqCommand[data-theme="dark"] .sidebar-nav [aria-current] { color: white; background: linear-gradient(110deg, #2563eb, #195cbe); box-shadow: inset 0 1px 0 #ffffff26, 0 5px 18px #020c1930; }
+.rqCommand[data-theme="dark"] .rqCommandCard { background: linear-gradient(125deg, #10253d, #0c2035); border-color: #8aa9c52e; }
+.rqCommand[data-theme="dark"] .rqCommandIncident { background: #0c2035; }
+.rqCommand[data-theme="dark"] .rqCommandMode { background: #112a43; }
+.rqCommand[data-theme="dark"] .rqCommandMap .leaflet-container { background: #07304b; }
+/* A restrained navy tint to the existing gray cartography; geography is unchanged. */
+.rqCommand[data-theme="dark"] .rqCommandMap .leaflet-tile-pane { mix-blend-mode: luminosity; opacity: .85; }
+@media (min-width: 1280px) {
+  .rqCommandMap, .rqCommandQueue { height: 470px; }
+  .rqCommand .sidebar-nav > a, .rqCommand .sidebar-nav > button { min-height: 41px; padding: 8px 10px; }
+}
+@media (max-width: 1279px) { .rqCommandPromo { display: none; } .rqCommand .sidebar { overflow: visible; } }
+@media (max-width: 767px) {
+  .rqCommand .rqCommandMetric { height: 108px; }
+  .rqCommandQueue .rqIncidentVisual-card { width: 64px; height: 78px; }
+  .rqCommandMapLegend { font-size: 9px; padding: 8px; }
+  .rqCommandMapMode { font-size: 9px; }
+  .rqCommandMap > header { padding: 10px; gap: 8px; }
+  .rqCommandMap > header p { max-width: 145px; }
+  .rqCommandMap.is-expanded { inset: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .rqCommand *, .rqCommand *::before, .rqCommand *::after { animation: none !important; transition: none !important; } }

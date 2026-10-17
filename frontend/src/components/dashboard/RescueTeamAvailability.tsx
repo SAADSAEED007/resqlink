@@ -45,7 +45,6 @@ export function RescueTeamAvailability({
     if (caps.includes("WATER_RESCUE")) return "Flood Rescue";
     if (caps.includes("MEDICAL")) return "Medical Response";
     if (caps.includes("FIRE_RESPONSE")) return "Fire & Hazmat";
-    if (team.name.toLowerCase().includes("delta")) return "Drone & Recon";
     if (caps.includes("EVACUATION")) return "Urban Search & Rescue";
     return caps[0] || "General Response";
   };
@@ -100,7 +99,7 @@ export function RescueTeamAvailability({
   const displayTeams = teams;
 
   return (
-    <div className="bg-[var(--command-surface)] border border-[var(--command-border)] rounded-xl flex flex-col h-[280px] overflow-hidden">
+    <div className="rqTeamRoster bg-[var(--command-surface)] border border-[var(--command-border)] rounded-xl flex flex-col h-[280px] overflow-hidden">
       {/* Header */}
       <div className="p-3 px-4 bg-[var(--command-soft)]/80 border-b border-[var(--command-border)] flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
@@ -125,6 +124,7 @@ export function RescueTeamAvailability({
           return (
             <button
               key={team._id}
+              data-status={team.status}
               onClick={() => onSelectTeam(team)}
               className={`w-full text-left p-2 px-3 rounded-lg border transition-all cursor-pointer flex items-center justify-between gap-2 ${
                 isSelected
@@ -134,7 +134,7 @@ export function RescueTeamAvailability({
             >
               {/* Left Icon & Info */}
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-[var(--command-ground)] border border-white/5 flex items-center justify-center shrink-0">
+                <div className="rqTeamVisual w-8 h-8 rounded-lg bg-[var(--command-ground)] border border-white/5 flex items-center justify-center shrink-0">
                   {getTeamIcon(team)}
                 </div>
                 <div className="min-w-0">

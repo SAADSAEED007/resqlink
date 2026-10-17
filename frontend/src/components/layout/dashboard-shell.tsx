@@ -79,7 +79,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       label: "Incidents",
       href: "/dashboard/incidents",
       icon: AlertTriangle,
-      soon: true,
     },
     {
       label: "Rescue Teams",
@@ -189,7 +188,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               <Link
                 key={label}
                 href={href}
-                aria-current={pathname === href ? "page" : undefined}
+                aria-current={pathname === href || (href !== "/dashboard" && pathname.startsWith(`${href}/`)) ? "page" : undefined}
                 onClick={() => setMenu(false)}
               >
                 <Icon size={18} />
@@ -205,6 +204,14 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             emergency dispatch.
           </p>
         </nav>
+        <div className="rqCommandPromo">
+          <Image src="/images/rescue-sidebar.jpg" alt="Rescue workers helping communities" fill sizes="220px" className="object-cover" />
+          <div>
+            <p>Stronger Communities<br />Safer Tomorrows</p>
+            <span aria-hidden="true" />
+            <small>People | Technology | Faster Response</small>
+          </div>
+        </div>
       </aside>
       <div className="dashboard-body">
         <header className="command-header">

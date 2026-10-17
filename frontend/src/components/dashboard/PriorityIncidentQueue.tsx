@@ -1,14 +1,7 @@
 "use client";
 import type { Incident } from "@/types/api";
-import { AlertTriangle, MapPin, ArrowUpRight } from "lucide-react";
-const titles: Record<string, string> = {
-  FLOOD: "Flooding",
-  MEDICAL: "Medical emergency",
-  FIRE: "Fire",
-  STRANDED: "Stranded / evacuation",
-  SUPPLIES: "Essential supplies",
-  OTHER: "Other emergency",
-};
+import { MapPin, ArrowUpRight, Clock3 } from "lucide-react";
+import { IncidentVisual, incidentTitle } from "./incident-visual";
 export function PriorityIncidentQueue({
   incidents,
   selectedIncident,
@@ -41,40 +34,45 @@ export function PriorityIncidentQueue({
               className={`rqCommandIncident ${selectedIncident?._id === inc._id ? "is-selected" : ""}`}
               onClick={() => onSelectIncident(inc)}
             >
-              <div className="rqCommandIncidentTop">
-                <span
-                  className={`rqCommandSeverity ${inc.priorityLevel.toLowerCase()}`}
-                >
-                  {inc.priorityLevel}
-                </span>
-                <span>{inc.status.replaceAll("_", " ")}</span>
+              <div className="rqCommandIncidentBody">
+                <IncidentVisual incident={inc} />
+                <div className="rqCommandIncidentContent">
+                  <div className="rqCommandIncidentTop">
+                    <span
+                      className={`rqCommandSeverity ${inc.priorityLevel.toLowerCase()}`}
+                    >
+                      {inc.priorityLevel}
+                    </span>
+                    <span>{inc.status.replaceAll("_", " ")}</span>
+                  </div>
+                  <h3>
+                    {incidentTitle(inc)}
+                    <ArrowUpRight size={16} aria-hidden="true" />
+                  </h3>
+                  <p className="rqCommandIncidentDescription">{inc.description}</p>
+                  <p>
+                    <MapPin size={13} aria-hidden="true" />
+                    {inc.location?.address || "Location unverified"}
+                  </p>
+                  <div className="rqCommandIncidentMeta">
+                    <span>Priority score {inc.priorityScore}</span>
+                    <time dateTime={inc.createdAt}>
+                      <Clock3 size={12} aria-hidden="true" />
+                      {new Date(inc.createdAt).toLocaleString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </time>
+                  </div>
+                  <small>
+                    {inc.verification?.status.replaceAll("_", " ") ||
+                      "Verification not recorded"}
+                    {inc.assignedTeam ? " / Team assigned" : ""}
+                  </small>
+                </div>
               </div>
-              <h3>
-                <AlertTriangle size={16} aria-hidden="true" />
-                {titles[inc.emergencyType] || inc.emergencyType}
-                <ArrowUpRight size={16} aria-hidden="true" />
-              </h3>
-              <p className="rqCommandIncidentDescription">{inc.description}</p>
-              <p>
-                <MapPin size={13} aria-hidden="true" />
-                {inc.location?.address || "Location unverified"}
-              </p>
-              <div className="rqCommandIncidentMeta">
-                <span>Priority score {inc.priorityScore}</span>
-                <time dateTime={inc.createdAt}>
-                  {new Date(inc.createdAt).toLocaleString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </time>
-              </div>
-              <small>
-                {inc.verification?.status.replaceAll("_", " ") ||
-                  "Verification not recorded"}
-                {inc.assignedTeam ? " / Team assigned" : ""}
-              </small>
             </button>
           ))
         )}
