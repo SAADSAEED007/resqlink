@@ -6,12 +6,14 @@ import type {
   Paginated,
   PriorityLevel,
   Recommendations,
+  VerificationStatus,
 } from "@/types/api";
 export interface IncidentQuery {
   page?: number;
   limit?: number;
   status?: IncidentStatus;
   priorityLevel?: PriorityLevel;
+  verificationStatus?: VerificationStatus;
   sort?: "priority" | "oldest" | "newest";
 }
 export const incidents = {
@@ -39,6 +41,15 @@ export const incidents = {
     request<Incident>(`/incidents/${encodeURIComponent(id)}/priority`, {
       method: "PATCH",
       body: { priorityLevel, reason },
+    }),
+  updateVerification: (
+    id: string,
+    status: VerificationStatus,
+    notes: string,
+  ) =>
+    request<Incident>(`/incidents/${encodeURIComponent(id)}/verification`, {
+      method: "PATCH",
+      body: { status, notes },
     }),
   recommendations: (id: string, signal?: AbortSignal) =>
     request<Recommendations>(

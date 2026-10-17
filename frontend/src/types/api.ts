@@ -43,6 +43,22 @@ export interface CreateIncidentInput {
   waterLevel?: "NONE" | "LOW" | "MODERATE" | "HIGH" | "UNKNOWN";
   immediateDanger?: boolean;
 }
+export type VerificationStatus =
+  | "NEEDS_REVIEW"
+  | "VERIFIED"
+  | "FLAGGED_DUPLICATE"
+  | "DISMISSED";
+export interface VerificationDetails {
+  status: VerificationStatus;
+  requiresManualReview: boolean;
+  isPotentialDuplicate: boolean;
+  potentialDuplicateIncidents: string[];
+  missingFields: string[];
+  warnings: string[];
+  reviewedBy?: string | null;
+  reviewedAt?: string | null;
+  reviewNotes?: string | null;
+}
 interface RecordFields {
   _id: string;
   createdAt: string;
@@ -53,6 +69,7 @@ interface RecordFields {
 export interface Incident extends CreateIncidentInput, RecordFields {
   location: IncidentLocation | null;
   locationVerificationRequired: boolean;
+  verification?: VerificationDetails;
   priorityScore: number;
   priorityLevel: PriorityLevel;
   priorityReasons: string[];
