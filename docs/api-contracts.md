@@ -314,6 +314,97 @@ Updates the assessment status with mandatory coordinator notes.
 
 Seeds 5 realistic simulated Sindh demo fixtures (Thatta, Dadu, Sujawal, Khairpur, Kashmore) marked `isSimulated: true`. Idempotent (skips existing demo keys).
 
+## Shelters and relief resources
+
+The `/api/shelters` endpoints enable coordinators and citizens to track disaster evacuation shelters, monitor real-time shelter capacity/occupancy, view structured inventories of essential relief items (food, drinking water, medical supplies, blankets, hygiene kits), and search for nearby shelters within a designated radius.
+
+All shelters are decision support tools; demo shelters are strictly labeled as fictional (`isSimulated: true`) and must not be published as operational guidance.
+
+### Endpoints overview
+
+| Method  | Endpoint                             | Description                                                 | Auth Required           |
+| ------- | ------------------------------------ | ----------------------------------------------------------- | ----------------------- |
+| `GET`   | `/api/shelters`                      | List shelters (with availability & nearby radius filtering) | Public / Read           |
+| `GET`   | `/api/shelters/:id`                  | View shelter details and attached relief resource inventory | Public / Read           |
+| `GET`   | `/api/shelters/:id/resources`        | View relief resources for a shelter                         | Public / Read           |
+| `POST`  | `/api/shelters`                      | Create a new shelter with optional initial relief resources | Yes (Admin/Coordinator) |
+| `PATCH` | `/api/shelters/:id`                  | Update shelter capacity, occupancy, status, or contact      | Yes (Admin/Coordinator) |
+| `POST`  | `/api/shelters/:id/resources`        | Add or restock a relief resource in a shelter               | Yes (Admin/Coordinator) |
+| `PATCH` | `/api/shelters/:id/resources/:resId` | Update quantity, threshold, or status of a relief resource  | Yes (Admin/Coordinator) |
+| `POST`  | `/api/shelters/seed`                 | Seed 5 realistic simulated Sindh demo shelters & supplies   | Yes (Admin/Coordinator) |
+
+### Enumerations
+
+| Field             | Values                                                                            |
+| ----------------- | --------------------------------------------------------------------------------- |
+| shelter status    | `OPEN`, `FULL`, `CLOSED`                                                          |
+| resource category | `FOOD`, `DRINKING_WATER`, `MEDICAL_SUPPLIES`, `BLANKETS`, `HYGIENE_KITS`, `OTHER` |
+| resource status   | `ADEQUATE`, `LOW`, `CRITICAL`, `EXHAUSTED`                                        |
+
+### Availability calculation & overcapacity prevention
+
+Available spaces are strictly calculated as:
+$$\text{availableSpaces} = \max(0, \text{totalCapacity} - \text{currentOccupancy})$$
+
+- **Overcapacity Prevention:** `currentOccupancy` cannot exceed `totalCapacity` (returns `400 Bad Request` if an update or creation attempts overcapacity).
+- **Negative Prevention:** `currentOccupancy` cannot be negative.
+- **Dynamic Transition:** When `availableSpaces` drops to 0 and the shelter is not explicitly `CLOSED`, status transitions to `FULL`. When capacity frees up, status returns to `OPEN`.
+
+### GET /api/shelters (read)
+
+Query parameters:
+
+- `status`: `OPEN | FULL | CLOSED`
+- `availableOnly`: boolean (filters `status: 'OPEN'` and `availableSpaces > 0`)
+- `minAvailableSpaces`: integer (filters `availableSpaces >= minAvailableSpaces`)
+- `latitude` & `longitude`: numbers for nearby straight-line search
+- `radiusKm`: number (default: 25 km, max: 500 km)
+- `page`: default 1, `limit`: default 20 (max 100)
+
+When coordinates are supplied, shelters within the radius are sorted nearest first, and each result includes `approximateDistanceKm` and `distanceType: "APPROXIMATE_STRAIGHT_LINE_KM"`.
+
+### POST /api/shelters (admin)
+
+```json
+{
+  "name": "SIMULATED - Thatta Relief Shelter",
+  "address": "Main National Highway, Near District Sports Complex, Thatta, Sindh",
+  "location": { "latitude": 24.747, "longitude": 67.923 },
+  "totalCapacity": 350,
+  "currentOccupancy": 210,
+  "status": "OPEN",
+  "contactInformation": {
+    "contactPerson": "Liaison Officer Munir Ahmed",
+    "phone": "+92 300 2345671",
+    "email": "thatta.shelter1@simulated.resqlink.org"
+  },
+  "notes": "Equipped with water filtration. Decision support only.",
+  "initialResources": [
+    {
+      "category": "FOOD",
+      "resourceName": "Ready-to-eat dry ration boxes",
+      "quantity": 1200,
+      "unit": "packs",
+      "minimumThreshold": 200
+    }
+  ]
+}
+```
+
+### POST /api/shelters/:id/resources (admin)
+
+```json
+{
+  "category": "DRINKING_WATER",
+  "resourceName": "Bottled mineral water 5L cans",
+  "quantity": 850,
+  "unit": "cans",
+  "minimumThreshold": 150
+}
+```
+
+Resource status is automatically assigned (`ADEQUATE`, `LOW`, `CRITICAL`, `EXHAUSTED`) based on quantity relative to `minimumThreshold` if not explicitly supplied.
+
 ## Prototype scoring and uncertainty
 
 Points: immediate danger +30; HIGH water +20 or MODERATE water +10; medical emergency +20; reported medical needs +15; disability +10; elderly +10; children +5; more than one person +5. Presence of each group scores once, irrespective of count. Clamp 0–100. Classification: 75+ CRITICAL, 50–74 HIGH, 25–49 MEDIUM, 0–24 LOW. Weights are unvalidated prototype assumptions.

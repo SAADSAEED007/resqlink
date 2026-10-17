@@ -24,6 +24,14 @@ To support disaster response in areas with limited internet, collapsed cellular 
 
 Coordinators initiate field reconnaissance via `POST /api/community-risk-zones/:id/assessment`, transitioning the zone to `ASSESSMENT_DISPATCHED` and recording structured officer notes. Status changes preserve complete audit trails in `statusHistory`, and transitions to `ASSESSMENT_COMPLETED` record completion timestamps. All operations are strictly coordinator-authenticated (requiring the existing admin role). Fictional Sindh demo fixtures support realistic low-connectivity flood response scenarios without triggering real-world emergency dispatches.
 
+## Shelters and relief resources
+
+Evacuation shelter management and structured relief inventory operations are isolated under `backend/src/APIs/shelters/` and mounted at `/api/shelters`. The module operates strictly as decision support, without altering the incident priority engine, rescue assignments, or citizen SOS intake.
+
+`Shelter` records shelter name, street address, coordinates (`latitude`, `longitude`), `totalCapacity`, `currentOccupancy`, computed `availableSpaces`, status (`OPEN`, `FULL`, `CLOSED`), contact information, and simulation flags. Overcapacity is structurally prevented: `currentOccupancy` cannot exceed `totalCapacity` nor drop below 0. Status transitions automatically reflect real-time capacity: when `availableSpaces === 0` and the shelter is not `CLOSED`, it switches to `FULL`; when capacity frees up, it returns to `OPEN`.
+
+`ReliefResource` tracks essential relief supplies (food, drinking water, medical supplies, blankets, hygiene kits) linked to specific shelters. Stock status (`ADEQUATE`, `LOW`, `CRITICAL`, `EXHAUSTED`) is assessed relative to minimum safety thresholds. Coordinators hold exclusive authority to create/update shelters and resource inventories (via HTTP-only cookie admin authentication). Public read endpoints support searching nearby facilities using geodesic straight-line distance (Haversine) within configurable radiuses. Demo fixtures are strictly marked simulated (`isSimulated: true`).
+
 ## Authentication, privacy, and deployment
 
 Only SOS creation is public. All other core routes reuse accessToken-cookie authentication, then require the existing admin role. A trusted operator must provision/promote a coordinator account; there is no public role-management endpoint or demo bypass. Invalid/expired tokens now return 401. Existing login/logout cookies use Path=/ to cover both prefixes, and login no longer returns the password hash. No new authentication system is added. Core errors and the global error handler omit stack traces/driver details in every environment. Success logs record status/method/message, not citizen data. Original general/auth routes are inherited and need a separate security review before production use.
