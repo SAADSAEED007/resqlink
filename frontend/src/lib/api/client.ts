@@ -65,7 +65,7 @@ export async function request<T>(
   const timeout = setTimeout(() => {
     timedOut = true;
     controller.abort();
-  }, options.timeoutMs ?? 15000);
+  }, options.timeoutMs ?? 30000);
   try {
     const response = await fetch(url, {
       method: options.method ?? "GET",
@@ -110,7 +110,7 @@ export async function request<T>(
     if (error instanceof ApiError) throw error;
     if (timedOut)
       throw new ApiError(
-        "The request took too long. Please try again.",
+        "The service is taking longer than expected. It may be waking up; wait briefly before checking the result or retrying.",
         0,
         "timeout",
       );
