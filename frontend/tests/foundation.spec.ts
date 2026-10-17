@@ -74,7 +74,9 @@ for (const width of [375, 768, 1280, 1440])
     await mockAuth(page, { signedIn: true });
     await page.goto("/dashboard");
     await expect(
-      page.getByRole("heading", { name: "Ready for a clearer response." }),
+      page.getByRole("heading", {
+        name: "Emergency Operations Command Center",
+      }),
     ).toBeVisible();
     expect(
       await page.evaluate(
@@ -176,7 +178,9 @@ test("rejects ordinary users and recovers from network errors", async ({
   await mockAuth(page, { signedIn: true });
   await page.getByRole("button", { name: "Try again" }).click();
   await expect(
-    page.getByRole("heading", { name: "Ready for a clearer response." }),
+    page.getByRole("heading", {
+      name: "Emergency Operations Command Center",
+    }),
   ).toBeVisible();
 });
 test("handles expiry and preserves session when logout fails", async ({
