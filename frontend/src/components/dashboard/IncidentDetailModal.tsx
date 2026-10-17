@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
 import type { Incident } from "@/types/api";
+import { IncidentOperations } from "./IncidentOperations";
 import { X } from "lucide-react";
 export function IncidentDetailModal({
   incident,
@@ -81,6 +82,7 @@ export function IncidentDetailModal({
               <li key={index}>{reason}</li>
             ))}
           </ul>
+          <IncidentOperations key={incident._id} incident={incident} />
           <footer>
             <p>
               Prototype Decision Support / Human Confirmation Required

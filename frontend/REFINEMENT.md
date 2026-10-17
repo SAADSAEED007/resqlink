@@ -16,7 +16,7 @@ The task brief described three screenshots but no separate screenshot files acco
 
 ## Data and refresh
 
-Current stable authenticated clients call GET `/api/incidents?limit=100&sort=priority`, GET `/api/teams?limit=100` and GET `/api/assignments?limit=100`. Existing credential/session-expiry behavior remains. The overview is read-only; it has no assignment/status/verification mutation controls, so no mutation workflow is invented. Its existing exposed `refresh()` can be awaited by future successful mutation actions.
+Current stable authenticated clients call GET `/api/incidents?limit=100&sort=priority`, GET `/api/rescue-teams?limit=100` and GET `/api/assignments?limit=100`. Existing credential/session-expiry behavior remains. The overview is read-only; it has no assignment/status/verification mutation controls, so no mutation workflow is invented. Its existing exposed `refresh()` can be awaited by future successful mutation actions.
 
 API mode refreshes seven seconds after the previous cycle completes, avoiding overlap. Hidden tabs cancel in-flight requests and pause the timer; visible tabs refresh immediately, including rapid hide/show transitions. Unmount/mode change aborts requests and clears listeners/timers. Partial failures preserve each previously loaded dataset and show an error with the last fully successful update time. Search, selected incident/team and map viewport survive refresh. Map is instantiated once; ResizeObserver invalidates its size on container changes.
 
