@@ -116,8 +116,10 @@ export const dashboardQuerySchema = Joi.object({
 })
 export const activityQuerySchema = Joi.object({
     limit: Joi.number().integer().min(1).max(100).default(20),
-    isSimulated: Joi.boolean()
+    isSimulated: Joi.boolean(),
+    incidentId: Joi.string().hex().length(24)
 })
+<<<<<<< HEAD
 export const notificationQuerySchema = Joi.object({
     ...paging,
     unreadOnly: Joi.boolean(),
@@ -127,6 +129,13 @@ export const notificationQuerySchema = Joi.object({
 export const notificationFilterQuerySchema = Joi.object({
     isSimulated: Joi.boolean()
 })
+=======
+export const incidentActivityQuerySchema = Joi.object({
+    limit: Joi.number().integer().min(1).max(100).default(50),
+    sort: Joi.string().valid('asc', 'desc').default('asc')
+})
+
+>>>>>>> bebda05de0707b921b17159ab4f4321db0ba83d2
 export function validate<T>(schema: Joi.Schema, input: unknown): T {
     const { payload, error } = validateSchema<T>(schema, input)
     if (error) throw new CustomError(error.details.map((detail) => detail.message).join('; '), 400)

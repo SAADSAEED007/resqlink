@@ -8,6 +8,7 @@ import { RescueTeamAvailability } from "./RescueTeamAvailability";
 import { IncidentTrends } from "./IncidentTrends";
 import { RecentActivity } from "./RecentActivity";
 import { IncidentDetailModal } from "./IncidentDetailModal";
+import { MOCK_TRENDS_24H } from "./mock-data";
 import {
   Flame,
   AlertTriangle,
@@ -109,6 +110,8 @@ export function DashboardOverview() {
           trendColor="red"
           icon={<Flame className="w-5 h-5 text-[var(--command-red)]" />}
           iconBgColor="rgba(240, 68, 82, 0.15)"
+          sparklinePoints={isDemoMode ? MOCK_TRENDS_24H.map(point => point.critical + point.high + point.medium + point.low) : undefined}
+          sparklineColor="#ee354b"
           loading={loading && !isDemoMode}
         />
 
@@ -121,6 +124,8 @@ export function DashboardOverview() {
             <AlertTriangle className="w-5 h-5 text-[var(--command-amber)]" />
           }
           iconBgColor="rgba(245, 185, 66, 0.15)"
+          sparklinePoints={isDemoMode ? MOCK_TRENDS_24H.map(point => point.critical) : undefined}
+          sparklineColor="#f6bf69"
           loading={loading && !isDemoMode}
         />
 

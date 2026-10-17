@@ -1,8 +1,11 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useDashboard } from "./dashboard-context";
 import type { Incident } from "@/types/api";
 import { IncidentOperations } from "./IncidentOperations";
-import { X } from "lucide-react";
+import { AlertTriangle, MapPin, UserRound, X } from "lucide-react";
+import { IncidentVisual, incidentTitle } from "./incident-visual";
 export function IncidentDetailModal({
   incident,
   onClose,
@@ -12,6 +15,8 @@ export function IncidentDetailModal({
   onUpdateStatus?: (id: string, status: Incident["status"]) => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const router = useRouter();
+  const { isDemoMode } = useDashboard();
   useEffect(() => {
     if (incident) dialog.current?.showModal();
     else dialog.current?.close();
@@ -27,19 +32,36 @@ export function IncidentDetailModal({
       {incident && (
         <>
           <header>
-            <span
-              className={`rqCommandSeverity ${incident.priorityLevel.toLowerCase()}`}
-            >
-              {incident.priorityLevel}
-            </span>
+            <div className="rqCommandDetailTags">
+              <span
+                className={`rqCommandSeverity ${incident.priorityLevel.toLowerCase()}`}
+              >
+                {incident.priorityLevel}
+              </span>
+              <span className="rqCommandDetailStatus">
+                {incident.status.replaceAll("_", " ")}
+              </span>
+            </div>
             <button aria-label="Close dialog" onClick={onClose}>
               <X size={20} />
             </button>
           </header>
-          <h2 id="modal-incident-title">{incident.description}</h2>
-          <p>
-            {incident.location?.address || "Location verification required"}
-          </p>
+          <div className="rqCommandDetailHero">
+            <IncidentVisual incident={incident} variant="hero" />
+            <div>
+              <p className="rqCommandDetailCategory">
+                <AlertTriangle size={14} aria-hidden="true" /> {incidentTitle(incident)}
+              </p>
+              <h2 id="modal-incident-title">{incident.description}</h2>
+              <p className="rqCommandDetailLocation">
+                <MapPin size={14} aria-hidden="true" />
+                {incident.location?.address || "Location verification required"}
+              </p>
+              <p className="rqCommandDetailReporter">
+                <UserRound size={14} aria-hidden="true" /> Reported by {incident.reporterName}
+              </p>
+            </div>
+          </div>
           <dl>
             <dt>Reported by</dt>
             <dd>{incident.reporterName}</dd>
@@ -83,11 +105,16 @@ export function IncidentDetailModal({
             ))}
           </ul>
           <IncidentOperations key={incident._id} incident={incident} />
-          <footer>
+          <footer style={{ flexWrap: "wrap" }}>
             <p>
               Prototype Decision Support / Human Confirmation Required
               {incident.isSimulated ? " / Simulated incident" : ""}
             </p>
+            <button onClick={() => {
+              const destination = `/dashboard/incidents/${encodeURIComponent(incident._id)}${isDemoMode ? "?demo=true" : ""}`;
+              onClose();
+              router.push(destination);
+            }}>Open full incident workspace</button>
             <button onClick={onClose}>Close</button>
           </footer>
         </>

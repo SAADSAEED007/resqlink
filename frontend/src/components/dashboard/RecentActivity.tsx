@@ -81,7 +81,7 @@ export function RecentActivity({ loading = false }: RecentActivityProps) {
         {MOCK_ACTIVITIES.map((act) => (
           <div
             key={act.id}
-            className="p-2 px-2.5 rounded-lg bg-[var(--command-soft)]/50 hover:bg-[var(--command-soft)] border border-[var(--command-border)] transition-colors flex items-center justify-between gap-3"
+            className="rqActivityRow p-2 px-2.5 rounded-lg bg-[var(--command-soft)]/50 hover:bg-[var(--command-soft)] border border-[var(--command-border)] transition-colors flex items-center justify-between gap-3"
           >
             {/* Left: Time + Icon */}
             <div className="flex items-center gap-2.5 min-w-0">

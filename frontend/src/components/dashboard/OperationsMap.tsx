@@ -2,7 +2,13 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import type { Incident, RescueTeam } from "@/types/api";
 import type { Map as LeafletMap, LayerGroup } from "leaflet";
-import { Maximize2, Minimize2, Plus, Minus, Crosshair } from "lucide-react";
+import Image from "next/image";
+import { Map as MapIcon, Maximize2, Minimize2, Plus, Minus, Crosshair } from "lucide-react";
+import {
+  getIncidentMarkerIcon,
+  getRescueTeamMarkerIcon,
+  LEGEND_ITEMS,
+} from "./map-marker";
 import { useDashboard } from "./dashboard-context";
 interface Props {
   incidents: Incident[];
@@ -13,12 +19,6 @@ interface Props {
   loading?: boolean;
 }
 const center: [number, number] = [24.8607, 67.0011];
-const colors = {
-  CRITICAL: "#e11d38",
-  HIGH: "#d97706",
-  MEDIUM: "#2563eb",
-  LOW: "#64748b",
-};
 export function OperationsMap({
   incidents,
   teams,
@@ -77,7 +77,7 @@ export function OperationsMap({
       ).addTo(instance);
       layers.current = L.layerGroup().addTo(instance);
       observer = new ResizeObserver(() =>
-        instance.invalidateSize({ pan: false }),
+        instance.invalidateSize({ pan: true, animate: false }),
       );
       observer.observe(container.current);
       setReady(true);
@@ -96,12 +96,20 @@ export function OperationsMap({
       layers.current.clearLayers();
       valid.forEach((incident) => {
         const point = incident.location!;
-        const marker = L.circleMarker([point.latitude, point.longitude], {
-          radius: selectedIncident?._id === incident._id ? 12 : 8,
-          color: "#fff",
-          weight: 2,
-          fillColor: colors[incident.priorityLevel],
-          fillOpacity: 1,
+        const marker = L.marker([point.latitude, point.longitude], {
+          icon: getIncidentMarkerIcon(
+            L,
+            incident.priorityLevel,
+            selectedIncident?._id === incident._id,
+          ),
+          title: `${incident.priorityLevel}: ${incident.description}`,
+          alt: `${incident.priorityLevel} incident: ${incident.description}`,
+          zIndexOffset:
+            selectedIncident?._id === incident._id
+              ? 1000
+              : incident.priorityLevel === "CRITICAL"
+                ? 500
+                : 200,
         });
         const text = document.createElement("div");
         text.textContent = `${incident.priorityLevel}: ${incident.description}`;
@@ -120,14 +128,13 @@ export function OperationsMap({
             Math.abs(team.location.longitude) <= 180,
         )
         .forEach((team) => {
-          const marker = L.circleMarker(
+          const marker = L.marker(
             [team.location.latitude, team.location.longitude],
             {
-              radius: 7,
-              color: "#fff",
-              weight: 2,
-              fillColor: team.status === "AVAILABLE" ? "#059669" : "#2563eb",
-              fillOpacity: 1,
+              icon: getRescueTeamMarkerIcon(L, team.status),
+              title: `${team.name}: ${team.status}`,
+              alt: `${team.name}: ${team.status} rescue team`,
+              zIndexOffset: 100,
             },
           );
           const text = document.createElement("div");
@@ -155,13 +162,14 @@ export function OperationsMap({
     >
       <header>
         <div>
-          <h2>Operations Map</h2>
+          <h2><MapIcon size={18} aria-hidden="true" /> Operations Map</h2>
           <p>
             {isDemoMode
               ? "Simulated incident and team positions"
               : "Reported coordinates / not live GPS"}
           </p>
         </div>
+        <span className="rqCommandMapMode">{isDemoMode ? "Demo Data" : "Reported positions"}</span>
         <button
           className="rqCommandIcon"
           title={expanded ? "Exit expanded map" : "Expand map"}
@@ -185,16 +193,19 @@ export function OperationsMap({
         )}
         <div className="rqCommandMapLegend">
           <strong>Map Legend</strong>
-          {Object.entries(colors).map(([level, color]) => (
-            <span key={level}>
-              <i style={{ background: color }} />
-              {level[0] + level.slice(1).toLowerCase()} Incident
+          {LEGEND_ITEMS.map((item) => (
+            <span key={item.kind}>
+              <Image
+                src={item.asset}
+                alt={item.label}
+                className="rqLegendIconImg"
+                width={20}
+                height={20}
+                unoptimized
+              />
+              {item.label}
             </span>
           ))}
-          <span>
-            <i style={{ background: "#059669" }} />
-            Available team
-          </span>
         </div>
         <div className="rqCommandMapControls">
           <button

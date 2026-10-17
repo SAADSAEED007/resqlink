@@ -10,11 +10,14 @@ import {
     AssignmentStatus,
     DashboardQuery,
     ActivityQuery,
+    IncidentActivityQuery,
     DashboardSummary,
     ActivityItem,
     TrendPointHourly,
     TrendPointDaily
 } from './types'
+import { CustomError } from '../../utils/errors'
+
 
 export interface RawIncidentItem {
     _id: unknown
@@ -34,8 +37,23 @@ export interface RawIncidentItem {
         coordinatorId?: unknown
         timestamp?: Date | string
     }>
+    verification?: {
+        status?: string
+        requiresManualReview?: boolean
+        reviewedBy?: unknown
+        reviewedAt?: Date | string | null
+        reviewNotes?: string | null
+    }
+    statusHistory?: Array<{
+        previousStatus?: IncidentStatus
+        newStatus?: IncidentStatus
+        changedBy?: unknown
+        timestamp?: Date | string
+        notes?: string | null
+    }>
     createdAt?: Date | string
 }
+
 
 export interface PopulatedTeamRef {
     _id?: unknown
@@ -122,7 +140,12 @@ export function calculateTrends(incidents: Array<{ createdAt?: Date | string; pr
     return { last24Hours, last7Days }
 }
 
-export function buildActivityTimeline(incidents: RawIncidentItem[], assignments: RawAssignmentItem[], limit = 20): ActivityItem[] {
+export function buildActivityTimeline(
+    incidents: RawIncidentItem[],
+    assignments: RawAssignmentItem[],
+    limit = 20,
+    sortOrder: 'asc' | 'desc' = 'desc'
+): ActivityItem[] {
     const events: ActivityItem[] = []
 
     for (const inc of incidents) {
@@ -152,11 +175,55 @@ export function buildActivityTimeline(incidents: RawIncidentItem[], assignments:
                         title: `Priority override to ${ov.newPriority || 'UNKNOWN'}: "${ov.reason || 'Manual override'}"`,
                         timestamp: new Date(ov.timestamp),
                         priority: ov.newPriority,
+                        actor: ov.coordinatorId ? { id: String(ov.coordinatorId), role: 'coordinator' } : undefined,
                         metadata: {
                             incidentId: String(inc._id),
                             previousPriority: ov.previousPriority || 'UNKNOWN',
                             newPriority: ov.newPriority || 'UNKNOWN',
                             reason: ov.reason || ''
+                        }
+                    })
+                }
+            }
+        }
+
+        if (inc.verification?.reviewedAt) {
+            events.push({
+                id: `ver-${String(inc._id)}-${new Date(inc.verification.reviewedAt).getTime()}`,
+                type: 'VERIFICATION_REVIEWED',
+                title: `Verification reviewed: ${inc.verification.status || 'REVIEWED'}`,
+                timestamp: new Date(inc.verification.reviewedAt),
+                priority: inc.priorityLevel,
+                status: inc.status,
+                actor: inc.verification.reviewedBy ? { id: String(inc.verification.reviewedBy), role: 'coordinator' } : undefined,
+                metadata: {
+                    incidentId: String(inc._id),
+                    verificationStatus: inc.verification.status || '',
+                    requiresManualReview: inc.verification.requiresManualReview,
+                    reviewNotes: inc.verification.reviewNotes || ''
+                }
+            })
+        }
+
+        if (Array.isArray(inc.statusHistory)) {
+            for (const sh of inc.statusHistory) {
+                if (sh.timestamp) {
+                    const isResolved = sh.newStatus === 'RESOLVED'
+                    events.push({
+                        id: `sh-${String(inc._id)}-${new Date(sh.timestamp).getTime()}-${sh.newStatus || ''}`,
+                        type: isResolved ? 'INCIDENT_RESOLVED' : 'STATUS_CHANGED',
+                        title: isResolved
+                            ? `Incident resolved${sh.notes ? `: ${sh.notes}` : ''}`
+                            : `Status changed from ${sh.previousStatus || 'UNKNOWN'} to ${sh.newStatus || 'UNKNOWN'}`,
+                        timestamp: new Date(sh.timestamp),
+                        status: sh.newStatus,
+                        priority: inc.priorityLevel,
+                        actor: sh.changedBy ? { id: String(sh.changedBy), role: 'coordinator' } : undefined,
+                        metadata: {
+                            incidentId: String(inc._id),
+                            previousStatus: sh.previousStatus,
+                            newStatus: sh.newStatus,
+                            notes: sh.notes || ''
                         }
                     })
                 }
@@ -201,7 +268,14 @@ export function buildActivityTimeline(incidents: RawIncidentItem[], assignments:
         }
     }
 
-    events.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+    events.sort((a, b) => {
+        const timeDiff = sortOrder === 'asc'
+            ? a.timestamp.getTime() - b.timestamp.getTime()
+            : b.timestamp.getTime() - a.timestamp.getTime()
+        if (timeDiff !== 0) return timeDiff
+        return a.id.localeCompare(b.id)
+    })
+
     return events.slice(0, limit)
 }
 
@@ -300,7 +374,7 @@ export async function getDashboardSummary(query?: DashboardQuery): Promise<Dashb
         Incident.find(incidentFilter)
             .sort({ createdAt: -1, _id: 1 })
             .limit(10)
-            .select('_id reporterName emergencyType priorityLevel priorityScore status peopleAffected priorityOverrides createdAt')
+            .select('_id reporterName emergencyType priorityLevel priorityScore status peopleAffected priorityOverrides verification statusHistory createdAt')
             .lean(),
         Assignment.find(assignmentFilter)
             .sort({ assignedAt: -1, _id: 1 })
@@ -385,11 +459,16 @@ export async function getDashboardActivity(query?: ActivityQuery): Promise<{ ite
         assignmentFilter.isSimulated = query.isSimulated
     }
 
+    if (query?.incidentId) {
+        incidentFilter._id = query.incidentId
+        assignmentFilter.incidentId = query.incidentId
+    }
+
     const [incidents, assignments] = await Promise.all([
         Incident.find(incidentFilter)
             .sort({ createdAt: -1, _id: 1 })
             .limit(limit)
-            .select('_id reporterName emergencyType priorityLevel priorityScore status peopleAffected priorityOverrides createdAt')
+            .select('_id reporterName emergencyType priorityLevel priorityScore status peopleAffected priorityOverrides verification statusHistory createdAt')
             .lean(),
         Assignment.find(assignmentFilter)
             .sort({ assignedAt: -1, _id: 1 })
@@ -401,4 +480,38 @@ export async function getDashboardActivity(query?: ActivityQuery): Promise<{ ite
 
     const items = buildActivityTimeline(incidents as unknown as RawIncidentItem[], assignments as unknown as RawAssignmentItem[], limit)
     return { items, total: items.length }
+}
+
+export async function getIncidentActivity(
+    id: string,
+    query?: IncidentActivityQuery
+): Promise<{ incidentId: string; items: ActivityItem[]; total: number }> {
+    const incident = await Incident.findById(id)
+        .select('_id reporterName emergencyType priorityLevel priorityScore status peopleAffected priorityOverrides verification statusHistory createdAt isSimulated')
+        .lean()
+
+    if (!incident) {
+        throw new CustomError('Incident not found', 404)
+    }
+
+    const assignments = await Assignment.find({ incidentId: incident._id })
+        .populate('teamId', 'name teamCode status')
+        .populate('incidentId', 'reporterName emergencyType status priorityLevel')
+        .lean()
+
+    const limit = query?.limit || 50
+    const sortOrder = query?.sort || 'desc'
+
+    const items = buildActivityTimeline(
+        [incident as unknown as RawIncidentItem],
+        assignments as unknown as RawAssignmentItem[],
+        limit,
+        sortOrder
+    )
+
+    return {
+        incidentId: String(incident._id),
+        items,
+        total: items.length
+    }
 }

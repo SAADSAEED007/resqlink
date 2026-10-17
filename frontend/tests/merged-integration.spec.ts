@@ -139,6 +139,27 @@ async function openIncident(page: Page) {
   await expect(page.getByRole("dialog")).toBeVisible();
 }
 
+test("incident visuals keep demo imagery separate from live API records", async ({
+  page,
+}) => {
+  await auth(page);
+  await page.goto("/dashboard?demo=true");
+  await expect(
+    page.getByText("Demonstration Mode", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByAltText("Illustrative emergency image for this simulated report").first(),
+  ).toBeVisible();
+  await expect(page.getByText("Illustrative demo image").first()).toBeVisible();
+
+  await setup(page);
+  await openIncident(page);
+  await expect(
+    page.getByAltText("Illustrative emergency image for this simulated report"),
+  ).toHaveCount(0);
+  await expect(page.getByRole("dialog").getByLabel(/category$/)).toBeVisible();
+});
+
 test("merged verification, recommendations, assignment and lifecycle clients use confirmed routes", async ({
   page,
 }) => {
@@ -228,7 +249,7 @@ for (const failure of [400, 409, "network"] as const)
   });
 test("demo incident actions stay read-only", async ({ page }) => {
   const { writes } = await setup(page);
-  await page.goto("/dashboard");
+  await page.goto("/dashboard?demo=true");
   await page.locator(".rqCommandIncident").first().click();
   await expect(page.getByText(/Demo records are read-only/)).toBeVisible();
   await expect(

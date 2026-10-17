@@ -11,8 +11,12 @@ import { CustomError } from '../../utils/errors'
 import * as schema from './validation'
 import * as service from './response.service'
 import * as dashboardService from './dashboard.service'
+<<<<<<< HEAD
 import * as notificationService from './notification.service'
 import { IncidentInput, TeamInput, TeamUpdateInput, IncidentStatus, Priority, VerificationStatus, DashboardQuery, ActivityQuery, NotificationQuery } from './types'
+=======
+import { IncidentInput, TeamInput, TeamUpdateInput, IncidentStatus, Priority, VerificationStatus, DashboardQuery, ActivityQuery, IncidentActivityQuery } from './types'
+>>>>>>> bebda05de0707b921b17159ab4f4321db0ba83d2
 
 const coordinator: RequestHandler = (req, _res, next) => {
     const user = (req as IAuthenticateRequest).authenticatedUser
@@ -129,6 +133,13 @@ router.get(
     })
 )
 router.get(
+    '/incidents/:id/activity',
+    asyncHandler(async (req, res) => {
+        const query = schema.validate<IncidentActivityQuery>(schema.incidentActivityQuerySchema, req.query)
+        httpResponse(res, req, 200, 'Incident activity retrieved', await dashboardService.getIncidentActivity(req.params.id, query))
+    })
+)
+router.get(
     '/incidents/:id/recommendations',
     asyncHandler(async (req, res) => {
         httpResponse(res, req, 200, 'Team recommendations', await service.recommendTeams(req.params.id))
@@ -138,7 +149,8 @@ router.patch(
     '/incidents/:id/status',
     asyncHandler(async (req, res) => {
         const input = schema.validate<{ status: IncidentStatus }>(schema.statusSchema, req.body)
-        httpResponse(res, req, 200, 'Incident status updated', await service.changeStatus(req.params.id, input.status))
+        const user = (req as IAuthenticateRequest).authenticatedUser as IUserWithId
+        httpResponse(res, req, 200, 'Incident status updated', await service.changeStatus(req.params.id, input.status, user ? String(user._id) : undefined))
     })
 )
 router.patch(

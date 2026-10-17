@@ -220,10 +220,10 @@ export function IncidentTrends({ loading = false }: IncidentTrendsProps) {
                 type="monotone"
                 dataKey="low"
                 name="Low"
-                stroke="var(--command-blue)"
+                stroke="var(--command-muted)"
                 strokeWidth={2}
                 fillOpacity={1}
-                fill="url(#colorLow)"
+                fill="none"
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -244,7 +244,7 @@ export function IncidentTrends({ loading = false }: IncidentTrendsProps) {
             <span>Medium</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[var(--command-blue)]" />
+            <span className="w-2 h-2 rounded-full bg-[var(--command-muted)]" />
             <span>Low</span>
           </div>
         </div>

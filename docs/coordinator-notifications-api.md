@@ -254,3 +254,4 @@ For the frontend team connecting the Emergency Operations Command Center navbar 
 4. **"Mark all as read" Button:**
    - Call `PATCH /api/notifications/read-all`.
    - Optimistically reset the badge count to `0`.
+

@@ -23,7 +23,18 @@ const overrideSchema = new Schema(
     },
     { _id: false }
 )
+const statusHistorySchema = new Schema(
+    {
+        previousStatus: { type: String, enum: INCIDENT_STATUSES, required: true },
+        newStatus: { type: String, enum: INCIDENT_STATUSES, required: true },
+        changedBy: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+        timestamp: { type: Date, default: Date.now, required: true },
+        notes: { type: String, trim: true, maxlength: 1000, default: null }
+    },
+    { _id: false }
+)
 const verificationSchema = new Schema(
+
     {
         status: { type: String, enum: VERIFICATION_STATUSES, default: 'NEEDS_REVIEW', required: true },
         requiresManualReview: { type: Boolean, default: false, required: true },
@@ -57,7 +68,9 @@ const schema = new Schema(
         assignedTeam: { type: Schema.Types.ObjectId, ref: 'RescueTeam', default: null },
         priorityOverrides: { type: [overrideSchema], default: [] },
         verification: { type: verificationSchema, required: true },
+        statusHistory: { type: [statusHistorySchema], default: [] },
         isSimulated: { type: Boolean, default: false, required: true },
+
         demoKey: { type: String }
     },
     { timestamps: true, optimisticConcurrency: true }
