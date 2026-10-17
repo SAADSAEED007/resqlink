@@ -1,0 +1,819 @@
+.rqSosRoot {
+  --sos-navy: #061425;
+  --sos-slate: #0b1d33;
+  --sos-red: #dc2638;
+  --sos-red-hover: #c51d2e;
+  --sos-ink: #112238;
+  --sos-muted: #53647a;
+  --sos-line: #e1e7ee;
+  --sos-soft: #f6f8fb;
+  --sos-blue: #2563eb;
+  --sos-white: #fff;
+  --sos-danger: #a51c2b;
+  min-height: 100svh;
+  background: var(--sos-navy);
+  color: var(--sos-white);
+  padding-bottom: 4rem;
+}
+.rqSosNav {
+  max-width: 1320px;
+  margin-inline: auto;
+  padding: 1.5rem 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+.rqSosNav > a:first-child {
+  width: 245px;
+  display: block;
+}
+.rqSosNav img {
+  width: 100%;
+  height: auto;
+}
+.rqSosNav > a:last-child {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #d0dceb;
+  font-size: 0.8125rem;
+  min-height: 44px;
+}
+.rqSosLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 600px);
+  gap: 5rem;
+  width: min(100%, 1320px);
+  margin-inline: auto;
+  padding: 2rem 3rem;
+  align-items: start;
+}
+.rqSosStory {
+  padding-top: 3rem;
+}
+.rqSosStoryLabel {
+  color: #a9bdd6;
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+}
+.rqSosStory h2 {
+  font-size: clamp(3rem, 4.5vw, 4.5rem);
+  line-height: 1.05;
+  font-weight: 650;
+  letter-spacing: -0.055em;
+  margin-top: 1.75rem;
+}
+.rqSosStory > p {
+  color: #bdcce0;
+  max-width: 28rem;
+  font-size: 1rem;
+  line-height: 1.8;
+  margin-top: 1.5rem;
+}
+.rqSosStory ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 2rem;
+  margin-top: 3rem;
+}
+.rqSosStory li {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+.rqSosStory li > svg {
+  width: 22px;
+  color: #78abef;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+.rqSosStory strong {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 550;
+}
+.rqSosStory li span {
+  display: block;
+  max-width: 23rem;
+  margin-top: 0.4rem;
+  color: #b3c3d8;
+  font-size: 0.8125rem;
+  line-height: 1.8;
+}
+.rqSosStory .rqSosPrivacy {
+  font-size: 0.75rem;
+  border-top: 1px solid #27384e;
+  padding-top: 1.5rem;
+  margin-top: 3rem;
+}
+.rqSosPanel {
+  min-width: 0;
+  background: var(--sos-white);
+  color: var(--sos-ink);
+  border-radius: 1.5rem;
+  overflow: clip;
+  box-shadow: 0 24px 80px rgb(0 0 0 / 15%);
+}
+.rqSosAppHeader {
+  padding: 1.25rem 1.75rem;
+  border-bottom: 1px solid var(--sos-line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.rqSosAppHeader > span {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  background: #fff4f4;
+  color: var(--sos-danger);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 0.35rem 0.55rem;
+  border-radius: 0.5rem;
+}
+.rqSosAppContent {
+  padding: 2rem 2rem 1.5rem;
+}
+.rqSosTitle h1 {
+  font-size: clamp(1.6rem, 2.1vw, 2rem);
+  line-height: 1.2;
+  font-weight: 650;
+  letter-spacing: -0.045em;
+  scroll-margin-top: 1.5rem;
+}
+.rqSosTitle p {
+  color: var(--sos-muted);
+  font-size: 0.875rem;
+  line-height: 1.7;
+  margin-top: 0.65rem;
+}
+.rqSosDemoLabel {
+  margin: 1.25rem 0 -0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 550;
+  color: var(--sos-danger);
+  text-align: center;
+}
+.rqSosEmergency {
+  display: block;
+  width: 260px;
+  height: 260px;
+  margin: 0.25rem auto 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  position: relative;
+  cursor: pointer;
+  transition: transform 160ms ease;
+}
+.rqSosEmergency img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.rqSosEmergency:hover {
+  transform: scale(1.035);
+}
+.rqSosEmergency:active {
+  transform: scale(0.98);
+}
+.rqSosEmergency:focus-visible {
+  outline: 3px solid var(--sos-blue);
+  outline-offset: 4px;
+}
+.rqSosAnyone {
+  text-align: center;
+  font-weight: 550;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+.rqSosSmall {
+  color: var(--sos-muted);
+  text-align: center;
+  font-size: 0.75rem;
+  line-height: 1.7;
+  margin-top: 0.5rem;
+}
+.rqSosShortcuts {
+  display: grid;
+  gap: 0.625rem;
+  margin-top: 1.75rem;
+}
+.rqSosShortcuts button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 52px;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--sos-line);
+  border-radius: 0.7rem;
+  background: var(--sos-white);
+  color: var(--sos-ink);
+  text-align: left;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+.rqSosShortcuts button:hover {
+  background: var(--sos-soft);
+  border-color: #b4c4d8;
+}
+.rqSosShortcuts button > svg:first-child {
+  color: var(--sos-blue);
+  flex-shrink: 0;
+}
+.rqSosShortcuts button > svg:last-child,
+.rqSosUnavailable {
+  margin-left: auto;
+}
+.rqSosUnavailable {
+  color: var(--sos-muted);
+  font-size: 0.625rem;
+  white-space: nowrap;
+}
+.rqSosActions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+  padding-block: 0.75rem;
+  position: relative;
+  background: var(--sos-white);
+  border-top: 1px solid var(--sos-line);
+}
+.rqSosActions .rqSosPrimary {
+  flex: 1;
+}
+.rqSosRoot .rqSosPrimary {
+  background: var(--sos-red);
+  color: var(--sos-white);
+  border-color: transparent;
+  min-height: 48px;
+  border-radius: 0.7rem;
+}
+.rqSosRoot .rqSosPrimary:hover {
+  background: var(--sos-red-hover);
+}
+.rqSosPrototype {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  background: #fff7f7;
+  color: var(--sos-muted);
+  border: 1px solid #f5dce0;
+  border-radius: 0.7rem;
+  padding: 1rem;
+  margin-top: 1.5rem;
+}
+.rqSosPrototype > svg {
+  color: var(--sos-danger);
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+}
+.rqSosPrototype p {
+  font-size: 0.6875rem;
+  line-height: 1.8;
+}
+.rqSosPrototype strong {
+  color: var(--sos-danger);
+  font-weight: 600;
+}
+.rqSosPanelFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  border-top: 1px solid var(--sos-line);
+  color: var(--sos-muted);
+  font-size: 0.625rem;
+}
+.rqSosProgress {
+  display: flex;
+  padding: 0;
+  list-style: none;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0 0 2rem;
+}
+.rqSosProgress li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--sos-muted);
+}
+.rqSosProgress li > span {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border: 1px solid var(--sos-line);
+  border-radius: 50%;
+  font-size: 0.6875rem;
+}
+.rqSosProgress li[aria-current] {
+  color: var(--sos-red);
+  font-weight: 600;
+}
+.rqSosProgress li[aria-current] > span {
+  color: var(--sos-white);
+  background: var(--sos-red);
+  border-color: var(--sos-red);
+}
+.rqSosStepBody {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+.rqSosIntro {
+  color: var(--sos-muted);
+  font-size: 0.875rem;
+  line-height: 1.8;
+}
+.rqSosFormFields {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.rqSosFormFields:disabled {
+  opacity: 0.8;
+}
+.rqSosFieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+.rqSosRoot .control {
+  min-height: 48px;
+  font-size: 1rem;
+}
+.rqSosRoot .form-field > label {
+  font-size: 0.8125rem;
+}
+.rqSosRoot .helper {
+  font-size: 0.75rem;
+  line-height: 1.7;
+}
+.rqSosRoot .textarea {
+  min-height: 7rem;
+}
+.rqSosFieldset {
+  border: 1px solid var(--sos-line);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  min-width: 0;
+}
+.rqSosFieldset legend {
+  font-size: 0.8125rem;
+  font-weight: 550;
+  padding-inline: 0.4rem;
+}
+.rqSosFieldset > .helper {
+  margin-bottom: 1rem;
+}
+.rqSosRadioRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+}
+.rqSosChoice {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  min-height: 44px;
+  padding-block: 0.5rem;
+  color: var(--sos-ink);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+.rqSosChoice input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: var(--sos-red);
+  margin-top: 0.2rem;
+}
+.rqSosChoice .helper {
+  display: block;
+  margin-top: 0.3rem;
+}
+.rqSosLocationOptions {
+  display: grid;
+  gap: 0.75rem;
+}
+.rqSosLocationOptions .button {
+  justify-content: flex-start;
+}
+.rqSosLocationSummary {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 1rem;
+  border: 1px solid #dce8fb;
+  background: #f2f7ff;
+  border-radius: 0.7rem;
+  color: #244c7c;
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+.rqSosLocationSummary svg {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+.rqSosInlineNotice {
+  color: #754215;
+  background: #fffaef;
+  border: 1px solid #efdfbd;
+  padding: 0.9rem 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  border-radius: 0.7rem;
+}
+.rqSosDisclosure {
+  border: 1px solid var(--sos-line);
+  border-radius: 0.7rem;
+  padding: 0.25rem 1rem;
+}
+.rqSosDisclosure summary {
+  min-height: 44px;
+  padding-block: 0.65rem;
+  color: var(--sos-muted);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+.rqSosDisclosure > div {
+  padding-block: 0.75rem;
+}
+.rqSosMapPicker {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.rqSosMap {
+  width: 100%;
+  height: 300px;
+  border-radius: 0.75rem;
+  border: 1px solid var(--sos-line);
+  z-index: 0;
+  background: #eaf0f5;
+}
+.rqSosMap .leaflet-control-attribution {
+  font-size: 12px;
+  color: #253a4c;
+}
+.rqSosMap .leaflet-control-attribution a {
+  color: #154d92;
+}
+.rqSosMap .leaflet-control-zoom a {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+  color: var(--sos-ink);
+}
+.rqSosMapMarker {
+  background: transparent;
+  border: 0;
+}
+.rqSosMapMarker span {
+  display: block;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--sos-red);
+  border: 4px solid white;
+  box-shadow: 0 2px 8px #40516980;
+}
+.rqSosReviewCard {
+  border: 1px solid var(--sos-line);
+  padding: 1.25rem;
+  border-radius: 0.8rem;
+}
+.rqSosReviewTitle {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.rqSosReviewTitle h2 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.rqSosReviewCard > p {
+  font-size: 0.875rem;
+  line-height: 1.8;
+}
+.rqSosReviewWarning {
+  color: #895419;
+  margin-top: 0.75rem;
+}
+.rqSosReviewList {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 0.75rem 1rem;
+  font-size: 0.8125rem;
+  margin: 0;
+}
+.rqSosReviewList dt {
+  color: var(--sos-muted);
+}
+.rqSosReviewList dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.rqSosReviewPair {
+  display: contents;
+}
+.rqSosReviewCard h3 {
+  font-size: 0.875rem;
+  margin: 1.5rem 0 0.5rem;
+  font-weight: 600;
+}
+.rqSosReportText {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.rqSosSubmissionError {
+  padding: 1rem;
+  background: #fff4f4;
+  border: 1px solid #dfb9bf;
+  color: var(--sos-danger);
+  border-radius: 0.75rem;
+  margin-top: 1.5rem;
+}
+.rqSosSubmissionError h2 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+.rqSosSubmissionError p {
+  font-size: 0.8125rem;
+  line-height: 1.8;
+}
+.rqSosSuccess {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+.rqSosSuccess > svg {
+  color: #167344;
+}
+.rqSosSuccess > p {
+  font-size: 0.9375rem;
+  line-height: 1.8;
+}
+.rqSosSuccess > div {
+  padding: 1rem;
+  border: 1px solid var(--sos-line);
+  background: var(--sos-soft);
+  border-radius: 0.75rem;
+}
+.rqSosSuccess > div span {
+  font-size: 0.625rem;
+  color: var(--sos-muted);
+  letter-spacing: 0.1em;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.rqSosSuccess strong {
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+  font-family: monospace;
+}
+.rqSosReturn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--sos-blue);
+  min-height: 44px;
+  font-size: 0.875rem;
+  font-weight: 550;
+}
+.rqSosMediaDialog {
+  width: min(420px, calc(100% - 2.5rem));
+  margin: auto;
+  border: 1px solid var(--sos-line);
+  border-radius: 1rem;
+  padding: 2rem;
+  color: var(--sos-ink);
+  background: var(--sos-white);
+}
+.rqSosMediaDialog::backdrop {
+  background: rgb(6 20 37 / 65%);
+}
+.rqSosMediaDialog h2 {
+  font-size: 1.4rem;
+  margin: 1rem 0;
+}
+.rqSosMediaDialog p {
+  color: var(--sos-muted);
+  font-size: 0.875rem;
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+}
+.rqSosDialogClose {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+}
+.rqSosRoot :focus-visible {
+  outline: 3px solid var(--sos-blue);
+  outline-offset: 4px;
+}
+@media (max-width: 1099px) {
+  .rqSosLayout {
+    gap: 2.5rem;
+    padding-inline: 2rem;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 540px);
+  }
+  .rqSosNav {
+    padding-inline: 2rem;
+  }
+  .rqSosStory h2 {
+    font-size: 3rem;
+  }
+}
+@media (max-width: 899px) {
+  .rqSosLayout {
+    grid-template-columns: minmax(0, 600px);
+    justify-content: center;
+    padding-top: 1rem;
+  }
+  .rqSosStory {
+    display: none;
+  }
+}
+@media (max-width: 599px) {
+  .rqSosRoot {
+    padding: 0;
+    background: var(--sos-white);
+  }
+  .rqSosNav {
+    display: none;
+  }
+  .rqSosLayout {
+    display: block;
+    padding: 0;
+  }
+  .rqSosPanel {
+    border-radius: 0;
+    box-shadow: none;
+    min-height: 100svh;
+  }
+  .rqSosAppHeader {
+    padding: 1rem 1.25rem;
+  }
+  .rqSosAppHeader .brand {
+    font-size: 1.35rem;
+  }
+  .rqSosAppContent {
+    padding: 1.5rem 1.25rem;
+  }
+  .rqSosTitle h1 {
+    font-size: 1.65rem;
+  }
+  .rqSosEmergency {
+    width: 245px;
+    height: 245px;
+  }
+  .rqSosFieldGrid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  .rqSosReviewTitle {
+    gap: 0.5rem;
+  }
+  .rqSosReviewTitle .button {
+    font-size: 0.75rem;
+    padding-inline: 0.5rem;
+  }
+  .rqSosReviewCard {
+    padding: 1rem;
+  }
+  .rqSosPanelFooter {
+    padding-inline: 1.25rem;
+  }
+  .rqSosActions {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+  .rqSosActions .button {
+    font-size: 0.8125rem;
+    padding-inline: 0.85rem;
+    white-space: normal;
+  }
+  .rqSosShortcuts button {
+    font-size: 0.75rem;
+    padding-inline: 0.875rem;
+  }
+  .rqSosProgress {
+    gap: 0.25rem;
+  }
+  .rqSosProgress li {
+    font-size: 0.6875rem;
+    gap: 0.35rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rqSosEmergency:hover,
+  .rqSosEmergency:active {
+    transform: none;
+  }
+}
+
+/* Desktop form workspace. Mobile and tablet retain their existing layout. */
+@media (min-width: 1100px) {
+  .rqSosNav {
+    max-width: 1440px;
+    padding: 1.25rem 3rem;
+  }
+  .rqSosNav > a:first-child { width: 205px; }
+  .rqSosLayout {
+    width: min(100%, 1440px);
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 3rem;
+    padding-top: 1.25rem;
+  }
+  .rqSosStory {
+    position: sticky;
+    top: 2rem;
+    padding-top: 2rem;
+  }
+  .rqSosStory h2 {
+    font-size: 2.75rem;
+    line-height: 1.12;
+    letter-spacing: -0.045em;
+    margin-top: 1.25rem;
+  }
+  .rqSosStory > p { font-size: 0.875rem; line-height: 1.8; }
+  .rqSosStory ul { gap: 1.5rem; margin-top: 2rem; }
+  .rqSosStory li { gap: 0.75rem; }
+  .rqSosStory strong { font-size: 0.8125rem; }
+  .rqSosStory li span { font-size: 0.75rem; line-height: 1.7; }
+  .rqSosStory .rqSosPrivacy { margin-top: 2rem; font-size: 0.6875rem; }
+  .rqSosPanel { border-radius: 1.125rem; }
+  .rqSosAppHeader { padding: 1.125rem 2.5rem; }
+  .rqSosAppContent { padding: 2rem 2.5rem; }
+  .rqSosTitle h1 { font-size: 1.875rem; }
+  .rqSosProgress {
+    justify-content: flex-start;
+    gap: 0;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--sos-line);
+    margin-bottom: 1.75rem;
+  }
+  .rqSosProgress li { flex: 1; font-size: 0.8125rem; gap: 0.625rem; }
+  .rqSosProgress li:not(:last-child)::after {
+    content: "";
+    height: 1px;
+    background: var(--sos-line);
+    flex: 1;
+    margin-inline: 1rem;
+  }
+  .rqSosProgress li > span { width: 30px; height: 30px; flex-shrink: 0; }
+  .rqSosDetails {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem 1.75rem;
+    align-items: start;
+  }
+  .rqSosDetails > * { grid-column: 1 / -1; min-width: 0; }
+  .rqSosDetails > .form-field:has(input[name="reporterName"]),
+  .rqSosDetails > .form-field:has(select):not(:has(textarea)),
+  .rqSosDetails > .form-field:has(input[name="reporterPhone"]) {
+    grid-column: auto;
+  }
+  .rqSosDetails > .rqSosFieldGrid { grid-column: 1 / -1; }
+  .rqSosDetails > .rqSosFieldset .rqSosFieldGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .rqSosDetails > .rqSosFieldset { padding: 1rem 1.25rem; }
+  .rqSosDetails > .rqSosFieldset:first-of-type {
+    background: var(--sos-soft);
+  }
+  .rqSosDetails > .button { justify-self: start; }
+  .rqSosLocationOptions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .rqSosLocationOptions .button {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    white-space: normal;
+    padding: 1rem;
+    font-size: 0.8125rem;
+    min-height: 90px;
+  }
+  .rqSosShortcuts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rqSosActions { align-items: center; margin-top: 2rem; padding-top: 1.25rem; }
+  .rqSosActions .rqSosPrimary { flex: 0 1 auto; margin-left: auto; min-width: 240px; }
+  .rqSosPrototype { padding: 0.875rem 1rem; }
+  .rqSosPanelFooter { padding-inline: 2.5rem; }
+  .rqSosReviewList { grid-template-columns: minmax(160px, 1fr) 2fr; }
+}

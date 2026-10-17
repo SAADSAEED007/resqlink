@@ -115,7 +115,7 @@ test("existing anchor and showcase CTA reach real content", async ({
   await page.getByRole("link", { name: "See ResQLink in Action" }).click();
   await expect(page).toHaveURL(/\/sos$/);
   await expect(
-    page.getByRole("heading", { name: "The request portal is coming soon" }),
+    page.getByRole("heading", { name: "Report an Emergency" }),
   ).toBeVisible();
 });
 test("showcase respects reduced motion and retains prototype context", async ({
