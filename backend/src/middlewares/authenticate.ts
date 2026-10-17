@@ -6,10 +6,16 @@ import query from '../APIs/user/_shared/repo/user.repository'
 import asyncHandler from '../handlers/async'
 import { CustomError } from '../utils/errors'
 
+const unsafeMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
+
 export default asyncHandler(async (request: Request, _response, next) => {
     const req = request as IAuthenticateRequest
     const cookies = req.cookies as { accessToken?: string } | undefined
     if (!cookies?.accessToken) throw new CustomError('Authentication required', 401)
+    if (config.IS_PRODUCTION && unsafeMethods.has(request.method)) {
+        const origin = request.get('origin')
+        if (!origin || !config.TRUSTED_ORIGINS.includes(origin)) throw new CustomError('Untrusted request origin', 403)
+    }
     let payload: IDecryptedJwt
     try {
         payload = jwt.verifyToken(cookies.accessToken, config.TOKENS.ACCESS.SECRET) as IDecryptedJwt

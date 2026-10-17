@@ -11,19 +11,25 @@ import notFound from './handlers/notFound'
 import helmet from 'helmet'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
+import { CustomError } from './utils/errors'
 
 const app: Application = express()
+const corsOptions: cors.CorsOptions = {
+    methods: ['GET', 'POST', 'DELETE', 'OPTIONS', 'HEAD', 'PUT', 'PATCH'],
+    allowedHeaders: ['Accept', 'Content-Type'],
+    credentials: true,
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, false)
+        if (config.TRUSTED_ORIGINS.includes(origin)) return callback(null, true)
+        return callback(new CustomError('Origin is not allowed', 403))
+    },
+    optionsSuccessStatus: 204
+}
 
 //Middlewares
 app.use(helmet())
 app.use(cookieParser())
-app.use(
-    cors({
-        methods: ['GET', 'POST', 'DELETE', 'OPTIONS', 'HEAD', 'PUT', 'PATCH'],
-        origin: [config.FRONTEND_URL],
-        credentials: true
-    })
-)
+app.use(cors(corsOptions))
 app.use(express.json({ limit: '32kb' }))
 app.use(express.static(path.join(__dirname, '../', 'public')))
 
