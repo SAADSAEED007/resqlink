@@ -12,3 +12,13 @@ coverage/
 .vercel/
 .DS_Store
 Thumbs.db
+
+out/
+*.pem
+*.key
+*.pfx
+*.p12
+.eslintcache
+.turbo/
+
+audit-report.json
