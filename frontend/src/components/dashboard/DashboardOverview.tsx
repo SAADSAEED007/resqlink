@@ -10,10 +10,6 @@ import { RecentActivity } from "./RecentActivity";
 import { IncidentDetailModal } from "./IncidentDetailModal";
 import { MOCK_TRENDS_24H } from "./mock-data";
 import {
-  Flame,
-  AlertTriangle,
-  Users,
-  CheckCircle2,
   RefreshCw,
   AlertOctagon,
 } from "lucide-react";
@@ -108,8 +104,7 @@ export function DashboardOverview() {
           value={stats.activeIncidents}
           trendText="Open reports"
           trendColor="red"
-          icon={<Flame className="w-5 h-5 text-[var(--command-red)]" />}
-          iconBgColor="rgba(240, 68, 82, 0.15)"
+          iconSrc="/images/icons/kpi-active-incidents.webp"
           sparklinePoints={isDemoMode ? MOCK_TRENDS_24H.map(point => point.critical + point.high + point.medium + point.low) : undefined}
           sparklineColor="#ee354b"
           loading={loading && !isDemoMode}
@@ -120,10 +115,7 @@ export function DashboardOverview() {
           value={stats.criticalCases}
           trendText="Needs priority review"
           trendColor="amber"
-          icon={
-            <AlertTriangle className="w-5 h-5 text-[var(--command-amber)]" />
-          }
-          iconBgColor="rgba(245, 185, 66, 0.15)"
+          iconSrc="/images/icons/kpi-critical-cases.webp"
           sparklinePoints={isDemoMode ? MOCK_TRENDS_24H.map(point => point.critical) : undefined}
           sparklineColor="#f6bf69"
           loading={loading && !isDemoMode}
@@ -135,8 +127,7 @@ export function DashboardOverview() {
           secondaryValue={`/ ${stats.totalTeams}`}
           trendText={`${stats.busyTeams} teams on mission`}
           trendColor="muted"
-          icon={<Users className="w-5 h-5 text-[var(--command-green)]" />}
-          iconBgColor="rgba(24, 199, 133, 0.15)"
+          iconSrc="/images/icons/kpi-available-teams.webp"
           loading={loading && !isDemoMode}
         />
 
@@ -145,8 +136,7 @@ export function DashboardOverview() {
           value={stats.resolvedToday}
           trendText="Resolved records updated today"
           trendColor="blue"
-          icon={<CheckCircle2 className="w-5 h-5 text-[var(--command-blue)]" />}
-          iconBgColor="rgba(35, 120, 246, 0.15)"
+          iconSrc="/images/icons/kpi-resolved-today.webp"
           loading={loading && !isDemoMode}
         />
       </section>
