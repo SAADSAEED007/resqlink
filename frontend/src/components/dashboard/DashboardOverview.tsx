@@ -15,7 +15,6 @@ import {
   CheckCircle2,
   RefreshCw,
   AlertOctagon,
-  Sparkles,
 } from "lucide-react";
 
 export function DashboardOverview() {
@@ -33,64 +32,64 @@ export function DashboardOverview() {
     refresh,
     isRefreshing,
     stats,
+    lastUpdated,
   } = useDashboard();
-
-  // Sparkline mock trends matching screenshot
-  const activeIncidentsPoints = [8, 9, 7, 10, 11, 9, 13, 12];
-  const criticalCasesPoints = [2, 3, 2, 4, 3, 5, 4, 4];
-  const availableTeamsPoints = [7, 7, 6, 6, 5, 6, 7, 6];
-  const resolvedPoints = [10, 12, 13, 15, 14, 16, 17, 18];
 
   return (
     <div className="space-y-4">
-      {/* Simulation / Demo Mode Banner if active */}
-      {isDemoMode && (
-        <div className="bg-[#122A45]/80 border border-[#2378F6]/30 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 text-xs text-[#EAF3FF] backdrop-blur-md">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-[#2378F6] shrink-0" />
-            <span>
-              <strong>Demonstration Mode:</strong> Displaying simulated Karachi flood response data. Realistic coordinates, teams, and priority queues are loaded for presentation.
-            </span>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => setIsDemoMode(false)}
-              className="text-[11px] underline text-[#91A8C2] hover:text-[#EAF3FF]"
-            >
-              Switch to Live API
-            </button>
-            <button
-              onClick={() => void refresh()}
-              disabled={isRefreshing}
-              className="p-1 rounded bg-[#07182B] hover:bg-[#10253F] text-[#91A8C2] hover:text-[#EAF3FF] transition-colors"
-              title="Refresh Data"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
-            </button>
-          </div>
+      <div className="rqCommandMode" role="status">
+        <span>
+          <strong>{isDemoMode ? "Demonstration Mode" : "API records"}</strong>{" "}
+          &middot;{" "}
+          {isDemoMode
+            ? "Showing simulated emergency response data"
+            : "Loaded API records / refreshes every 7 seconds"}
+        </span>
+        <div>
+          <small>
+            {!isDemoMode && lastUpdated
+              ? `Updated ${new Date(lastUpdated).toLocaleTimeString()}`
+              : ""}
+          </small>
+          <button onClick={() => setIsDemoMode(!isDemoMode)}>
+            {isDemoMode ? "Connect to API" : "Use demo data"}
+          </button>
+          <button
+            aria-label="Refresh data"
+            title={isDemoMode ? "Demo data is a fixed snapshot" : "Refresh data"}
+            disabled={isRefreshing || isDemoMode}
+            onClick={() => void refresh()}
+          >
+            <RefreshCw
+              size={16}
+              className={isRefreshing ? "animate-spin" : ""}
+            />
+          </button>
         </div>
-      )}
+      </div>
 
       {/* Error State Banner if live API fails */}
       {error && !isDemoMode && (
-        <div className="bg-[#F04452]/10 border border-[#F04452]/30 rounded-xl p-4 flex items-center justify-between gap-4 text-xs text-[#EAF3FF]">
+        <div className="bg-[var(--command-red)]/10 border border-[var(--command-red)]/30 rounded-xl p-4 flex items-center justify-between gap-4 text-xs text-[var(--command-ink)]">
           <div className="flex items-center gap-2.5">
-            <AlertOctagon className="w-5 h-5 text-[#F04452] shrink-0" />
+            <AlertOctagon className="w-5 h-5 text-[var(--command-red)] shrink-0" />
             <div>
-              <p className="font-semibold text-[#F04452]">Backend API Connection Unavailable</p>
-              <p className="text-[#91A8C2]">{error}</p>
+              <p className="font-semibold text-[var(--command-red)]">
+                Backend API Connection Unavailable
+              </p>
+              <p className="text-[var(--command-muted)]">{error}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => void refresh()}
-              className="px-3 py-1.5 rounded-lg bg-[#122A45] hover:bg-[#183659] text-xs font-medium text-[#EAF3FF] transition-colors"
+              className="px-3 py-1.5 rounded-lg bg-[var(--command-soft)] hover:bg-[var(--command-soft)] text-xs font-medium text-[var(--command-ink)] transition-colors"
             >
               Try Again
             </button>
             <button
               onClick={() => setIsDemoMode(true)}
-              className="px-3 py-1.5 rounded-lg bg-[#2378F6] hover:bg-[#1D65D4] text-xs font-semibold text-white transition-colors"
+              className="px-3 py-1.5 rounded-lg bg-[var(--command-blue)] hover:bg-[#1D65D4] text-xs font-semibold text-white transition-colors"
             >
               Load Demo Data
             </button>
@@ -99,30 +98,29 @@ export function DashboardOverview() {
       )}
 
       {/* 1. TOP KPI METRICS GRID */}
-      <section aria-label="Key Performance Indicators" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5">
+      <section
+        aria-label="Key Performance Indicators"
+        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"
+      >
         <MetricCard
           label="Active Incidents"
           value={stats.activeIncidents}
-          trendText="+33% vs. previous 24h"
-          trendDirection="up"
+          trendText="Open reports"
           trendColor="red"
-          icon={<Flame className="w-5 h-5 text-[#F04452]" />}
+          icon={<Flame className="w-5 h-5 text-[var(--command-red)]" />}
           iconBgColor="rgba(240, 68, 82, 0.15)"
-          sparklinePoints={activeIncidentsPoints}
-          sparklineColor="#F04452"
           loading={loading && !isDemoMode}
         />
 
         <MetricCard
           label="Critical Cases"
           value={stats.criticalCases}
-          trendText="+2 requiring immediate response"
-          trendDirection="up"
+          trendText="Needs priority review"
           trendColor="amber"
-          icon={<AlertTriangle className="w-5 h-5 text-[#F5B942]" />}
+          icon={
+            <AlertTriangle className="w-5 h-5 text-[var(--command-amber)]" />
+          }
           iconBgColor="rgba(245, 185, 66, 0.15)"
-          sparklinePoints={criticalCasesPoints}
-          sparklineColor="#F5B942"
           loading={loading && !isDemoMode}
         />
 
@@ -132,31 +130,29 @@ export function DashboardOverview() {
           secondaryValue={`/ ${stats.totalTeams}`}
           trendText={`${stats.busyTeams} teams on mission`}
           trendColor="muted"
-          icon={<Users className="w-5 h-5 text-[#18C785]" />}
+          icon={<Users className="w-5 h-5 text-[var(--command-green)]" />}
           iconBgColor="rgba(24, 199, 133, 0.15)"
-          sparklinePoints={availableTeamsPoints}
-          sparklineColor="#18C785"
           loading={loading && !isDemoMode}
         />
 
         <MetricCard
           label="Resolved Today"
           value={stats.resolvedToday}
-          trendText="+50% successfully closed"
-          trendDirection="up"
+          trendText="Resolved records updated today"
           trendColor="blue"
-          icon={<CheckCircle2 className="w-5 h-5 text-[#2378F6]" />}
+          icon={<CheckCircle2 className="w-5 h-5 text-[var(--command-blue)]" />}
           iconBgColor="rgba(35, 120, 246, 0.15)"
-          sparklinePoints={resolvedPoints}
-          sparklineColor="#2378F6"
           loading={loading && !isDemoMode}
         />
       </section>
 
       {/* 2. MIDDLE SECTION: OPERATIONS MAP + PRIORITY QUEUE */}
-      <section aria-label="Operations Overview" className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
+      <section
+        aria-label="Operations Overview"
+        className="grid grid-cols-1 lg:grid-cols-12 gap-4"
+      >
         {/* Left: Operations Map (~68% width) */}
-        <div className="lg:col-span-8">
+        <div className="lg:col-span-8 min-w-0">
           <OperationsMap
             incidents={filteredIncidents}
             teams={filteredTeams}
@@ -168,7 +164,7 @@ export function DashboardOverview() {
         </div>
 
         {/* Right: Priority Incident Queue (~32% width) */}
-        <div className="lg:col-span-4">
+        <div className="lg:col-span-4 min-w-0">
           <PriorityIncidentQueue
             incidents={filteredIncidents}
             selectedIncident={selectedIncident}
@@ -179,7 +175,10 @@ export function DashboardOverview() {
       </section>
 
       {/* 3. BOTTOM SECTION: RESCUE TEAMS + TRENDS + RECENT ACTIVITY */}
-      <section aria-label="Operations Analytics and Activity" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+      <section
+        aria-label="Operations Analytics and Activity"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+      >
         <RescueTeamAvailability
           teams={filteredTeams}
           selectedTeam={selectedTeam}
@@ -187,10 +186,44 @@ export function DashboardOverview() {
           loading={loading && !isDemoMode}
         />
 
-        <IncidentTrends loading={loading && !isDemoMode} />
+        {isDemoMode ? (
+          <IncidentTrends loading={false} />
+        ) : (
+          <section className="rqCommandCard rqCommandEmpty">
+            <h2>Incident Trends</h2>
+            <p>Historical trend data is not available from the current API.</p>
+          </section>
+        )}
 
-        <RecentActivity loading={loading && !isDemoMode} />
+        {isDemoMode ? (
+          <RecentActivity loading={false} />
+        ) : (
+          <section className="rqCommandCard rqCommandEmpty">
+            <h2>Recent Activity &amp; Assignments</h2>
+            <p>An activity feed is not available from the current API.</p>
+          </section>
+        )}
       </section>
+
+      {selectedTeam && (
+        <section className="rqCommandCard rqCommandTeamDetail">
+          <div>
+            <h2>{selectedTeam.name}</h2>
+            <p>
+              {selectedTeam.status} /{" "}
+              {selectedTeam.capabilities.join(", ").replaceAll("_", " ")}
+            </p>
+            <p>
+              {selectedTeam.location?.address || "Location not reported"} /
+              Capacity: {selectedTeam.capacity ?? "Unknown"}
+            </p>
+            <small>Reported position only. No live GPS feed.</small>
+          </div>
+          <button onClick={() => setSelectedTeam(null)}>
+            Close team details
+          </button>
+        </section>
+      )}
 
       {/* Interactive Detail Modal */}
       <IncidentDetailModal
