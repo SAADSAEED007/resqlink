@@ -10,6 +10,8 @@ import { useToast } from "@/components/feedback/toast";
 import { errorMessage } from "@/lib/api/client";
 import { useDashboard } from "@/components/dashboard/dashboard-context";
 import {
+  Moon,
+  Sun,
   Home,
   AlertTriangle,
   Users,
@@ -23,8 +25,10 @@ import {
   X,
 } from "lucide-react";
 import "./command-center.css";
+import { useDashboardTheme } from "./dashboard-theme";
 
 export function DashboardShell({ children }: { children: ReactNode }) {
+  const { theme, toggleTheme } = useDashboardTheme();
   const [menu, setMenu] = useState(false);
   const navigation = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -119,7 +123,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
     user?.role === "admin" ? "Operations Lead" : "Coordinator";
 
   return (
-    <div className="dashboard-shell rqCommand">
+    <div className="dashboard-shell rqCommand" data-theme={theme}>
       <aside className="sidebar rqCommandSidebar">
         <Link
           href="/dashboard"
@@ -221,6 +225,26 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             )}
           </div>
           <div className="rqCommandAccount">
+            <button
+              className="rqCommandIcon"
+              onClick={toggleTheme}
+              aria-label={
+                theme === "light"
+                  ? "Switch to dark mode"
+                  : "Switch to light mode"
+              }
+              title={
+                theme === "light"
+                  ? "Switch to dark mode"
+                  : "Switch to light mode"
+              }
+            >
+              {theme === "light" ? (
+                <Moon size={18} aria-hidden="true" />
+              ) : (
+                <Sun size={18} aria-hidden="true" />
+              )}
+            </button>
             <div className="rqCommandAlerts">
               <button
                 className="rqCommandIcon"
