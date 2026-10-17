@@ -79,7 +79,7 @@ The root example is a reference. Next.js loads frontend/.env.local; dotenv-flow 
 | SERVER_URL | backend | Backend public origin, used in inherited email links |
 | FRONTEND_URL | backend | Exact allowed browser origin for credentialed CORS |
 | DATABASE_URL | backend | Required MongoDB connection string; also used by logging and rate limiting |
-| EMAIL_SERVICE_API_KEY | backend | Real Resend API key; inherited client initializes at startup |
+| EMAIL_SERVICE_API_KEY | backend | Optional Resend API key; email sending is skipped with a warning when unset |
 | ACCESS_TOKEN_SECRET | backend | Required independent random secret for inherited access tokens |
 | REFRESH_TOKEN_SECRET | backend | Required independent random secret for inherited refresh tokens |
 | MIGRATE_MONGO_URI | backend | MongoDB URI for optional inherited migration CLI |
@@ -88,7 +88,7 @@ The root example is a reference. Next.js loads frontend/.env.local; dotenv-flow 
 
 For Atlas, create a cluster and database user, configure network access for your machine or backend host, and put the provided connection string in DATABASE_URL. URL-encode special characters in the password. Alternatively, install MongoDB locally and supply your own local URI. No database or account is provisioned by this setup.
 
-Generate each JWT secret separately with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` and save it only in backend/.env or hosting settings. Obtain a Resend key from your own account. The inherited sender is onboarding@resend.dev; verify a sender/domain and review account restrictions before using email beyond development. No email or database credentials are supplied.
+Generate each JWT secret separately with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` and save it only in backend/.env or hosting settings. Email is disabled until you uncomment EMAIL_SERVICE_API_KEY and supply a Resend key from your own account. The inherited sender is onboarding@resend.dev; verify a sender/domain and review account restrictions before using email beyond development. No email or database credentials are supplied.
 
 ## Validation
 

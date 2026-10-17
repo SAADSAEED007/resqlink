@@ -1,4 +1,4 @@
-﻿# Technical foundation
+# Technical foundation
 
 ResQLink uses two independent npm applications. There is no workspace package manager, shared build process, Turborepo, or Nx. The frontend can deploy to Vercel independently of the backend on Render/Railway.
 
@@ -6,7 +6,7 @@ The frontend uses Next.js App Router with TypeScript under src/, Tailwind CSS, E
 
 The backend was imported from https://github.com/SAADSAEED007/Base-Server-MERN at main commit 5afe3770ee791cc319a1a96a072bd17f9ff467cd. Its application architecture, middleware, controllers, services, repositories, models, tests, package lockfile, and license are retained. Original .git, logs, node_modules, generated files, and actual environment files were excluded.
 
-Requests pass through Express security, cookie, CORS, and JSON middleware into the inherited API router, followed by not-found and error handlers. Controllers call services and MongoDB repositories/models. Bootstrap connects MongoDB and initializes rate limiting; Winston also connects to MongoDB for logging. The original server begins listening before bootstrap completes: a listening socket alone does not establish readiness. A working MongoDB connection is required for normal operation. Resend initializes during module import and needs an API key.
+Requests pass through Express security, cookie, CORS, and JSON middleware into the inherited API router, followed by not-found and error handlers. Controllers call services and MongoDB repositories/models. Bootstrap connects MongoDB and initializes rate limiting; Winston also connects to MongoDB for logging. The original server begins listening before bootstrap completes: a listening socket alone does not establish readiness. A working MongoDB connection is required for normal operation. Resend initializes only when EMAIL_SERVICE_API_KEY is set. Without a key, email delivery is skipped with a warning; email-dependent flows cannot deliver confirmation messages.
 
 Small integration changes: backend CORS reads FRONTEND_URL instead of the upstream placeholder domain; the example backend port is 4000; frontend scripts include type checking. Other necessary build/start fixes, if any, are recorded in verification.md. Inherited authentication is boilerplate, not a completed ResQLink authentication design. No new business endpoints have been added.
 
