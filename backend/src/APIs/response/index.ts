@@ -11,7 +11,7 @@ import { CustomError } from '../../utils/errors'
 import * as schema from './validation'
 import * as service from './response.service'
 import * as dashboardService from './dashboard.service'
-import { IncidentInput, TeamInput, IncidentStatus, Priority, VerificationStatus, DashboardQuery, ActivityQuery } from './types'
+import { IncidentInput, TeamInput, TeamUpdateInput, IncidentStatus, Priority, VerificationStatus, DashboardQuery, ActivityQuery } from './types'
 
 const coordinator: RequestHandler = (req, _res, next) => {
     const user = (req as IAuthenticateRequest).authenticatedUser
@@ -135,6 +135,13 @@ router.post(
     '/rescue-teams',
     asyncHandler(async (req, res) => {
         httpResponse(res, req, 201, 'Rescue team created', await service.createTeam(schema.validate<TeamInput>(schema.teamSchema, req.body)))
+    })
+)
+router.patch(
+    '/rescue-teams/:id',
+    asyncHandler(async (req, res) => {
+        const input = schema.validate<TeamUpdateInput>(schema.teamUpdateSchema, req.body)
+        httpResponse(res, req, 200, 'Rescue team updated', await service.updateTeam(req.params.id, input))
     })
 )
 router.get(
