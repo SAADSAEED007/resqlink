@@ -798,104 +798,37 @@ select {
 .dashboard-shell {
   min-height: 100svh;
   display: grid;
-  grid-template-columns: 248px minmax(0, 1fr);
+  grid-template-columns: 260px minmax(0, 1fr);
+  background: #061425;
+  color: #EAF3FF;
+  min-height: 100vh;
 }
 .sidebar {
-  background: var(--color-navy);
-  color: white;
-  padding: 2rem 1.25rem;
+  background: #07182B;
+  color: #EAF3FF;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
 }
 .sidebar-brand {
-  padding-inline: 0.5rem;
+  padding-inline: 0.25rem;
 }
 .sidebar-nav {
-  margin-top: 3rem;
+  margin-top: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-.nav-caption {
-  font-size: 0.625rem;
-  letter-spacing: 0.14em;
-  color: var(--color-inverse-muted);
-  padding: 0 0.75rem 0.5rem;
-}
-.sidebar-nav > a,
-.sidebar-nav > button {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.875rem;
-  min-height: 46px;
-  padding: 0.75rem;
-  border-radius: var(--radius-control);
-  font-size: 0.875rem;
-  text-align: left;
-}
-.sidebar-nav a[aria-current] {
-  background: var(--color-slate);
-  justify-content: flex-start;
-}
-.sidebar-nav button {
-  color: var(--color-inverse-muted);
-}
-.soon {
-  font-size: 0.625rem;
-  border: 1px solid var(--color-slate);
-  padding: 0.1rem 0.35rem;
-  border-radius: 0.25rem;
-}
-.sidebar-nav .public-return {
-  margin-top: 2rem;
-  color: var(--color-inverse-muted);
-}
-.sidebar-nav a:hover {
-  background: var(--color-slate);
-}
-.sidebar-note {
-  margin-top: auto;
-  padding: 4rem 0.75rem 0;
-}
-.sidebar-note strong {
-  display: block;
-  font-size: 0.75rem;
-  margin-top: 0.75rem;
-  font-weight: 500;
-}
-.sidebar-note p {
-  font-size: 0.6875rem;
-  color: var(--color-inverse-muted);
-  margin-top: 0.5rem;
-}
-.dashboard-body {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
+  gap: 0.35rem;
 }
 .command-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  min-height: 104px;
-  border-bottom: 1px solid var(--color-border);
-  padding: 1.5rem 2rem;
-  background: var(--color-surface);
-}
-.command-header .label {
-  font-size: 0.625rem;
-  color: var(--color-muted);
-  margin-bottom: 0.25rem;
-}
-.command-header > div > span {
-  font-weight: 500;
-}
-.account-controls {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+  min-height: 72px;
+  border-bottom: 1px solid #162B42;
+  padding: 1rem 1.5rem;
+  background: #07182B;
+  color: #EAF3FF;
 }
 .account-name {
   max-width: 10rem;
@@ -906,31 +839,50 @@ select {
 }
 .dashboard-content {
   flex: 1;
-  padding: 3rem 2rem;
-  max-width: 1320px;
+  padding: 1.25rem 1.5rem;
+  max-width: 1720px;
   width: 100%;
   margin-inline: auto;
 }
-.workspace-note {
-  margin-top: 1.5rem;
-  padding: 1.25rem 1.5rem;
-  border-left: 2px solid var(--color-border);
-  font-size: 0.8125rem;
-}
-.workspace-note strong {
-  font-weight: 500;
-}
-.workspace-note p {
-  color: var(--color-muted);
-  margin-top: 0.25rem;
-}
 .command-footer {
-  padding: 1rem 2rem;
-  color: var(--color-muted);
-  font-size: 0.6875rem;
+  padding: 0.75rem 1.5rem;
+  color: #627D98;
+  font-size: 0.75rem;
+  border-top: 1px solid #162B42;
 }
 .mobile-toggle {
   display: none;
+}
+/* Leaflet Dark Theme Overrides */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #0B1D33 !important;
+  color: #EAF3FF !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
+  border: 1px solid #203650 !important;
+  border-radius: 10px !important;
+}
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+.leaflet-container {
+  background-color: #061425 !important;
+  font-family: inherit !important;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #1C334E;
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #2378F6;
 }
 @media (max-width: 1023px) {
   .hero {
