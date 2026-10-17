@@ -1,0 +1,32 @@
+﻿# Initialization verification — 2026-10-17
+
+Executed on Windows with Node.js 24.17.0 and npm 11.13.0. No deployment was performed.
+
+| Check | Result |
+| --- | --- |
+| Repository layout | frontend/, backend/, docs/, root README, ignore rules, and three environment examples present; one root Git repository |
+| Frontend dependency install | create-next-app npm install completed; npm ls --depth=0 passed |
+| Frontend lint | npm run lint passed |
+| Frontend types | npm run typecheck passed (Next type generation and tsc --noEmit) |
+| Frontend production build | npm run build passed; / statically prerendered |
+| Frontend development startup | npm run dev ready; GET http://localhost:3000 returned HTTP 200 with ResQLink content |
+| Backend dependency install | npm ci passed against unchanged upstream lockfile; npm ls --depth=0 passed |
+| Backend build | npm run build passed |
+| Backend lint | npm run lint passed; repeated after formatting modified files, exit 0 |
+| Backend formatting | npm run format:check failed on 9 unchanged upstream files: .prettierrc, .vscode/launch.json, commitlint.config.js, docs/APIs/BestPractices.md, docs/APIs/development.md, docs/DEPENDENCIES.md, eslint.config.mjs, nodemon.json, README.md |
+| Backend tests | npm test -- --runInBand failed before executing tests: inherited logger requires DATABASE_URL; 1 failed suite, 0 tests executed |
+| Backend startup | npm run start:dev attempted; ts-node reached logger initialization and crashed with 'You should provide db to log to.' No actual environment files/credentials supplied; successful database-backed startup is unverified |
+| Ignore rules | Actual env files, node_modules, .next, dist ignored; all three .env.example files eligible for tracking |
+| Credential scan | No private-key, GitHub-token, OpenAI-key, or credential-bearing MongoDB URI patterns found in imported/project source outside generated dependencies |
+
+Installed primary versions: frontend Next.js 16.4.2, React/React DOM 19.3.0, Tailwind CSS 4.3.3, TypeScript 5.9.3, ESLint 9.39.5; backend Express 4.21.0, Mongoose 8.6.3, TypeScript 5.6.2, Jest 29.7.0, ESLint 9.11.1. Lockfiles record the full dependency trees.
+
+npm reported 5 high-severity frontend advisories (ESLint tooling chain) and 81 backend advisories (10 low, 8 moderate, 59 high, 4 critical). These are unresolved; no force-fix or broad dependency upgrade was applied to the imported foundation. Review and remediate the inherited dependency tree before public deployment.
+
+The backend prepare script printed '.git can\'t be found' because backend/ is not a standalone Git repository; install still exited successfully. Upstream .husky files are preserved but no root hooks were configured. Git ownership differed between sandbox and host identities; commands used an invocation-scoped safe.directory exception for this workspace without changing global trust settings.
+
+Required next configuration: supply DATABASE_URL and EMAIL_SERVICE_API_KEY, generate independent ACCESS_TOKEN_SECRET and REFRESH_TOKEN_SECRET, and confirm SERVER_URL/FRONTEND_URL. MongoDB is used for application data, logging, and rate limiting. Repeat backend startup and tests after configuration; the inherited unit tests currently load the database logger and should later isolate that side effect with a mock.
+
+Temporary verification servers were stopped. Review the setup PR into dev before starting team feature branches. GitHub branch protection is not configured by this initialization.
+
+Git diff --cached --check also reports inherited trailing whitespace in upstream backend documentation and a blank line in .prettierrc; these files were preserved rather than reformatted. Staged environment paths are only the three .env.example templates; generated artifacts and actual environment files are not staged.
