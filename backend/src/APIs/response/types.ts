@@ -152,3 +152,42 @@ export interface DashboardSummary {
     trends: DashboardTrends
     recentActivity: ActivityItem[]
 }
+
+export const NOTIFICATION_TYPES = [
+    'INCIDENT_CREATED',
+    'CRITICAL_INCIDENT',
+    'INCIDENT_REVIEW_REQUIRED',
+    'TEAM_ASSIGNED',
+    'INCIDENT_IN_PROGRESS',
+    'INCIDENT_RESOLVED',
+    'INCIDENT_CANCELLED'
+] as const
+export const NOTIFICATION_SEVERITIES = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'] as const
+
+export type NotificationType = (typeof NOTIFICATION_TYPES)[number]
+export type NotificationSeverity = (typeof NOTIFICATION_SEVERITIES)[number]
+
+export interface NotificationItem {
+    id: string
+    type: NotificationType
+    severity: NotificationSeverity
+    title: string
+    message: string
+    incidentId?: string | null
+    teamId?: string | null
+    assignmentId?: string | null
+    isRead: boolean
+    readAt?: Date | null
+    createdAt: Date
+}
+
+export interface NotificationQuery extends Page {
+    unreadOnly?: boolean
+    type?: NotificationType
+    isSimulated?: boolean
+}
+
+export interface UnreadCountResponse {
+    unreadCount: number
+}
+

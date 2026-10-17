@@ -11,7 +11,8 @@ import { CustomError } from '../../utils/errors'
 import * as schema from './validation'
 import * as service from './response.service'
 import * as dashboardService from './dashboard.service'
-import { IncidentInput, TeamInput, TeamUpdateInput, IncidentStatus, Priority, VerificationStatus, DashboardQuery, ActivityQuery } from './types'
+import * as notificationService from './notification.service'
+import { IncidentInput, TeamInput, TeamUpdateInput, IncidentStatus, Priority, VerificationStatus, DashboardQuery, ActivityQuery, NotificationQuery } from './types'
 
 const coordinator: RequestHandler = (req, _res, next) => {
     const user = (req as IAuthenticateRequest).authenticatedUser
@@ -55,6 +56,55 @@ router.get(
     asyncHandler(async (req, res) => {
         const query = schema.validate<ActivityQuery>(schema.activityQuerySchema, req.query)
         httpResponse(res, req, 200, 'Dashboard activity retrieved', await dashboardService.getDashboardActivity(query))
+    })
+)
+router.get(
+    '/notifications',
+    asyncHandler(async (req, res) => {
+        const query = schema.validate<NotificationQuery>(schema.notificationQuerySchema, req.query)
+        const user = (req as IAuthenticateRequest).authenticatedUser as IUserWithId
+        httpResponse(res, req, 200, 'Notifications retrieved', await notificationService.listNotifications(String(user._id), query))
+    })
+)
+router.get(
+    '/notifications/unread-count',
+    asyncHandler(async (req, res) => {
+        const query = schema.validate<{ isSimulated?: boolean }>(schema.notificationFilterQuerySchema, req.query)
+        const user = (req as IAuthenticateRequest).authenticatedUser as IUserWithId
+        httpResponse(
+            res,
+            req,
+            200,
+            'Unread notification count retrieved',
+            await notificationService.getUnreadCount(String(user._id), query.isSimulated)
+        )
+    })
+)
+router.patch(
+    '/notifications/read-all',
+    asyncHandler(async (req, res) => {
+        const query = schema.validate<{ isSimulated?: boolean }>(schema.notificationFilterQuerySchema, req.query)
+        const user = (req as IAuthenticateRequest).authenticatedUser as IUserWithId
+        httpResponse(
+            res,
+            req,
+            200,
+            'All notifications marked as read',
+            await notificationService.markAllNotificationsAsRead(String(user._id), query.isSimulated)
+        )
+    })
+)
+router.patch(
+    '/notifications/:id/read',
+    asyncHandler(async (req, res) => {
+        const user = (req as IAuthenticateRequest).authenticatedUser as IUserWithId
+        httpResponse(
+            res,
+            req,
+            200,
+            'Notification marked as read',
+            await notificationService.markNotificationAsRead(req.params.id, String(user._id))
+        )
     })
 )
 router.get(

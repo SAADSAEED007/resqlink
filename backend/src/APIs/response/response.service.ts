@@ -5,6 +5,7 @@ import Assignment from './models/assignment.model'
 import { IncidentInput, TeamInput, TeamUpdateInput, TeamQuery, IncidentStatus, Priority, Location, VerificationStatus, EmergencyType } from './types'
 import { assertAssignable, assertTransition, calculatePriority, distanceKm, isCapable } from './priority.service'
 import { detectPotentialDuplicates, evaluateVerification, DuplicateCandidate } from './verification.service'
+import { createNotification } from './notification.service'
 import { CustomError } from '../../utils/errors'
 
 export interface Page {
@@ -49,12 +50,45 @@ export async function createIncident(input: IncidentInput) {
     const duplicateCheck = detectPotentialDuplicates(input, candidates as DuplicateCandidate[])
     const verification = evaluateVerification(input, duplicateCheck)
 
-    return Incident.create({
+    const incident = await Incident.create({
         ...input,
         ...calculatePriority(input),
         locationVerificationRequired: !input.location,
         verification
     })
+
+    if (incident.priorityLevel === 'CRITICAL') {
+        await createNotification({
+            type: 'CRITICAL_INCIDENT',
+            severity: 'CRITICAL',
+            title: 'Critical Incident Reported',
+            message: `Critical ${incident.emergencyType} incident reported${incident.location?.address ? ` at ${incident.location.address}` : ''}. Immediate dispatch recommended.`,
+            incidentId: String(incident._id),
+            isSimulated: incident.isSimulated
+        })
+    } else {
+        await createNotification({
+            type: 'INCIDENT_CREATED',
+            severity: incident.priorityLevel === 'HIGH' ? 'HIGH' : 'MEDIUM',
+            title: 'New Incident Reported',
+            message: `New ${incident.emergencyType} incident reported${incident.location?.address ? ` near ${incident.location.address}` : ''} (Priority: ${incident.priorityLevel}).`,
+            incidentId: String(incident._id),
+            isSimulated: incident.isSimulated
+        })
+    }
+
+    if (incident.locationVerificationRequired || incident.verification?.requiresManualReview || incident.verification?.status === 'NEEDS_REVIEW') {
+        await createNotification({
+            type: 'INCIDENT_REVIEW_REQUIRED',
+            severity: 'HIGH',
+            title: 'Incident Verification Required',
+            message: `${incident.emergencyType} incident #${String(incident._id).slice(-6)} flagged for coordinator verification.`,
+            incidentId: String(incident._id),
+            isSimulated: incident.isSimulated
+        })
+    }
+
+    return incident
 }
 export async function listIncidents(query: IncidentQuery) {
     const filter: FilterQuery<IncidentRecord> = {}
@@ -217,7 +251,7 @@ export async function getAssignment(id: string) {
     return assignment
 }
 export async function assignTeam(input: { incidentId: string; teamId: string; notes?: string }) {
-    return transactional(async (session) => {
+    const assignment = await transactional(async (session) => {
         // MongoDB sessions do not support parallel operations within a transaction.
         const incident = await Incident.findById(input.incidentId).session(session)
         if (!incident) throw new CustomError('Incident not found', 404)
@@ -236,9 +270,22 @@ export async function assignTeam(input: { incidentId: string; teamId: string; no
         await team.save({ session })
         return assignment
     })
+
+    await createNotification({
+        type: 'TEAM_ASSIGNED',
+        severity: 'HIGH',
+        title: 'Rescue Team Dispatched',
+        message: `Rescue team has been assigned to incident #${String(input.incidentId).slice(-6)}.`,
+        incidentId: String(input.incidentId),
+        teamId: String(input.teamId),
+        assignmentId: String(assignment._id),
+        isSimulated: assignment.isSimulated
+    })
+
+    return assignment
 }
 export async function changeStatus(id: string, status: IncidentStatus) {
-    return transactional(async (session) => {
+    const incident = await transactional(async (session) => {
         const incident = await Incident.findById(id).session(session)
         if (!incident) throw new CustomError('Incident not found', 404)
         assertTransition(incident.status, status)
@@ -262,6 +309,38 @@ export async function changeStatus(id: string, status: IncidentStatus) {
         await incident.save({ session })
         return incident
     })
+
+    if (status === 'IN_PROGRESS') {
+        await createNotification({
+            type: 'INCIDENT_IN_PROGRESS',
+            severity: 'HIGH',
+            title: 'Rescue Operation In Progress',
+            message: `Incident #${String(incident._id).slice(-6)} is now actively in progress.`,
+            incidentId: String(incident._id),
+            teamId: incident.assignedTeam ? String(incident.assignedTeam) : null,
+            isSimulated: incident.isSimulated
+        })
+    } else if (status === 'RESOLVED') {
+        await createNotification({
+            type: 'INCIDENT_RESOLVED',
+            severity: 'LOW',
+            title: 'Incident Resolved',
+            message: `Incident #${String(incident._id).slice(-6)} has been successfully resolved.`,
+            incidentId: String(incident._id),
+            isSimulated: incident.isSimulated
+        })
+    } else if (status === 'CANCELLED') {
+        await createNotification({
+            type: 'INCIDENT_CANCELLED',
+            severity: 'LOW',
+            title: 'Incident Cancelled',
+            message: `Incident #${String(incident._id).slice(-6)} has been cancelled.`,
+            incidentId: String(incident._id),
+            isSimulated: incident.isSimulated
+        })
+    }
+
+    return incident
 }
 export async function overridePriority(id: string, priorityLevel: Priority, reason: string, coordinatorId: string) {
     return transactional(async (session) => {
