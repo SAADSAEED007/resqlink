@@ -1,0 +1,768 @@
+/* Scoped operational theme; public pages keep their own palette. */
+.rqCommand {
+  --command-ground: #f5f8fc;
+  --command-surface: #fff;
+  --command-soft: #f8fafc;
+  --command-ink: #0f172a;
+  --command-muted: #64748b;
+  --command-border: #e2e8f0;
+  --command-blue: #2563eb;
+  --command-red: #e11d38;
+  --command-green: #059669;
+  --command-amber: #b45309;
+  display: grid;
+  grid-template-columns: 228px minmax(0, 1fr);
+  background: var(--command-ground);
+  color: var(--command-ink);
+  min-height: 100svh;
+}
+.rqCommand * {
+  min-width: 0;
+}
+.rqCommand .dashboard-body {
+  background: var(--command-ground);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.rqCommand .sidebar {
+  background: var(--command-surface);
+  color: var(--command-ink);
+  border-right: 1px solid var(--command-border);
+  padding: 24px 16px;
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 16px;
+  z-index: 31;
+}
+.rqCommandLogo {
+  display: block;
+  background: #06172b;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+.rqCommandLogo img {
+  width: 168px;
+  height: auto;
+  display: block;
+}
+.rqCommandPrototype {
+  font-size: 10px;
+  color: var(--command-muted);
+  text-align: center;
+}
+.rqCommand .sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+.rqCommand .sidebar-nav > a,
+.rqCommand .sidebar-nav > button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  text-align: left;
+}
+.rqCommand .sidebar-nav [aria-current] {
+  background: #eff6ff;
+  color: var(--command-blue);
+  font-weight: 650;
+}
+.rqCommand .sidebar-nav button:disabled {
+  color: var(--command-muted);
+  cursor: not-allowed;
+}
+.rqCommand .sidebar-nav small {
+  margin-left: auto;
+  font-size: 9px;
+  background: var(--command-soft);
+  padding: 2px 5px;
+}
+.rqCommand .public-return {
+  border-top: 1px solid var(--command-border);
+  margin-top: 16px;
+}
+.rqCommandNavNote {
+  font-size: 11px;
+  color: var(--command-muted);
+  line-height: 1.8;
+  padding: 16px 12px;
+}
+.rqCommand .command-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20px;
+  min-height: 72px;
+  height: 72px;
+  padding: 12px 24px;
+  background: var(--command-surface);
+  border-bottom: 1px solid var(--command-border);
+  color: var(--command-ink);
+  position: relative;
+  z-index: 20;
+}
+.rqCommandHeading {
+  flex-shrink: 0;
+}
+.rqCommandHeading h1 {
+  font-size: 24px;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+  font-weight: 650;
+}
+.rqCommandHeading p {
+  font-size: 11px;
+  color: var(--command-muted);
+  margin-top: 3px;
+}
+.rqCommandSearch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--command-border);
+  border-radius: 8px;
+  padding: 0 12px;
+  height: 40px;
+  flex: 1;
+  max-width: 400px;
+  margin-left: auto;
+  color: var(--command-muted);
+}
+.rqCommandSearch input {
+  width: 100%;
+  font-size: 12px;
+  background: transparent;
+  outline: 0;
+}
+.rqCommandSearch:focus-within {
+  outline: 2px solid var(--command-blue);
+  outline-offset: 2px;
+}
+.rqCommandSearch button {
+  min-width: 28px;
+  min-height: 32px;
+  display: grid;
+  place-items: center;
+}
+.rqCommandAccount {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.rqCommandIcon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--command-border);
+  border-radius: 8px;
+  position: relative;
+}
+.rqCommandIcon sup {
+  position: absolute;
+  right: -4px;
+  top: -4px;
+  background: var(--command-red);
+  color: #fff;
+  border-radius: 10px;
+  font-size: 9px;
+  padding: 4px;
+}
+.rqCommandAvatar {
+  background: #eff6ff;
+  color: var(--command-blue);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 650;
+}
+.rqCommandUser strong {
+  display: block;
+  max-width: 100px;
+  font-size: 12px;
+}
+.rqCommandUser small {
+  display: block;
+  font-size: 10px;
+  color: var(--command-muted);
+}
+.rqCommandAlerts {
+  position: relative;
+}
+.rqCommandAlertPanel {
+  position: absolute;
+  right: 0;
+  top: 48px;
+  width: min(340px, calc(100vw - 32px));
+  max-height: 400px;
+  overflow: auto;
+  background: var(--command-surface);
+  border: 1px solid var(--command-border);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 12px 40px #0f172a20;
+}
+.rqCommandAlertPanel > div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  gap: 16px;
+}
+.rqCommandAlertPanel > button {
+  display: block;
+  text-align: left;
+  border-bottom: 1px solid var(--command-border);
+  width: 100%;
+  padding: 12px 0;
+  font-size: 12px;
+}
+.rqCommandAlertPanel small {
+  display: block;
+  color: var(--command-muted);
+  margin-top: 4px;
+}
+.rqCommand .dashboard-content {
+  padding: 16px 24px;
+  max-width: 1800px;
+}
+.rqCommandMode {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 8px 12px;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  color: #24446d;
+  font-size: 12px;
+}
+.rqCommandMode > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.rqCommandMode button {
+  min-height: 32px;
+  font-size: 11px;
+  color: var(--command-blue);
+  font-weight: 600;
+}
+.rqCommandMode small {
+  font-size: 10px;
+}
+.rqCommand .rqCommandMetric {
+  height: 100px;
+  padding: 16px;
+  box-shadow: 0 2px 6px #0f172a03;
+}
+.rqCommandCard {
+  background: var(--command-surface);
+  border: 1px solid var(--command-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.rqCommandQueue {
+  height: 540px;
+  display: flex;
+  flex-direction: column;
+}
+.rqCommandQueue > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 16px;
+  border-bottom: 1px solid var(--command-border);
+}
+.rqCommand h2 {
+  font-size: 13px;
+  font-weight: 650;
+}
+.rqCommandQueue > header > span {
+  font-size: 10px;
+  color: var(--command-muted);
+  white-space: nowrap;
+}
+.rqCommandQueueList {
+  overflow: auto;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+.rqCommandIncident {
+  display: block;
+  text-align: left;
+  width: 100%;
+  border: 1px solid var(--command-border);
+  border-radius: 10px;
+  padding: 12px;
+  background: var(--command-surface);
+}
+.rqCommandIncident:hover,
+.rqCommandIncident.is-selected {
+  border-color: var(--command-blue);
+  background: #f8fbff;
+}
+.rqCommandIncidentTop,
+.rqCommandIncidentMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 9px;
+  color: var(--command-muted);
+}
+.rqCommandSeverity {
+  border-radius: 5px;
+  padding: 3px 6px;
+  font-size: 9px;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #475569;
+}
+.rqCommandSeverity.critical {
+  background: #fff1f2;
+  color: var(--command-red);
+}
+.rqCommandSeverity.high {
+  background: #fffbeb;
+  color: var(--command-amber);
+}
+.rqCommandSeverity.medium {
+  background: #eff6ff;
+  color: var(--command-blue);
+}
+.rqCommandIncident h3 {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 650;
+  margin: 10px 0 6px;
+}
+.rqCommandIncident h3 > svg:last-child {
+  margin-left: auto;
+}
+.rqCommandIncident p {
+  display: flex;
+  gap: 4px;
+  align-items: flex-start;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--command-muted);
+  overflow-wrap: anywhere;
+}
+.rqCommandIncident p.rqCommandIncidentDescription {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--command-ink);
+  margin-bottom: 8px;
+}
+.rqCommandIncidentMeta {
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.rqCommandIncident small {
+  display: block;
+  margin-top: 6px;
+  font-size: 9px;
+  color: var(--command-muted);
+}
+.rqCommandEmpty {
+  padding: 24px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--command-muted);
+  min-height: 180px;
+}
+.rqCommandDemoLabel {
+  font-size: 9px;
+  color: var(--command-muted);
+  font-weight: 400;
+}
+.rqCommand .command-footer {
+  background: var(--command-ground);
+  color: var(--command-muted);
+  border-color: var(--command-border);
+  font-size: 10px;
+}
+.rqCommand button:not(:disabled):hover {
+  filter: brightness(0.97);
+}
+.rqCommand button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.rqCommand :focus-visible {
+  outline: 2px solid var(--command-blue);
+  outline-offset: 3px;
+}
+.rqCommand .leaflet-popup-content-wrapper,
+.rqCommand .leaflet-popup-tip {
+  background: var(--command-surface) !important;
+  color: var(--command-ink) !important;
+}
+.rqCommand .leaflet-container {
+  background: #e8edf2;
+}
+.rqCommand .mobile-toggle,
+.rqCommand .sidebar-nav > .rqCommandClose {
+  display: none;
+}
+@media (max-width: 1279px) {
+  .rqCommand {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rqCommand .sidebar {
+    height: auto;
+    position: relative;
+    flex-direction: row;
+    align-items: center;
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--command-border);
+    border-right: 0;
+  }
+  .rqCommandLogo {
+    padding: 6px 10px;
+  }
+  .rqCommandLogo img {
+    width: 150px;
+  }
+  .rqCommand .mobile-toggle {
+    display: block;
+    margin-left: auto;
+    min-height: 44px;
+    padding: 8px 12px;
+    border: 1px solid var(--command-border);
+    border-radius: 8px;
+  }
+  .rqCommand .sidebar-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--command-surface);
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--command-border);
+    box-shadow: 0 16px 25px #0f172a15;
+    max-height: 75svh;
+    overflow: auto;
+    margin: 0;
+  }
+  .rqCommand .sidebar-nav.is-open {
+    display: flex;
+  }
+  .rqCommand .sidebar-nav > .rqCommandClose {
+    display: block;
+    align-self: flex-end;
+  }
+}
+@media (max-width: 767px) {
+  .rqCommand .sidebar {
+    padding: 8px 16px;
+  }
+  .rqCommandPrototype {
+    display: none;
+  }
+  .rqCommand .command-header {
+    height: auto;
+    min-height: 116px;
+    flex-wrap: wrap;
+    padding: 16px;
+    gap: 12px;
+  }
+  .rqCommandHeading h1 {
+    font-size: 22px;
+  }
+  .rqCommandHeading {
+    flex: 1;
+  }
+  .rqCommandSearch {
+    order: 3;
+    flex-basis: 100%;
+    max-width: none;
+    margin: 0;
+  }
+  .rqCommandAccount {
+    gap: 8px;
+  }
+  .rqCommandUser,
+  .rqCommandAvatar {
+    display: none;
+  }
+  .rqCommand .dashboard-content {
+    padding: 12px;
+  }
+  .rqCommandMode {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .rqCommandMode > div {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .rqCommandAlertPanel {
+    position: fixed;
+    top: 140px;
+    right: 16px;
+  }
+  .rqCommandQueue {
+    height: auto;
+    max-height: 650px;
+  }
+  .rqCommand .rqCommandMetric {
+    height: 96px;
+  }
+}
+
+.rqCommandMap {
+  height: 540px;
+  display: flex;
+  flex-direction: column;
+}
+.rqCommandMap > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--command-border);
+}
+.rqCommandMap > header p {
+  font-size: 10px;
+  color: var(--command-muted);
+  margin-top: 3px;
+}
+.rqCommandMapCanvas {
+  position: relative;
+  flex: 1;
+  min-height: 350px;
+}
+.rqCommandLeaflet {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.rqCommandMapLegend {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1;
+  background: var(--command-surface);
+  padding: 10px 12px;
+  border: 1px solid var(--command-border);
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  font-size: 10px;
+  box-shadow: 0 3px 10px #0f172a10;
+}
+.rqCommandMapLegend strong {
+  font-weight: 650;
+  margin-bottom: 2px;
+}
+.rqCommandMapLegend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.rqCommandMapLegend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.rqCommandMapControls {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  display: grid;
+  gap: 6px;
+  z-index: 1;
+}
+.rqCommandMapControls button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--command-surface);
+  border: 1px solid var(--command-border);
+}
+.rqCommandMapStatus {
+  position: absolute;
+  bottom: 35px;
+  left: 12px;
+  background: var(--command-surface);
+  padding: 8px;
+  font-size: 11px;
+  z-index: 1;
+  border-radius: 5px;
+}
+.rqCommandMapFootnote {
+  font-size: 10px;
+  padding: 6px 12px;
+  color: var(--command-muted);
+}
+.rqCommandMap.is-expanded {
+  position: fixed;
+  inset: 24px;
+  z-index: 45;
+  height: auto;
+  box-shadow: 0 0 0 30px #06172bbf;
+}
+.rqCommand .leaflet-control-attribution {
+  font-size: 10px !important;
+}
+
+.rqCommandDetail {
+  width: min(600px, calc(100% - 32px));
+  max-height: 85svh;
+  margin: auto;
+  padding: 24px;
+  border: 1px solid var(--command-border);
+  border-radius: 16px;
+  background: var(--command-surface);
+  color: var(--command-ink);
+  box-shadow: 0 20px 80px #06172b40;
+}
+.rqCommandDetail::backdrop {
+  background: #06172b99;
+}
+.rqCommandDetail header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.rqCommandDetail button {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--command-border);
+  border-radius: 8px;
+}
+.rqCommandDetail h2 {
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 16px 0;
+  overflow-wrap: anywhere;
+}
+.rqCommandDetail p,
+.rqCommandDetail li {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--command-muted);
+}
+.rqCommandDetail dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  font-size: 12px;
+  margin: 20px 0;
+  padding: 16px;
+  background: var(--command-soft);
+  border-radius: 10px;
+}
+.rqCommandDefinition {
+  display: contents;
+}
+.rqCommandDetail dt {
+  color: var(--command-muted);
+}
+.rqCommandDetail dd {
+  margin: 0;
+}
+.rqCommandDetail h3 {
+  font-size: 13px;
+  font-weight: 650;
+  margin-bottom: 8px;
+}
+.rqCommandDetail footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+  border-top: 1px solid var(--command-border);
+  padding-top: 16px;
+}
+.rqCommandTeamDetail {
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.rqCommandTeamDetail button {
+  align-self: start;
+  color: var(--command-blue);
+  min-height: 44px;
+}
+.rqCommandTeamDetail small {
+  color: var(--command-muted);
+}
+
+/* The preference applies only to the command workspace. */
+.rqCommand[data-theme="dark"] {
+  color-scheme: dark;
+  --command-ground: #061425;
+  --command-surface: #0f2239;
+  --command-soft: #142b44;
+  --command-ink: #eaf3ff;
+  --command-muted: #a6b8cd;
+  --command-border: #2b425c;
+  --command-blue: #79aaff;
+  --command-red: #ff8193;
+  --command-green: #52dba9;
+  --command-amber: #f6bf69;
+  --color-surface: var(--command-surface);
+  --color-ink: var(--command-ink);
+  --color-muted: var(--command-muted);
+  --color-border: var(--command-border);
+}
+.rqCommand[data-theme="dark"] .sidebar-nav [aria-current],
+.rqCommand[data-theme="dark"] .rqCommandAvatar,
+.rqCommand[data-theme="dark"] .rqCommandSeverity.medium {
+  background: #173b67;
+}
+.rqCommand[data-theme="dark"] .rqCommandMode {
+  background: #142e4d;
+  border-color: var(--command-border);
+  color: var(--command-ink);
+}
+.rqCommand[data-theme="dark"] .rqCommandIncident:hover,
+.rqCommand[data-theme="dark"] .rqCommandIncident.is-selected {
+  background: var(--command-soft);
+}
+.rqCommand[data-theme="dark"] .rqCommandSeverity {background:#293b50;color:var(--command-muted);}
+.rqCommand[data-theme="dark"] .rqCommandSeverity.critical {background:#492432;color:var(--command-red);}
+.rqCommand[data-theme="dark"] .rqCommandSeverity.high {background:#433522;color:var(--command-amber);}
+.rqCommand[data-theme="dark"] .rqCommandDetail {color-scheme:dark;}
+@media(max-width:374px) {
+ .rqCommandAccount {gap:4px;}
+ .rqCommand .rqCommandIcon {width:34px;height:38px;}
+ .rqCommandHeading h1 {font-size:20px;}
+}

@@ -3,14 +3,12 @@
 import type { RescueTeam } from "@/types/api";
 import {
   Users,
-  ArrowRight,
   Truck,
   Ship,
   Activity,
   Plane,
   Shield,
   MapPin,
-  Car,
 } from "lucide-react";
 
 interface RescueTeamAvailabilityProps {
@@ -28,12 +26,18 @@ export function RescueTeamAvailability({
 }: RescueTeamAvailabilityProps) {
   const getTeamIcon = (team: RescueTeam) => {
     const caps = team.capabilities || [];
-    if (caps.includes("WATER_RESCUE")) return <Ship className="w-4 h-4 text-[#2378F6]" />;
-    if (caps.includes("MEDICAL")) return <Activity className="w-4 h-4 text-[#F04452]" />;
-    if (caps.includes("FIRE_RESPONSE")) return <Truck className="w-4 h-4 text-[#F5B942]" />;
-    if (caps.includes("EVACUATION") && team.name.toLowerCase().includes("drone"))
-      return <Plane className="w-4 h-4 text-[#18C785]" />;
-    return <Shield className="w-4 h-4 text-[#18C785]" />;
+    if (caps.includes("WATER_RESCUE"))
+      return <Ship className="w-4 h-4 text-[var(--command-blue)]" />;
+    if (caps.includes("MEDICAL"))
+      return <Activity className="w-4 h-4 text-[var(--command-red)]" />;
+    if (caps.includes("FIRE_RESPONSE"))
+      return <Truck className="w-4 h-4 text-[var(--command-amber)]" />;
+    if (
+      caps.includes("EVACUATION") &&
+      team.name.toLowerCase().includes("drone")
+    )
+      return <Plane className="w-4 h-4 text-[var(--command-green)]" />;
+    return <Shield className="w-4 h-4 text-[var(--command-green)]" />;
   };
 
   const getCapabilityLabel = (team: RescueTeam) => {
@@ -49,20 +53,20 @@ export function RescueTeamAvailability({
   const getStatusBadge = (status: string) => {
     if (status === "AVAILABLE") {
       return (
-        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#18C785]/20 text-[#18C785] border border-[#18C785]/40">
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--command-green)]/20 text-[var(--command-green)] border border-[var(--command-green)]/40">
           Available
         </span>
       );
     }
     if (status === "BUSY") {
       return (
-        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#2378F6]/20 text-[#2378F6] border border-[#2378F6]/40">
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--command-blue)]/20 text-[var(--command-blue)] border border-[var(--command-blue)]/40">
           On Mission
         </span>
       );
     }
     return (
-      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#91A8C2]/20 text-[#91A8C2] border border-[#91A8C2]/40">
+      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--command-muted)]/20 text-[var(--command-muted)] border border-[var(--command-muted)]/40">
         Offline
       </span>
     );
@@ -71,18 +75,21 @@ export function RescueTeamAvailability({
   const getBaseLocation = (team: RescueTeam) => {
     if (team.location?.address) {
       const parts = team.location.address.split(",");
-      return parts[0].replace("Station", "").replace("Emergency Hub", "").trim();
+      return parts[0]
+        .replace("Station", "")
+        .replace("Emergency Hub", "")
+        .trim();
     }
-    return "Karachi Central";
+    return "Location not reported";
   };
 
   if (loading) {
     return (
-      <div className="bg-[#0B1D33] border border-[#203650] rounded-xl flex flex-col h-[280px] p-4 animate-pulse">
-        <div className="h-5 w-40 bg-[#122A45] rounded mb-4" />
+      <div className="bg-[var(--command-surface)] border border-[var(--command-border)] rounded-xl flex flex-col h-[280px] p-4 animate-pulse">
+        <div className="h-5 w-40 bg-[var(--command-soft)] rounded mb-4" />
         <div className="space-y-3">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-12 bg-[#122A45] rounded-lg" />
+            <div key={i} className="h-12 bg-[var(--command-soft)] rounded-lg" />
           ))}
         </div>
       </div>
@@ -90,61 +97,56 @@ export function RescueTeamAvailability({
   }
 
   // Display top 4 teams matching reference
-  const displayTeams = teams.slice(0, 4);
+  const displayTeams = teams;
 
   return (
-    <div className="bg-[#0B1D33] border border-[#203650] rounded-xl flex flex-col h-[280px] overflow-hidden">
+    <div className="bg-[var(--command-surface)] border border-[var(--command-border)] rounded-xl flex flex-col h-[280px] overflow-hidden">
       {/* Header */}
-      <div className="p-3 px-4 bg-[#07182B]/80 border-b border-[#203650] flex items-center justify-between shrink-0">
+      <div className="p-3 px-4 bg-[var(--command-soft)]/80 border-b border-[var(--command-border)] flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
-          <Users className="w-4 h-4 text-[#18C785]" />
-          <h2 className="text-sm font-semibold text-[#EAF3FF] tracking-tight">
+          <Users className="w-4 h-4 text-[var(--command-green)]" />
+          <h2 className="text-sm font-semibold text-[var(--command-ink)] tracking-tight">
             Rescue Team Availability
           </h2>
         </div>
-        <button
-          onClick={() => {
-            if (teams.length > 0) onSelectTeam(teams[0]);
-          }}
-          className="text-xs font-medium text-[#2378F6] hover:text-[#5BA0F8] flex items-center gap-1 transition-colors"
-        >
-          <span>View All</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </button>
+        <span className="rqCommandDemoLabel">{teams.length} teams</span>
       </div>
 
       {/* Team Rows */}
       <div className="flex-1 overflow-y-auto p-2.5 space-y-1.5 custom-scrollbar">
+        {teams.length === 0 && (
+          <p className="rqCommandEmpty">No teams available in this view.</p>
+        )}
         {displayTeams.map((team) => {
           const isSelected = selectedTeam?._id === team._id;
           const capabilityLabel = getCapabilityLabel(team);
           const base = getBaseLocation(team);
 
           return (
-            <div
+            <button
               key={team._id}
               onClick={() => onSelectTeam(team)}
-              className={`p-2 px-3 rounded-lg border transition-all cursor-pointer flex items-center justify-between gap-2 ${
+              className={`w-full text-left p-2 px-3 rounded-lg border transition-all cursor-pointer flex items-center justify-between gap-2 ${
                 isSelected
-                  ? "bg-[#122A45] border-[#18C785]"
-                  : "bg-[#07182B]/50 hover:bg-[#10253F] border-[#1A314C]"
+                  ? "bg-[var(--command-soft)] border-[var(--command-green)]"
+                  : "bg-[var(--command-soft)]/50 hover:bg-[var(--command-soft)] border-[var(--command-border)]"
               }`}
             >
               {/* Left Icon & Info */}
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-[#061425] border border-white/5 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-[var(--command-ground)] border border-white/5 flex items-center justify-center shrink-0">
                   {getTeamIcon(team)}
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-[#EAF3FF] truncate">
+                    <span className="text-xs font-bold text-[var(--command-ink)] truncate">
                       {team.name}
                     </span>
-                    <span className="text-[11px] text-[#91A8C2] truncate hidden sm:inline">
+                    <span className="text-[11px] text-[var(--command-muted)] truncate hidden sm:inline">
                       {capabilityLabel}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[10px] text-[#627D98] mt-0.5">
+                  <div className="flex items-center gap-1.5 text-[10px] text-[var(--command-muted)] mt-0.5">
                     <MapPin className="w-2.5 h-2.5" />
                     <span className="truncate">{base}</span>
                   </div>
@@ -154,18 +156,11 @@ export function RescueTeamAvailability({
               {/* Status and Capacity */}
               <div className="flex items-center gap-3 shrink-0">
                 {getStatusBadge(team.status)}
-                <div className="hidden sm:flex items-center gap-2 text-[11px] text-[#91A8C2] font-mono">
-                  <span className="flex items-center gap-0.5" title="Crew members">
-                    <Users className="w-3 h-3 text-[#627D98]" />
-                    <span>{team.capacity || 4}</span>
-                  </span>
-                  <span className="flex items-center gap-0.5" title="Vehicles">
-                    <Car className="w-3 h-3 text-[#627D98]" />
-                    <span>{team.status === "BUSY" ? 2 : 1}</span>
-                  </span>
-                </div>
+                <span className="text-[10px] text-[var(--command-muted)]">
+                  Capacity {team.capacity ?? "unknown"}
+                </span>
               </div>
-            </div>
+            </button>
           );
         })}
       </div>

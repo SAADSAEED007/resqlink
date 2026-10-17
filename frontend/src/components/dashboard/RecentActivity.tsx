@@ -2,7 +2,6 @@
 
 import {
   Clock,
-  ArrowRight,
   ShieldCheck,
   AlertOctagon,
   Navigation,
@@ -19,13 +18,13 @@ export function RecentActivity({ loading = false }: RecentActivityProps) {
   const getActivityIcon = (type: ActivityItem["iconType"]) => {
     switch (type) {
       case "assignment":
-        return <ShieldCheck className="w-4 h-4 text-[#18C785]" />;
+        return <ShieldCheck className="w-4 h-4 text-[var(--command-green)]" />;
       case "alert":
-        return <AlertOctagon className="w-4 h-4 text-[#F04452]" />;
+        return <AlertOctagon className="w-4 h-4 text-[var(--command-red)]" />;
       case "en_route":
-        return <Navigation className="w-4 h-4 text-[#F5B942]" />;
+        return <Navigation className="w-4 h-4 text-[var(--command-amber)]" />;
       case "resolved":
-        return <CheckCircle2 className="w-4 h-4 text-[#2378F6]" />;
+        return <CheckCircle2 className="w-4 h-4 text-[var(--command-blue)]" />;
       case "completed":
         return <Camera className="w-4 h-4 text-[#2DD4BF]" />;
     }
@@ -33,10 +32,12 @@ export function RecentActivity({ loading = false }: RecentActivityProps) {
 
   const getStatusBadge = (text: string, tone: ActivityItem["statusTone"]) => {
     const toneMap = {
-      blue: "bg-[#2378F6]/20 text-[#2378F6] border-[#2378F6]/40",
-      red: "bg-[#F04452]/20 text-[#F04452] border-[#F04452]/40",
-      amber: "bg-[#F5B942]/20 text-[#F5B942] border-[#F5B942]/40",
-      green: "bg-[#18C785]/20 text-[#18C785] border-[#18C785]/40",
+      blue: "bg-[var(--command-blue)]/20 text-[var(--command-blue)] border-[var(--command-blue)]/40",
+      red: "bg-[var(--command-red)]/20 text-[var(--command-red)] border-[var(--command-red)]/40",
+      amber:
+        "bg-[var(--command-amber)]/20 text-[var(--command-amber)] border-[var(--command-amber)]/40",
+      green:
+        "bg-[var(--command-green)]/20 text-[var(--command-green)] border-[var(--command-green)]/40",
       teal: "bg-[#0D9488]/20 text-[#2DD4BF] border-[#0D9488]/40",
     };
 
@@ -51,11 +52,11 @@ export function RecentActivity({ loading = false }: RecentActivityProps) {
 
   if (loading) {
     return (
-      <div className="bg-[#0B1D33] border border-[#203650] rounded-xl flex flex-col h-[280px] p-4 animate-pulse">
-        <div className="h-5 w-44 bg-[#122A45] rounded mb-4" />
+      <div className="bg-[var(--command-surface)] border border-[var(--command-border)] rounded-xl flex flex-col h-[280px] p-4 animate-pulse">
+        <div className="h-5 w-44 bg-[var(--command-soft)] rounded mb-4" />
         <div className="space-y-3">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-10 bg-[#122A45] rounded-lg" />
+            <div key={i} className="h-10 bg-[var(--command-soft)] rounded-lg" />
           ))}
         </div>
       </div>
@@ -63,19 +64,16 @@ export function RecentActivity({ loading = false }: RecentActivityProps) {
   }
 
   return (
-    <div className="bg-[#0B1D33] border border-[#203650] rounded-xl flex flex-col h-[280px] overflow-hidden">
+    <div className="bg-[var(--command-surface)] border border-[var(--command-border)] rounded-xl flex flex-col h-[280px] overflow-hidden">
       {/* Header */}
-      <div className="p-3 px-4 bg-[#07182B]/80 border-b border-[#203650] flex items-center justify-between shrink-0">
+      <div className="p-3 px-4 bg-[var(--command-soft)]/80 border-b border-[var(--command-border)] flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-[#2378F6]" />
-          <h2 className="text-sm font-semibold text-[#EAF3FF] tracking-tight">
+          <Clock className="w-4 h-4 text-[var(--command-blue)]" />
+          <h2 className="text-sm font-semibold text-[var(--command-ink)] tracking-tight">
             Recent Activity &amp; Assignments
           </h2>
         </div>
-        <button className="text-xs font-medium text-[#2378F6] hover:text-[#5BA0F8] flex items-center gap-1 transition-colors">
-          <span>View All</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </button>
+        <span className="rqCommandDemoLabel">Simulated activity</span>
       </div>
 
       {/* Activity Timeline List */}
@@ -83,21 +81,21 @@ export function RecentActivity({ loading = false }: RecentActivityProps) {
         {MOCK_ACTIVITIES.map((act) => (
           <div
             key={act.id}
-            className="p-2 px-2.5 rounded-lg bg-[#07182B]/50 hover:bg-[#10253F] border border-[#1A314C] transition-colors flex items-center justify-between gap-3"
+            className="p-2 px-2.5 rounded-lg bg-[var(--command-soft)]/50 hover:bg-[var(--command-soft)] border border-[var(--command-border)] transition-colors flex items-center justify-between gap-3"
           >
             {/* Left: Time + Icon */}
             <div className="flex items-center gap-2.5 min-w-0">
-              <span className="text-[10px] text-[#627D98] font-mono shrink-0 w-14 truncate">
+              <span className="text-[10px] text-[var(--command-muted)] font-mono shrink-0 w-14 truncate">
                 {act.timeAgo}
               </span>
-              <div className="w-7 h-7 rounded-lg bg-[#061425] border border-white/5 flex items-center justify-center shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-[var(--command-ground)] border border-white/5 flex items-center justify-center shrink-0">
                 {getActivityIcon(act.iconType)}
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-medium text-[#EAF3FF] truncate leading-tight">
+                <p className="text-xs font-medium text-[var(--command-ink)] truncate leading-tight">
                   {act.title}
                 </p>
-                <p className="text-[10px] text-[#91A8C2] truncate mt-0.5">
+                <p className="text-[10px] text-[var(--command-muted)] truncate mt-0.5">
                   {act.subtitle}
                 </p>
               </div>

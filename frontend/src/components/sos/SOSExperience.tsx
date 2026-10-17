@@ -15,7 +15,6 @@ import {
   UsersRound,
   X,
 } from "lucide-react";
-import { Brand } from "@/components/layout/public-layout";
 import { Button } from "@/components/ui";
 import { incidents } from "@/lib/api/incidents";
 import { ApiError } from "@/lib/api/client";
@@ -254,7 +253,19 @@ export function SOSExperience() {
         </aside>
         <main id="main" className="rqSosPanel">
           <div className="rqSosAppHeader">
-            <Brand />
+            <Link
+              href="/"
+              aria-label="ResQLink home"
+              className="rqSosOfficialBrand"
+            >
+              <Image
+                src="/images/ResQLink Shield Brand Logo.png"
+                alt="ResQLink"
+                width={2172}
+                height={724}
+                sizes="150px"
+              />
+            </Link>
             <span>
               <ShieldCheck size={14} aria-hidden="true" />
               Prototype
@@ -445,7 +456,10 @@ export function SOSExperience() {
                     loading={busy}
                     loadingLabel="Recording report"
                     disabled={
-                      step === "review" && uncertain && !retryAcknowledged && !!submissionError
+                      step === "review" &&
+                      uncertain &&
+                      !retryAcknowledged &&
+                      !!submissionError
                     }
                   >
                     {step === "review"
