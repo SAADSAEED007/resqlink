@@ -65,5 +65,7 @@ const schema = new Schema(
 schema.index({ demoKey: 1 }, { unique: true, partialFilterExpression: { demoKey: { $type: 'string' } } })
 schema.index({ status: 1, priorityScore: -1, createdAt: 1, _id: 1 })
 schema.index({ 'verification.status': 1, createdAt: -1 })
+schema.index({ updatedAt: -1 })
+schema.index({ emergencyType: 1, status: 1, priorityScore: -1 })
 export type IncidentRecord = InferSchemaType<typeof schema>
 export default model('Incident', schema)

@@ -2,7 +2,7 @@ import mongoose, { ClientSession, FilterQuery } from 'mongoose'
 import Incident, { IncidentRecord } from './models/incident.model'
 import Team from './models/team.model'
 import Assignment from './models/assignment.model'
-import { IncidentInput, TeamInput, IncidentStatus, Priority, Location, VerificationStatus } from './types'
+import { IncidentInput, TeamInput, IncidentStatus, Priority, Location, VerificationStatus, EmergencyType } from './types'
 import { assertAssignable, assertTransition, calculatePriority, distanceKm, isCapable } from './priority.service'
 import { detectPotentialDuplicates, evaluateVerification, DuplicateCandidate } from './verification.service'
 import { CustomError } from '../../utils/errors'
@@ -14,7 +14,9 @@ export interface Page {
 export interface IncidentQuery extends Page {
     status?: IncidentStatus
     priorityLevel?: Priority
+    emergencyType?: EmergencyType
     verificationStatus?: VerificationStatus
+    updatedSince?: Date
     sort: 'priority' | 'oldest' | 'newest'
 }
 export async function ensureIndexes() {
@@ -58,7 +60,9 @@ export async function listIncidents(query: IncidentQuery) {
     const filter: FilterQuery<IncidentRecord> = {}
     if (query.status) filter.status = query.status
     if (query.priorityLevel) filter.priorityLevel = query.priorityLevel
+    if (query.emergencyType) filter.emergencyType = query.emergencyType
     if (query.verificationStatus) filter['verification.status'] = query.verificationStatus
+    if (query.updatedSince) filter.updatedAt = { $gte: new Date(query.updatedSince) }
     const sort: Record<string, 1 | -1> =
         query.sort === 'newest'
             ? { createdAt: -1 as const, _id: 1 as const }
