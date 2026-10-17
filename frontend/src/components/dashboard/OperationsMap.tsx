@@ -12,7 +12,6 @@ import {
   Crosshair,
   AlertTriangle,
 } from "lucide-react";
-import "leaflet/dist/leaflet.css";
 
 interface OperationsMapProps {
   incidents: Incident[];

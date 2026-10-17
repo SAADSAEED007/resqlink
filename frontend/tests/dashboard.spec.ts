@@ -66,6 +66,9 @@ test.describe("Emergency Operations Command Center Dashboard", () => {
     await expect(page.getByText("Map Legend")).toBeVisible();
     await expect(page.getByText("Critical Incident", { exact: true })).toBeVisible();
 
+    await expect(page.locator(".leaflet-container")).toBeVisible();
+    await expect(page.locator(".leaflet-tile-pane")).toBeAttached();
+
     // 4. Priority Incident Queue
     await expect(
       page.getByRole("heading", { name: "Priority Incident Queue" }),

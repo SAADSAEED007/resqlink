@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Geist } from "next/font/google";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { ToastProvider } from "@/components/feedback/toast";
+import "leaflet/dist/leaflet.css";
 import "./globals.css";
 const geist = Geist({
   subsets: ["latin"],

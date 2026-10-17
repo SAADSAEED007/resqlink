@@ -104,9 +104,7 @@ test("public navigation and keyboard skip link", async ({ page }) => {
   ).toBeFocused();
   await page.getByRole("link", { name: "Request Emergency Help" }).click();
   await expect(page).toHaveURL(/\/sos$/);
-  await expect(
-    page.getByText("The request portal is coming soon"),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Report an Emergency", exact: true, level: 1 })).toBeVisible();
 });
 test("validates fields, toggles password, and reports invalid login", async ({
   page,
