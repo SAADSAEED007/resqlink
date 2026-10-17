@@ -1,7 +1,7 @@
 import Joi from 'joi'
 import { CustomError } from '../../utils/errors'
 import { validateSchema } from '../../utils/joi-validate'
-import { EMERGENCY_TYPES, WATER_LEVELS, PRIORITIES, INCIDENT_STATUSES, CAPABILITIES, TEAM_STATUSES } from './types'
+import { EMERGENCY_TYPES, WATER_LEVELS, PRIORITIES, INCIDENT_STATUSES, VERIFICATION_STATUSES, CAPABILITIES, TEAM_STATUSES } from './types'
 // Reject control characters deliberately to keep submitted text safe and predictable.
 
 const text = (max: number) =>
@@ -58,11 +58,20 @@ export const prioritySchema = Joi.object({
         .required(),
     reason: text(1000).min(5).required()
 })
+export const verificationUpdateSchema = Joi.object({
+    status: Joi.string()
+        .valid(...VERIFICATION_STATUSES)
+        .required(),
+    notes: text(1000).min(3).required()
+})
 const paging = { page: Joi.number().integer().min(1).max(100000).default(1), limit: Joi.number().integer().min(1).max(100).default(20) }
 export const incidentQuerySchema = Joi.object({
     ...paging,
     status: Joi.string().valid(...INCIDENT_STATUSES),
     priorityLevel: Joi.string().valid(...PRIORITIES),
+    verificationStatus: Joi.string().valid(...VERIFICATION_STATUSES),
+    emergencyType: Joi.string().valid(...EMERGENCY_TYPES),
+    updatedSince: Joi.date().iso(),
     sort: Joi.string().valid('priority', 'oldest', 'newest').default('priority')
 })
 export const teamQuerySchema = Joi.object({ ...paging, status: Joi.string().valid(...TEAM_STATUSES) })

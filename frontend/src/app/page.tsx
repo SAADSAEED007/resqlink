@@ -1,10 +1,22 @@
-﻿export default function Home() {
+import type { Metadata } from "next";
+import { LandingHero } from "@/components/landing/LandingHero";
+import { LandingSections } from "@/components/landing/LandingSections";
+import { landingStyles as styles } from "@/components/landing/landing-styles";
+import "@/components/landing/landing.css";
+
+export const metadata: Metadata = {
+  title: { absolute: "ResQLink | Stronger Communities. Safer Sindh." },
+  description:
+    "ResQLink is a disaster response coordination prototype that helps communities report emergencies and supports explainable rescue prioritization.",
+};
+
+export default function Home() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-4 px-8">
-      <p className="text-sm font-medium text-teal-700">Code Connect Hackathon 2026</p>
-      <h1 className="text-4xl font-bold tracking-tight">ResQLink</h1>
-      <p className="text-lg text-slate-600">Intelligent Disaster Response &amp; Rescue Coordination Platform</p>
-      <p className="text-slate-600">Project foundation ready. Features are under development.</p>
-    </main>
+    <div className={styles.page}>
+      <main>
+        <LandingHero />
+        <LandingSections />
+      </main>
+    </div>
   );
 }

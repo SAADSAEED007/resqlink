@@ -139,3 +139,7 @@ Before public launch, review the inherited authentication, email sender, CORS, a
 Provider references: [Next.js CLI](https://nextjs.org/docs/app/api-reference/cli/create-next-app), [Vercel monorepo roots](https://vercel.com/docs/monorepos), [Render Express deployment](https://render.com/docs/deploy-node-express-app), [MongoDB setup](https://www.mongodb.com/docs/get-started/).
 
 Backend core API contracts, coordinator setup, seed safeguards, and frontend integration are documented in [docs/api-contracts.md](docs/api-contracts.md). Demo seed: set DEMO_MODE=true, NODE_ENV=development, and a separate DEMO_DATABASE_URL ending in _demo, then run npm run seed:demo from backend. Core coordinator operations require an existing admin account; no authorization bypass is provided.
+
+## Frontend foundation
+
+The shared UI, coordinator login, typed API client, and teammate integration guide are in [docs/frontend-foundation.md](docs/frontend-foundation.md). Dashboard and SOS feature routes currently contain honest placeholders. Start the frontend with `cd frontend` then `npm run dev`; configure both public API URLs using `frontend/.env.example`.

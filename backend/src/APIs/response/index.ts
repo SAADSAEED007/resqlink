@@ -11,7 +11,7 @@ import { CustomError } from '../../utils/errors'
 import * as schema from './validation'
 import * as service from './response.service'
 import * as dashboardService from './dashboard.service'
-import { IncidentInput, TeamInput, IncidentStatus, Priority, DashboardQuery, ActivityQuery } from './types'
+import { IncidentInput, TeamInput, IncidentStatus, Priority, VerificationStatus, DashboardQuery, ActivityQuery } from './types'
 
 const coordinator: RequestHandler = (req, _res, next) => {
     const user = (req as IAuthenticateRequest).authenticatedUser
@@ -30,6 +30,12 @@ router.post(
     })
 )
 router.use(authenticate, coordinator)
+router.use((_req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+    res.setHeader('Pragma', 'no-cache')
+    res.setHeader('Expires', '0')
+    next()
+})
 router.get(
     '/dashboard/summary',
     asyncHandler(async (req, res) => {
@@ -58,7 +64,6 @@ router.get(
         httpResponse(res, req, 200, 'Incidents retrieved', await service.listIncidents(query))
     })
 )
-
 router.param('id', (_req, _res, next, id: string) => {
     try {
         schema.validate<string>(schema.idSchema, id)
@@ -97,6 +102,20 @@ router.patch(
             200,
             'Incident priority updated',
             await service.overridePriority(req.params.id, input.priorityLevel, input.reason, String(user._id))
+        )
+    })
+)
+router.patch(
+    '/incidents/:id/verification',
+    asyncHandler(async (req, res) => {
+        const input = schema.validate<{ status: VerificationStatus; notes: string }>(schema.verificationUpdateSchema, req.body)
+        const user = (req as IAuthenticateRequest).authenticatedUser as IUserWithId
+        httpResponse(
+            res,
+            req,
+            200,
+            'Incident verification updated',
+            await service.updateVerification(req.params.id, input.status, input.notes, String(user._id))
         )
     })
 )

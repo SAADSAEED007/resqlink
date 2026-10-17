@@ -1,5 +1,5 @@
-﻿import { Schema, model, InferSchemaType } from 'mongoose'
-import { EMERGENCY_TYPES, WATER_LEVELS, PRIORITIES, CONFIDENCES, INCIDENT_STATUSES } from '../types'
+import { Schema, model, InferSchemaType } from 'mongoose'
+import { EMERGENCY_TYPES, WATER_LEVELS, PRIORITIES, CONFIDENCES, INCIDENT_STATUSES, VERIFICATION_STATUSES } from '../types'
 
 export const locationSchema = new Schema(
     {
@@ -23,6 +23,20 @@ const overrideSchema = new Schema(
     },
     { _id: false }
 )
+const verificationSchema = new Schema(
+    {
+        status: { type: String, enum: VERIFICATION_STATUSES, default: 'NEEDS_REVIEW', required: true },
+        requiresManualReview: { type: Boolean, default: false, required: true },
+        isPotentialDuplicate: { type: Boolean, default: false, required: true },
+        potentialDuplicateIncidents: [{ type: Schema.Types.ObjectId, ref: 'Incident' }],
+        missingFields: { type: [String], default: [] },
+        warnings: { type: [String], default: [] },
+        reviewedBy: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+        reviewedAt: { type: Date, default: null },
+        reviewNotes: { type: String, trim: true, maxlength: 1000, default: null }
+    },
+    { _id: false }
+)
 const schema = new Schema(
     {
         reporterName: { type: String, trim: true, required: true, maxlength: 100 },
@@ -42,6 +56,7 @@ const schema = new Schema(
         status: { type: String, enum: INCIDENT_STATUSES, default: 'PENDING', required: true },
         assignedTeam: { type: Schema.Types.ObjectId, ref: 'RescueTeam', default: null },
         priorityOverrides: { type: [overrideSchema], default: [] },
+        verification: { type: verificationSchema, required: true },
         isSimulated: { type: Boolean, default: false, required: true },
         demoKey: { type: String }
     },
@@ -49,5 +64,8 @@ const schema = new Schema(
 )
 schema.index({ demoKey: 1 }, { unique: true, partialFilterExpression: { demoKey: { $type: 'string' } } })
 schema.index({ status: 1, priorityScore: -1, createdAt: 1, _id: 1 })
+schema.index({ 'verification.status': 1, createdAt: -1 })
+schema.index({ updatedAt: -1 })
+schema.index({ emergencyType: 1, status: 1, priorityScore: -1 })
 export type IncidentRecord = InferSchemaType<typeof schema>
 export default model('Incident', schema)

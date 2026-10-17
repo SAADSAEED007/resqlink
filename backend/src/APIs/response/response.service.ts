@@ -2,8 +2,9 @@ import mongoose, { ClientSession, FilterQuery } from 'mongoose'
 import Incident, { IncidentRecord } from './models/incident.model'
 import Team from './models/team.model'
 import Assignment from './models/assignment.model'
-import { IncidentInput, TeamInput, IncidentStatus, Priority, Location } from './types'
+import { IncidentInput, TeamInput, IncidentStatus, Priority, Location, VerificationStatus, EmergencyType } from './types'
 import { assertAssignable, assertTransition, calculatePriority, distanceKm, isCapable } from './priority.service'
+import { detectPotentialDuplicates, evaluateVerification, DuplicateCandidate } from './verification.service'
 import { CustomError } from '../../utils/errors'
 
 export interface Page {
@@ -13,6 +14,9 @@ export interface Page {
 export interface IncidentQuery extends Page {
     status?: IncidentStatus
     priorityLevel?: Priority
+    emergencyType?: EmergencyType
+    verificationStatus?: VerificationStatus
+    updatedSince?: Date
     sort: 'priority' | 'oldest' | 'newest'
 }
 export async function ensureIndexes() {
@@ -33,12 +37,32 @@ export async function transactional<T>(work: (session: ClientSession) => Promise
     }
 }
 export async function createIncident(input: IncidentInput) {
-    return Incident.create({ ...input, ...calculatePriority(input), locationVerificationRequired: !input.location })
+    const windowMs = 2 * 60 * 60 * 1000
+    const since = new Date(Date.now() - windowMs)
+    const isSimulated = Boolean((input as { isSimulated?: boolean }).isSimulated)
+    const candidateFilter: FilterQuery<IncidentRecord> = {
+        createdAt: { $gte: since },
+        status: { $in: ['PENDING', 'ASSIGNED', 'IN_PROGRESS'] },
+        isSimulated
+    }
+    const candidates = await Incident.find(candidateFilter).select('_id emergencyType location reporterPhone createdAt isSimulated status').lean()
+    const duplicateCheck = detectPotentialDuplicates(input, candidates as DuplicateCandidate[])
+    const verification = evaluateVerification(input, duplicateCheck)
+
+    return Incident.create({
+        ...input,
+        ...calculatePriority(input),
+        locationVerificationRequired: !input.location,
+        verification
+    })
 }
 export async function listIncidents(query: IncidentQuery) {
     const filter: FilterQuery<IncidentRecord> = {}
     if (query.status) filter.status = query.status
     if (query.priorityLevel) filter.priorityLevel = query.priorityLevel
+    if (query.emergencyType) filter.emergencyType = query.emergencyType
+    if (query.verificationStatus) filter['verification.status'] = query.verificationStatus
+    if (query.updatedSince) filter.updatedAt = { $gte: new Date(query.updatedSince) }
     const sort: Record<string, 1 | -1> =
         query.sort === 'newest'
             ? { createdAt: -1 as const, _id: 1 as const }
@@ -193,4 +217,34 @@ export async function recommendTeams(id: string) {
         message: 'Decision support only; no team has been dispatched. Distance is not travel time.',
         items
     }
+}
+export async function updateVerification(id: string, status: VerificationStatus, reviewNotes: string, coordinatorId: string) {
+    return transactional(async (session) => {
+        const incident = await Incident.findById(id).session(session)
+        if (!incident) throw new CustomError('Incident not found', 404)
+        if (!incident.verification) {
+            incident.set('verification', {
+                status: 'NEEDS_REVIEW',
+                requiresManualReview: Boolean(incident.locationVerificationRequired),
+                isPotentialDuplicate: false,
+                potentialDuplicateIncidents: [],
+                missingFields: !incident.location ? ['location'] : [],
+                warnings: !incident.location ? ['Missing location coordinates: manual location verification required before team dispatch'] : [],
+                reviewedBy: null,
+                reviewedAt: null,
+                reviewNotes: null
+            })
+        }
+        incident.verification.status = status
+        incident.verification.reviewNotes = reviewNotes
+        incident.verification.reviewedBy = new mongoose.Types.ObjectId(coordinatorId)
+        incident.verification.reviewedAt = new Date()
+        if (status === 'VERIFIED' || status === 'DISMISSED') {
+            incident.verification.requiresManualReview = false
+        } else {
+            incident.verification.requiresManualReview = true
+        }
+        await incident.save({ session })
+        return incident
+    })
 }
