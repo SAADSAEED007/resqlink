@@ -15,7 +15,7 @@ export function SOSEmergencyDetailsStep({
   showMediaInfo: () => void;
 }) {
   return (
-    <div className="rqSosStepBody">
+    <div className="rqSosStepBody rqSosDetails">
       <p className="rqSosIntro">
         Share what you know. Leave optional information blank when you are
         unsure.
