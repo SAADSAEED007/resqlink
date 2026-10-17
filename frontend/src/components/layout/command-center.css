@@ -847,16 +847,16 @@
 /* The preference applies only to the command workspace. */
 .rqCommand[data-theme="dark"] {
   color-scheme: dark;
-  --command-ground: #061425;
-  --command-surface: #0f2239;
-  --command-soft: #142b44;
-  --command-ink: #eaf3ff;
-  --command-muted: #a6b8cd;
-  --command-border: #2b425c;
-  --command-blue: #79aaff;
-  --command-red: #ff8193;
-  --command-green: #52dba9;
-  --command-amber: #f6bf69;
+  --command-ground: #061629;
+  --command-surface: #0b2139;
+  --command-soft: #112c47;
+  --command-ink: #f8fafc;
+  --command-muted: #a5bcd5;
+  --command-border: rgba(126, 166, 210, 0.17);
+  --command-blue: #2684ff;
+  --command-red: #ff4655;
+  --command-green: #16d69a;
+  --command-amber: #f59e0b;
   --color-surface: var(--command-surface);
   --color-ink: var(--command-ink);
   --color-muted: var(--command-muted);

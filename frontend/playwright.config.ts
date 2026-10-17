@@ -6,14 +6,14 @@ export default defineConfig({
   timeout: 30000,
   reporter: "list",
   use: {
-    baseURL: "http://localhost:3100",
+    baseURL: "http://localhost:3000",
     channel: "chrome",
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "npm run dev -- --port 3100",
-    url: "http://localhost:3100",
-    reuseExistingServer: !process.env.CI,
+    command: "npm run dev",
+    url: "http://localhost:3000",
+    reuseExistingServer: true,
     timeout: 120000,
     env: {
       NEXT_PUBLIC_API_URL: "http://localhost:4000/api",
