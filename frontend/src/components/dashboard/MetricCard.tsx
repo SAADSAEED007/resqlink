@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
 
 interface SparklineProps {
@@ -65,7 +66,8 @@ export interface MetricCardProps {
   trendText?: string;
   trendDirection?: "up" | "down" | "neutral";
   trendColor?: "red" | "amber" | "green" | "blue" | "muted";
-  icon: ReactNode;
+  icon?: ReactNode;
+  iconSrc?: string;
   iconBgColor?: string;
   sparklinePoints?: number[];
   sparklineColor?: string;
@@ -80,6 +82,7 @@ export function MetricCard({
   trendDirection,
   trendColor = "muted",
   icon,
+  iconSrc,
   iconBgColor = "rgba(35, 120, 246, 0.15)",
   sparklinePoints,
   sparklineColor = "var(--command-blue)",
@@ -109,13 +112,29 @@ export function MetricCard({
   return (
     <div style={{ "--metric-accent": `var(--command-${label === "Available Teams" ? "green" : trendColor === "muted" ? "blue" : trendColor})` } as CSSProperties} className="rqCommandMetric bg-[var(--command-surface)] border border-[var(--command-border)] hover:border-[var(--command-blue)] transition-colors rounded-xl p-3.5 px-4 flex items-center justify-between gap-2 shadow-sm relative overflow-hidden group">
       <div className="flex items-center gap-3 min-w-0 flex-1">
-        <div
-          className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border border-white/5"
-          style={{ background: iconBgColor }}
-          aria-hidden="true"
-        >
-          {icon}
-        </div>
+        {iconSrc ? (
+          <div
+            className="w-12 h-12 sm:w-[52px] sm:h-[52px] xl:w-[56px] xl:h-[56px] shrink-0 flex items-center justify-center relative select-none"
+            aria-hidden="true"
+          >
+            <Image
+              src={iconSrc}
+              alt=""
+              width={56}
+              height={56}
+              priority
+              className="w-full h-full object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.18)] group-hover:scale-105 transition-transform duration-200 motion-reduce:transform-none"
+            />
+          </div>
+        ) : (
+          <div
+            className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border border-white/5"
+            style={{ background: iconBgColor }}
+            aria-hidden="true"
+          >
+            {icon}
+          </div>
+        )}
         <div className="min-w-0 flex-1">
           <p className="text-[10px] font-bold tracking-wider uppercase text-[var(--command-muted)] whitespace-nowrap">
             {label}
