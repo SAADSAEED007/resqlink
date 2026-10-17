@@ -162,10 +162,33 @@ export async function listTeams(query: TeamQuery) {
     ])
     return { items, pagination: { ...queryPage(query), total, totalPages: Math.ceil(total / query.limit) } }
 }
-export async function listAssignments(query: Page & { status?: string }) {
-    const filter = query.status ? { status: query.status } : {}
+export interface AssignmentFilter {
+    status?: string
+    incidentId?: unknown
+    teamId?: unknown
+    isSimulated?: boolean
+}
+
+export async function listAssignments(query: Page & { status?: string; incidentId?: string; teamId?: string; isSimulated?: boolean }) {
+    const filter: AssignmentFilter = {}
+    if (query.status) filter.status = query.status
+    if (query.incidentId) filter.incidentId = query.incidentId
+    if (query.teamId) filter.teamId = query.teamId
+    if (typeof query.isSimulated === 'boolean') filter.isSimulated = query.isSimulated
+
+    const populateIncident = {
+        path: 'incidentId',
+        select: '_id emergencyType priorityLevel status location reporterName peopleAffected createdAt'
+    }
+    const populateTeam = {
+        path: 'teamId',
+        select: '_id name teamCode capabilities status capacity location contactInformation'
+    }
+
     const [items, total] = await Promise.all([
         Assignment.find(filter)
+            .populate(populateIncident)
+            .populate(populateTeam)
             .sort({ assignedAt: -1, _id: 1 })
             .skip((query.page - 1) * query.limit)
             .limit(query.limit)
@@ -173,6 +196,25 @@ export async function listAssignments(query: Page & { status?: string }) {
         Assignment.countDocuments(filter)
     ])
     return { items, pagination: { ...queryPage(query), total, totalPages: Math.ceil(total / query.limit) } }
+}
+
+export async function getAssignment(id: string) {
+    const populateIncident = {
+        path: 'incidentId',
+        select: '_id emergencyType priorityLevel status location reporterName peopleAffected createdAt'
+    }
+    const populateTeam = {
+        path: 'teamId',
+        select: '_id name teamCode capabilities status capacity location contactInformation'
+    }
+
+    const assignment = await Assignment.findById(id)
+        .populate(populateIncident)
+        .populate(populateTeam)
+        .lean()
+
+    if (!assignment) throw new CustomError('Assignment not found', 404)
+    return assignment
 }
 export async function assignTeam(input: { incidentId: string; teamId: string; notes?: string }) {
     return transactional(async (session) => {

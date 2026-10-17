@@ -104,7 +104,13 @@ export const teamQuerySchema = Joi.object({
     search: text(100),
     isSimulated: Joi.boolean()
 })
-export const assignmentQuerySchema = Joi.object({ ...paging, status: Joi.string().valid('ACTIVE', 'COMPLETED', 'CANCELLED') })
+export const assignmentQuerySchema = Joi.object({
+    ...paging,
+    status: Joi.string().valid('ACTIVE', 'COMPLETED', 'CANCELLED'),
+    incidentId: Joi.string().hex().length(24),
+    teamId: Joi.string().hex().length(24),
+    isSimulated: Joi.boolean()
+})
 export const dashboardQuerySchema = Joi.object({
     isSimulated: Joi.boolean()
 })

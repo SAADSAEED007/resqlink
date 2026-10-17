@@ -1,4 +1,4 @@
-﻿import { Schema, model } from 'mongoose'
+import { Schema, model } from 'mongoose'
 const schema = new Schema(
     {
         incidentId: { type: Schema.Types.ObjectId, ref: 'Incident', required: true },
@@ -15,4 +15,7 @@ const schema = new Schema(
 schema.index({ incidentId: 1 }, { unique: true, partialFilterExpression: { status: 'ACTIVE' } })
 schema.index({ teamId: 1 }, { unique: true, partialFilterExpression: { status: 'ACTIVE' } })
 schema.index({ demoKey: 1 }, { unique: true, partialFilterExpression: { demoKey: { $type: 'string' } } })
+schema.index({ status: 1, assignedAt: -1 })
+schema.index({ incidentId: 1, assignedAt: -1 })
+schema.index({ teamId: 1, assignedAt: -1 })
 export default model('Assignment', schema)

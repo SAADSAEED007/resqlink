@@ -71,6 +71,13 @@ export interface Page {
     limit: number
 }
 
+export interface AssignmentQuery extends Page {
+    status?: AssignmentStatus
+    incidentId?: string
+    teamId?: string
+    isSimulated?: boolean
+}
+
 export interface TeamQuery extends Page {
     status?: TeamStatus
     capability?: Capability

@@ -150,6 +150,12 @@ router.get(
         httpResponse(res, req, 200, 'Assignments retrieved', await service.listAssignments(schema.validate(schema.assignmentQuerySchema, req.query)))
     })
 )
+router.get(
+    '/assignments/:id',
+    asyncHandler(async (req, res) => {
+        httpResponse(res, req, 200, 'Assignment retrieved', await service.getAssignment(req.params.id))
+    })
+)
 router.post(
     '/assignments',
     asyncHandler(async (req, res) => {
