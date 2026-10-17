@@ -1,25 +1,9 @@
 import Link from "next/link";
 import { ArrowRight, CircleAlert } from "lucide-react";
 import { LandingBrand } from "./LandingNavbar";
+import { HowItWorks } from "./HowItWorks";
 import { landingStyles as styles } from "./landing-styles";
 
-const steps = [
-  {
-    title: "Report an Emergency",
-    description:
-      "Citizens or volunteers submit the emergency information: what happened, where help is needed, and who may be at risk.",
-  },
-  {
-    title: "Assess Priority",
-    description:
-      "The system evaluates reported risk factors and explains its suggested priority, keeping uncertainty visible.",
-  },
-  {
-    title: "Coordinate Response",
-    description:
-      "Authorized coordinators review incidents and assign suitable teams. People remain responsible for every decision.",
-  },
-];
 export function LandingSections() {
   return (
     <>
@@ -37,40 +21,7 @@ export function LandingSections() {
           </p>
         </div>
       </aside>
-      <section
-        id="how-it-works"
-        className={`${styles.sectionContainer} ${styles.howSection}`}
-        aria-labelledby="how-heading"
-      >
-        <div className={styles.sectionHeading}>
-          <p className={styles.sectionLabel}>HOW RESQLINK WORKS</p>
-          <h2 id="how-heading">
-            A clearer path from
-            <br />
-            report to response.
-          </h2>
-          <p>
-            Good coordination begins with useful information.
-            <br className={styles.desktopBreak} /> Here is the workflow this
-            prototype is built around.
-          </p>
-        </div>
-        <ol className={styles.steps}>
-          {steps.map((step, index) => (
-            <li key={step.title}>
-              <span className={styles.stepNumber}>0{index + 1}</span>
-              <h3>{step.title}</h3>
-              <p>{step.description}</p>
-            </li>
-          ))}
-        </ol>
-        <p className={styles.capabilityNote}>
-          The backend supports reports, explainable prioritization, and
-          coordinator assignments. The citizen submission interface is still
-          being developed. This demonstration does not dispatch real rescue
-          teams.
-        </p>
-      </section>
+      <HowItWorks />
       <section
         id="communities"
         className={styles.communitySection}
