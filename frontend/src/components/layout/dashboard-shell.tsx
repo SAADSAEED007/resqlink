@@ -79,7 +79,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       label: "Incidents",
       href: "/dashboard/incidents",
       icon: AlertTriangle,
-      soon: true,
     },
     {
       label: "Rescue Teams",
