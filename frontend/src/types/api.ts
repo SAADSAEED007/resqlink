@@ -69,7 +69,7 @@ interface RecordFields {
 export interface Incident extends CreateIncidentInput, RecordFields {
   location: IncidentLocation | null;
   locationVerificationRequired: boolean;
-  verification: VerificationDetails;
+  verification?: VerificationDetails;
   priorityScore: number;
   priorityLevel: PriorityLevel;
   priorityReasons: string[];
