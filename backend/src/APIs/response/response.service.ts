@@ -237,11 +237,12 @@ export async function assignTeam(input: { incidentId: string; teamId: string; no
         return assignment
     })
 }
-export async function changeStatus(id: string, status: IncidentStatus) {
+export async function changeStatus(id: string, status: IncidentStatus, coordinatorId?: string) {
     return transactional(async (session) => {
         const incident = await Incident.findById(id).session(session)
         if (!incident) throw new CustomError('Incident not found', 404)
         assertTransition(incident.status, status)
+        const previousStatus = incident.status
         if (incident.assignedTeam) {
             const assignment = await Assignment.findOne({ incidentId: incident._id, teamId: incident.assignedTeam, status: 'ACTIVE' }).session(
                 session
@@ -259,10 +260,20 @@ export async function changeStatus(id: string, status: IncidentStatus) {
             }
         } else if (incident.status !== 'PENDING') throw new CustomError('Assigned incident is missing its team; manual reconciliation required', 409)
         incident.status = status
+        if (!Array.isArray(incident.statusHistory)) {
+            incident.set('statusHistory', [])
+        }
+        incident.statusHistory.push({
+            previousStatus,
+            newStatus: status,
+            changedBy: coordinatorId ? new mongoose.Types.ObjectId(coordinatorId) : null,
+            timestamp: new Date()
+        })
         await incident.save({ session })
         return incident
     })
 }
+
 export async function overridePriority(id: string, priorityLevel: Priority, reason: string, coordinatorId: string) {
     return transactional(async (session) => {
         const incident = await Incident.findById(id).session(session)
