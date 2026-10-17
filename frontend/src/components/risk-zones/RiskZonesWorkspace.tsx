@@ -35,7 +35,7 @@ const MonitoringMap = dynamic(
     ssr: false,
     loading: () => (
       <div className="siCard siMapSkeleton" role="status">
-        Loading Sindh mapÃ¢â‚¬Â¦
+        Loading Sindh map…
       </div>
     ),
   },
@@ -76,7 +76,7 @@ export function RiskZonesWorkspace() {
             <strong>{selected?.name || "Sindh Monitoring"}</strong>
             <b>
               {weather
-                ? `${weather.current.temperatureC}Ã‚Â°C`
+                ? `${weather.current.temperatureC}°C`
                 : "Forecast pending"}
             </b>
             <small>
@@ -86,7 +86,7 @@ export function RiskZonesWorkspace() {
             </small>
             {weather && (
               <small>
-                {weather.freshness} forecast Â· {date(weather.current.time)}
+                {weather.freshness} forecast · {date(weather.current.time)}
               </small>
             )}
           </div>
@@ -97,7 +97,7 @@ export function RiskZonesWorkspace() {
           onClick={model.refresh}
         >
           <RefreshCw size={16} className={model.refreshing ? "siSpin" : ""} />
-          {model.refreshing ? "Fetching forecastsÃ¢â‚¬Â¦" : "Refresh Weather"}
+          {model.refreshing ? "Fetching forecasts…" : "Refresh Weather"}
         </button>
       </header>
       <div
@@ -182,13 +182,13 @@ export function RiskZonesWorkspace() {
             <span>
               <Info size={13} />
               {model.overview?.coverage ||
-                "Verified seven-district subset Ã‚Â· Remaining Sindh districts are not configured."}
+                "Verified seven-district subset · Remaining Sindh districts are not configured."}
             </span>
             <span>
               {model.refreshing
                 ? "Forecast retrieval in progress"
                 : `${unavailable} data unavailable`}{" "}
-              Ã‚Â·{" "}
+              ·{" "}
               {model.overview
                 ? `Updated ${date(model.overview.retrievedAt)}`
                 : "Waiting for provider"}
@@ -213,7 +213,7 @@ export function RiskZonesWorkspace() {
                   <Search size={16} />
                   <input
                     aria-label="Search districts"
-                    placeholder="Search districtsÃ¢â‚¬Â¦"
+                    placeholder="Search districts…"
                     value={model.search}
                     onChange={(event) => model.setSearch(event.target.value)}
                   />
@@ -238,7 +238,7 @@ export function RiskZonesWorkspace() {
                   <div className="siEmptyCompact" role="status">
                     {model.error
                       ? "Monitoring registry is unavailable."
-                      : "Loading verified monitoring locationsÃ¢â‚¬Â¦"}
+                      : "Loading verified monitoring locations…"}
                   </div>
                 ) : !model.visible.length ? (
                   <div className="siEmptyCompact">
@@ -276,14 +276,14 @@ export function RiskZonesWorkspace() {
                         </small>
                         <span className="siRowStats">
                           {item.weather
-                            ? `${item.weather.next24Hours.precipitationMm} mm / 24h Ã‚Â· ${item.weather.next24Hours.maxProbabilityPercent}% max probability`
+                            ? `${item.weather.next24Hours.precipitationMm} mm / 24h · ${item.weather.next24Hours.maxProbabilityPercent}% max probability`
                             : model.refreshing
-                              ? "Retrieving forecastÃ¢â‚¬Â¦"
+                              ? "Retrieving forecast…"
                               : "Forecast unavailable"}
                         </span>
                         <small className="siRetrieved">
                           {item.weather
-                            ? `${item.weather.freshness} Ã‚Â· ${date(item.weather.retrievedAt)}`
+                            ? `${item.weather.freshness} · ${date(item.weather.retrievedAt)}`
                             : "No current provider evidence"}
                         </small>
                       </div>

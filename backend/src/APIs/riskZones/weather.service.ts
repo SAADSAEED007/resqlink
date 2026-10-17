@@ -93,7 +93,7 @@ export function normalizeWeather(input: unknown, now = Date.now()) {
         },
         hourly,
         days,
-        units: { temperature: '?C', precipitation: 'mm', probability: '%', wind: 'km/h' },
+        units: { temperature: '\u00b0C', precipitation: 'mm', probability: '%', wind: 'km/h' },
         attribution: 'Weather data by Open-Meteo (CC BY 4.0)'
     }
 }
