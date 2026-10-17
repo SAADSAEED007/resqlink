@@ -321,12 +321,13 @@ export function IncidentPriorityCard({
 
 // 3. AFFECTED PEOPLE & VULNERABILITY CARD
 export function IncidentVulnerabilityCard({ incident }: { incident: Incident }) {
+  const reportedPeople = incident.peopleAffected;
   const hasPeopleCount =
-    typeof incident.peopleAffected === "number" && Number.isFinite(incident.peopleAffected);
+    typeof reportedPeople === "number" && Number.isFinite(reportedPeople);
   const peopleCount = hasPeopleCount
-    ? incident.peopleAffected >= 1000
-      ? incident.peopleAffected.toLocaleString("en-US")
-      : `${incident.peopleAffected}`
+    ? reportedPeople >= 1000
+      ? reportedPeople.toLocaleString("en-US")
+      : `${reportedPeople}`
     : "Not reported";
 
   const vuln = incident.vulnerablePeople;

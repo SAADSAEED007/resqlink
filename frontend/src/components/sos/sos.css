@@ -993,6 +993,41 @@
   height: auto;
   display: block;
 }
+.rqQuickCorrected .rqSosAppHeader > .rqSosOfficialBrand {
+  width: 160px;
+  padding: 7px 10px;
+  background: #06172b;
+  border-radius: 8px;
+}
+.rqQuickCorrected .rqSosHeaderLogo { width: 230px; background: #06172b; padding: 8px 12px; border-radius: 10px; }
+.rqQuickCorrected .rqSosHeaderLogo img { display: block; width: 100%; height: auto; }
+.rqQuickCorrected .rqSosLanguage { display: flex; gap: 6px; margin-left: auto; }
+.rqQuickCorrected .rqSosLanguage button { min-height: 42px; padding: 8px 12px; color: #d7e4f5; font-size: 15px; font-weight: 650; }
+.rqQuickCorrected .rqSosLanguage button[aria-pressed="true"] { color: white; background: #1f5fae; border-radius: 8px; }
+.rqQuickCorrected .rqQuickForm { gap: 22px; }
+.rqQuickCorrected .rqQuickForm > h1, .rqQuickCorrected .rqQuickStart h1 { font-size: clamp(2rem, 4vw, 2.7rem); }
+.rqQuickCorrected .rqQuickForm > p, .rqQuickCorrected .rqQuickStart > p { font-size: 1rem; }
+.rqQuickCorrected .rqQuickForm h2 { font-size: 1.18rem; margin-top: 8px; }
+.rqQuickCorrected .rqQuickTypes { gap: 12px; }
+.rqQuickCorrected .rqQuickTypes button { min-height: 146px; padding: 16px 10px; font-size: 1rem; border-radius: 12px; }
+.rqQuickCorrected .rqQuickTypes button svg { width: 40px; height: 40px; }
+.rqQuickLocation { min-height: 64px; display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; color: #fff; background: #165fc4; border-radius: 10px; font-size: 1.05rem; font-weight: 700; }
+.rqQuickLocation:disabled { opacity: .7; }
+.rqQuickLandmark { display: grid; gap: 8px; font-size: 1rem; font-weight: 650; }
+.rqQuickLandmark .control, .rqQuickCorrected .rqQuickDetails .control { min-height: 54px; font-size: 1rem; }
+.rqQuickMessage { font-size: .95rem; color: #195f3a; font-weight: 650; }
+.rqQuickMap, .rqQuickDetails { border: 0; border-radius: 0; padding: 0; }
+.rqQuickMap summary, .rqQuickDetails summary { min-height: 52px; display: flex; align-items: center; gap: 10px; color: #164e88; font-size: 1rem; font-weight: 700; cursor: pointer; }
+.rqQuickDetails > div { gap: 16px; }
+.rqQuickDetails label { display: grid; gap: 8px; font-size: .95rem; font-weight: 650; }
+.rqVoiceDisabled { min-height: 56px; width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 0; color: #59687a; text-align: left; font-size: 1rem; cursor: not-allowed; }
+.rqVoiceDisabled small { margin-left: auto; font-size: .82rem; color: #7d8794; }
+.rqQuickCorrected .rqQuickSend { min-height: 64px; font-size: 1.12rem; font-weight: 750; border-radius: 10px; }
+.rqQuickCorrected .rqSosPrototype { font-size: .85rem; line-height: 1.55; }
+.rqQuickCorrected[dir="rtl"] .rqSosLanguage { margin-left: 0; margin-right: auto; }
+.rqQuickCorrected[dir="rtl"] .rqQuickLandmark, .rqQuickCorrected[dir="rtl"] .rqQuickDetails label { text-align: right; }
+@media (max-width: 599px) { .rqQuickCorrected .rqSosNav { display: flex; padding: 14px 16px; flex-wrap: wrap; } .rqQuickCorrected .rqSosNav > a:first-child.rqSosHeaderLogo { width: 164px; } .rqQuickCorrected .rqSosNav > a:last-child { display: none; } .rqQuickCorrected .rqSosLanguage { order: 3; width: 100%; justify-content: space-between; } .rqQuickCorrected .rqSosLanguage button { flex: 1; } .rqQuickCorrected .rqSosAppHeader { display: none; } .rqQuickCorrected .rqSosAppContent { padding: 24px 18px 34px; } .rqQuickCorrected .rqQuickTypes { grid-template-columns: repeat(2, minmax(0, 1fr)); } .rqQuickCorrected .rqQuickTypes button { min-height: 136px; font-size: .93rem; } .rqQuickCorrected .rqSosEmergency { width: 220px; height: 220px; } .rqQuickCorrected .rqVoiceDisabled { align-items: flex-start; flex-wrap: wrap; } .rqQuickCorrected .rqVoiceDisabled small { width: 100%; margin-left: 33px; } }
+@media (max-width: 600px) { .rqQuickCorrected { width: 100vw; max-width: 100vw; overflow-x: hidden; } .rqQuickCorrected .rqSosLayout, .rqQuickCorrected .rqSosPanel, .rqQuickCorrected .rqSosAppContent, .rqQuickCorrected .rqQuickStart { width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; } .rqQuickCorrected .rqQuickStart h1 { font-size: 2rem; overflow-wrap: anywhere; } .rqQuickCorrected .rqSosLanguage { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); } .rqQuickCorrected .rqSosLanguage button { min-width: 0; padding-inline: 4px; } }
 @media (max-width: 599px) {
   .rqSosOfficialBrand {
     width: 145px;
