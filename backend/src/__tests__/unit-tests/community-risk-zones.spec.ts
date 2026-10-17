@@ -149,7 +149,6 @@ describe('community risk zones - service logic', () => {
             .spyOn(CommunityRiskZone, 'create')
             .mockImplementation(((doc: unknown) => Promise.resolve(new CommunityRiskZone(doc))) as never)
 
-
         const created = await createRiskZone(input)
         expect(createSpy).toHaveBeenCalledTimes(1)
         expect(created.approximateLocation.isLocationEstimated).toBe(true)
@@ -231,9 +230,38 @@ describe('community risk zones - service logic', () => {
         expect(updated.fieldAssessment).toBeDefined()
         expect(updated.fieldAssessment?.priorityUrgency).toBe('CRITICAL')
         expect(updated.fieldAssessment?.assignedOfficer).toBe('Field Officer Aslam')
+        expect(updated.assessments).toHaveLength(1)
         expect(updated.statusHistory).toHaveLength(1)
         expect(updated.statusHistory[0].previousStatus).toBe('PENDING_ASSESSMENT')
         expect(updated.statusHistory[0].newStatus).toBe('ASSESSMENT_DISPATCHED')
+    })
+
+    it('preserves prior field assessment when a new request is recorded', async () => {
+        const zone = new CommunityRiskZone({
+            communityName: 'Test locality',
+            district: 'Dadu',
+            approximateLocation: { landmarkDescription: 'Test landmark' },
+            hazardType: 'FLASH_FLOOD',
+            hazardSeverity: 'HIGH',
+            fieldAssessment: {
+                priorityUrgency: 'ROUTINE',
+                assessmentNotes: 'Earlier field note',
+                requestedBy: coordinatorId,
+                requestedAt: new Date()
+            },
+            statusHistory: []
+        })
+        jest.spyOn(zone, 'save').mockResolvedValue(zone)
+        jest.spyOn(CommunityRiskZone, 'findById').mockResolvedValue(zone)
+        const updated = await requestFieldAssessment(
+            String(zoneId),
+            { priorityUrgency: 'URGENT', assessmentNotes: 'Newer field note' },
+            String(coordinatorId)
+        )
+        expect(updated.assessments).toHaveLength(2)
+        expect(updated.assessments?.[0].assessmentNotes).toBe('Earlier field note')
+        expect(updated.fieldAssessment?.assessmentNotes).toBe('Newer field note')
+        expect(updated.hazardSeverity).toBe('HIGH')
     })
 
     it('updates assessment status and sets completedAt when completed', async () => {
@@ -305,7 +333,6 @@ describe('community risk zones - service logic', () => {
         const createSpy = jest
             .spyOn(CommunityRiskZone, 'create')
             .mockImplementation(((doc: unknown) => Promise.resolve(new CommunityRiskZone(doc))) as never)
-
 
         const seeded = await seedDemoRiskZones()
 

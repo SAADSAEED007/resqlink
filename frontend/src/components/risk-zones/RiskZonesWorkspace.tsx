@@ -1,675 +1,361 @@
 "use client";
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Button, FormField, Input, Select, Textarea } from "@/components/ui";
-import { riskZones } from "@/lib/api/risk-zones";
-import { ApiError, errorMessage } from "@/lib/api/client";
+import { useState } from "react";
+import dynamic from "next/dynamic";
 import {
-  hazardTypes,
-  hazardSeverities,
-  connectivityStatuses,
-  assessmentStatuses,
-  assessmentUrgencies,
-  type RiskZone,
-  type RiskZonePage,
-  type RiskZoneQuery,
-  type AssessmentStatus,
-} from "@/types/risk-zones";
-import { emptyZone, zoneInput, text, type ZoneDraft } from "./zone-form";
+  Globe2,
+  RefreshCw,
+  Search,
+  MapPin,
+  ChevronRight,
+  AlertTriangle,
+  CloudRain,
+  ShieldCheck,
+  Info,
+  ArrowUpRight,
+} from "lucide-react";
+import { useDistrictMonitoring } from "./use-district-monitoring";
+import { CommunityAssessments } from "./CommunityAssessments";
+import { DistrictDetails, type DistrictTab } from "./DistrictDetails";
+import {
+  DistrictAiPanel,
+  DistrictForecastPanel,
+} from "./DistrictWeatherPanels";
+import {
+  Attention,
+  WeatherIcon,
+  attentionLabels,
+  date,
+} from "./monitoring-utils";
+import type { AttentionLevel } from "@/types/risk-zones";
+import "./sindh-intelligence.css";
+const MonitoringMap = dynamic(
+  () =>
+    import("./SindhMonitoringMap").then((module) => module.SindhMonitoringMap),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="siCard siMapSkeleton" role="status">
+        Loading Sindh mapÃ¢â‚¬Â¦
+      </div>
+    ),
+  },
+);
 export function RiskZonesWorkspace() {
-  const [query, setQuery] = useState<RiskZoneQuery>({
-    page: 1,
-    limit: 20,
-    sort: "newest",
-  });
-  const [district, setDistrict] = useState("");
-  const [data, setData] = useState<RiskZonePage | null>(null),
-    [loading, setLoading] = useState(true),
-    [error, setError] = useState(""),
-    [attempt, setAttempt] = useState(0);
-  const [draft, setDraft] = useState<ZoneDraft>({ ...emptyZone }),
-    [showCreate, setShowCreate] = useState(false),
-    [selected, setSelected] = useState<RiskZone | null>(null);
-  const [busy, setBusy] = useState(false),
-    [mutationError, setMutationError] = useState(""),
-    [message, setMessage] = useState(""),
-    [uncertain, setUncertain] = useState(false),
-    [ack, setAck] = useState(false);
-  const [urgency, setUrgency] = useState(""),
-    [officer, setOfficer] = useState(""),
-    [assessmentNotes, setAssessmentNotes] = useState(""),
-    [newStatus, setNewStatus] = useState(""),
-    [statusNotes, setStatusNotes] = useState("");
-  const feedback = useRef<HTMLDivElement>(null);
-  const selectedSection = useRef<HTMLElement>(null);
-  useEffect(() => {
-    if (message || mutationError) {
-      feedback.current?.focus();
-      feedback.current?.scrollIntoView({
-        block: "center",
-        behavior: "instant",
-      });
-    }
-  }, [message, mutationError]);
-  const lock = useRef(false),
-    alive = useRef(true),
-    detailController = useRef<AbortController | null>(null);
-  useEffect(() => {
-    alive.current = true;
-    return () => {
-      alive.current = false;
-      detailController.current?.abort();
-    };
-  }, []);
-  useEffect(() => {
-    let active = true;
-    const controller = new AbortController();
-    riskZones
-      .list(query, controller.signal)
-      .then((result) => {
-        if (active) {
-          setData(result);
-          setError("");
-        }
-      })
-      .catch((err) => {
-        if (active) setError(errorMessage(err));
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-      controller.abort();
-    };
-  }, [query, attempt]);
-  function reload() {
-    setAttempt((value) => value + 1);
-  }
-  async function details(id: string) {
-    detailController.current?.abort();
-    const controller = new AbortController();
-    detailController.current = controller;
-    setMutationError("");
-    try {
-      const zone = await riskZones.get(id, controller.signal);
-      if (!controller.signal.aborted && alive.current) {
-        if (selected?._id !== id) {
-          setAssessmentNotes("");
-          setOfficer("");
-          setUrgency("");
-          setStatusNotes("");
-        }
-        setSelected(zone);
-        requestAnimationFrame(() => {
-          selectedSection.current?.focus();
-          selectedSection.current?.scrollIntoView({
-            block: "start",
-            behavior: "instant",
-          });
-        });
-        setMessage("");
-        setNewStatus("");
-      }
-    } catch (err) {
-      if (!controller.signal.aborted && alive.current)
-        setMutationError(errorMessage(err));
-    }
-  }
-  async function mutate(
-    task: () => Promise<RiskZone>,
-    success: string,
-    onSuccess?: (zone: RiskZone) => void,
-  ) {
-    if (lock.current || (uncertain && !ack)) return;
-    lock.current = true;
-    setBusy(true);
-    setMutationError("");
-    setMessage("");
-    try {
-      const zone = await task();
-      if (!zone?._id || !/^[a-f0-9]{24}$/i.test(zone._id))
-        throw new ApiError("Invalid confirmation", 0, "protocol");
-      if (!alive.current) return;
-      setSelected(zone);
-      setMessage(success);
-      setUncertain(false);
-      setAck(false);
-      onSuccess?.(zone);
-      reload();
-    } catch (err) {
-      if (!alive.current) return;
-      const ambiguous =
-        !(err instanceof ApiError) || err.status === 0 || err.status >= 500;
-      setUncertain(ambiguous);
-      setAck(false);
-      setMutationError(
-        ambiguous
-          ? "The change is unconfirmed and may have reached the server. Refresh and inspect current records before retrying."
-          : errorMessage(err),
-      );
-      reload();
-    } finally {
-      lock.current = false;
-      if (alive.current) setBusy(false);
-    }
-  }
-  function create(event: FormEvent) {
-    event.preventDefault();
-    try {
-      const input = zoneInput(draft);
-      void mutate(
-        () => riskZones.create(input),
-        "Community risk zone registered.",
-        () => {
-          setDraft({ ...emptyZone });
-          setShowCreate(false);
-        },
-      );
-    } catch (err) {
-      setMutationError(
-        err instanceof Error ? err.message : "Check the form fields.",
-      );
-    }
-  }
-  function assess(event: FormEvent) {
-    event.preventDefault();
-    if (!selected) return;
-    try {
-      if (
-        !assessmentUrgencies.includes(
-          urgency as (typeof assessmentUrgencies)[number],
-        )
-      )
-        throw new Error("Choose assessment urgency.");
-      const notes = text(assessmentNotes, 5, 1000, "Assessment notes");
-      const assignedOfficer = officer.trim()
-        ? text(officer, 1, 100, "Officer")
-        : undefined;
-      void mutate(
-        () =>
-          riskZones.requestAssessment(selected._id, {
-            priorityUrgency: urgency as (typeof assessmentUrgencies)[number],
-            assessmentNotes: notes,
-            ...(assignedOfficer ? { assignedOfficer } : {}),
-          }),
-        "Field assessment request recorded; no official dispatch performed.",
-      );
-    } catch (err) {
-      setMutationError((err as Error).message);
-    }
-  }
-  function changeStatus(event: FormEvent) {
-    event.preventDefault();
-    if (!selected) return;
-    try {
-      if (
-        !assessmentStatuses.includes(newStatus as AssessmentStatus) ||
-        newStatus === selected.assessmentStatus
-      )
-        throw new Error("Choose a different assessment status.");
-      const notes = text(statusNotes, 3, 1000, "Status notes");
-      void mutate(
-        () =>
-          riskZones.updateStatus(
-            selected._id,
-            newStatus as AssessmentStatus,
-            notes,
-          ),
-        "Assessment status updated.",
-      );
-    } catch (err) {
-      setMutationError((err as Error).message);
-    }
-  }
-  const field = (
-    key: keyof ZoneDraft,
-    label: string,
-    required = false,
-    type = "text",
-    maxLength = 150,
-  ) => (
-    <FormField key={key} label={label} required={required}>
-      {(props) => (
-        <Input
-          {...props}
-          value={draft[key]}
-          onChange={(event) =>
-            setDraft((old) => ({ ...old, [key]: event.target.value }))
-          }
-          type={type}
-          maxLength={maxLength}
-          step={type === "number" ? "any" : undefined}
-        />
-      )}
-    </FormField>
-  );
-  const choices = (
-    key: keyof ZoneDraft,
-    label: string,
-    values: readonly string[],
-  ) => (
-    <FormField key={key} label={label} required>
-      {(props) => (
-        <Select
-          {...props}
-          value={draft[key]}
-          onChange={(event) =>
-            setDraft((old) => ({ ...old, [key]: event.target.value }))
-          }
-        >
-          <option value="">Choose {label.toLowerCase()}</option>
-          {values.map((value) => (
-            <option key={value} value={value}>
-              {value.replaceAll("_", " ")}
-            </option>
-          ))}
-        </Select>
-      )}
-    </FormField>
-  );
+  const [mode, setMode] = useState("districts"),
+    [communitiesOpened, setCommunitiesOpened] = useState(false),
+    [tab, setTab] = useState<DistrictTab>("Overview");
+  const model = useDistrictMonitoring(),
+    { selected } = model;
+  const counts = [
+    model.records.length,
+    ...(["URGENT_REVIEW", "ELEVATED", "ROUTINE"] as AttentionLevel[]).map(
+      (level) =>
+        model.records.filter((item) => item.attention?.level === level).length,
+    ),
+  ];
+  const unavailable = model.records.filter(
+    (item) => !item.attention || item.attention.level === "DATA_UNAVAILABLE",
+  ).length;
+  const weather = selected?.weather;
   return (
-    <div className="rqRiskWorkspace">
-      <header className="rqRiskHeading">
+    <div className="siWorkspace">
+      <header className="siPageHeader">
+        <i className="siPageIcon">
+          <Globe2 size={29} />
+        </i>
         <div>
-          <h2>Community Risk Zones</h2>
+          <h1>Sindh Disaster Risk Intelligence</h1>
           <p>
-            Coordinator records and proactive field assessments / API records
-            only.
+            Weather-informed monitoring and proactive disaster preparedness
+            across Sindh.
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setShowCreate(!showCreate);
-            setMutationError("");
-          }}
-          disabled={busy}
-        >
-          {showCreate ? "Close registration" : "Register community"}
-        </Button>
-      </header>
-      <p className="rqOperationsNotice">
-        Prototype decision support. Reported hazards and estimated locations are
-        not validated emergency advice. Recording an assessment does not
-        dispatch official services.
-      </p>
-      <div ref={feedback} tabIndex={-1} aria-live="polite">
-        {message && <p role="status">{message}</p>}
-        {mutationError && <p role="alert">{mutationError}</p>}
-      </div>
-      {uncertain && (
-        <label className="rqOperationsAck">
-          <input
-            type="checkbox"
-            checked={ack}
-            onChange={(event) => setAck(event.target.checked)}
-          />
-          I checked current records and understand a retry may repeat the
-          change.
-        </label>
-      )}
-      {showCreate && (
-        <form onSubmit={create} className="rqCommandCard rqRiskForm">
-          <h3>Register a community risk zone</h3>
-          <fieldset disabled={busy || (uncertain && !ack)}>
-            <div className="rqRiskFields">
-              {field("communityName", "Community name", true)}
-              {field("district", "District", true, "text", 100)}
-              {field("tehsil", "Tehsil (optional)", false, "text", 100)}
-              {field("landmark", "Approximate landmark", true, "text", 400)}
-              {field("latitude", "Latitude (optional)", false, "number")}
-              {field("longitude", "Longitude (optional)", false, "number")}
-              {choices("hazardType", "Hazard type", hazardTypes)}
-              {choices("hazardSeverity", "Hazard severity", hazardSeverities)}
-              {choices("connectivity", "Connectivity", connectivityStatuses)}
-              {choices("confidence", "Information confidence", [
-                "HIGH",
-                "MEDIUM",
-                "LOW",
-              ])}
-              {field(
-                "population",
-                "Estimated population (optional)",
-                false,
-                "number",
-              )}
-              {field(
-                "vulnerable",
-                "Estimated vulnerable population (optional)",
-                false,
-                "number",
-              )}
-              {field(
-                "obstacles",
-                "Access obstacles (semicolon separated)",
-                false,
-                "text",
-                1000,
-              )}
-              {field(
-                "confidenceReasons",
-                "Confidence reasons (semicolon separated)",
-                false,
-                "text",
-                2000,
-              )}
-              <FormField label="Additional zone notes (optional)">
-                {(props) => (
-                  <Textarea
-                    {...props}
-                    value={draft.notes}
-                    maxLength={1000}
-                    onChange={(event) =>
-                      setDraft((old) => ({ ...old, notes: event.target.value }))
-                    }
-                  />
-                )}
-              </FormField>
-            </div>
-            <p>
-              Leave unknown coordinates and counts blank. All entered locations
-              are marked estimated; the backend may lower information confidence
-              when coordinates are missing.
-            </p>
-            <Button type="submit" loading={busy}>
-              Save community risk zone
-            </Button>
-          </fieldset>
-        </form>
-      )}
-      <form
-        className="rqRiskFilters"
-        onSubmit={(event) => {
-          event.preventDefault();
-          if (
-            district.trim() &&
-            (/[<>()[\]{}.*+?^$|\\]/.test(district) || district.length > 100)
-          ) {
-            setError("Use a district name without regular-expression symbols.");
-            return;
-          }
-          setLoading(true);
-          setQuery((old) => ({
-            ...old,
-            page: 1,
-            district: district.trim() || undefined,
-          }));
-        }}
-      >
-        <FormField label="Filter district">
-          {(props) => (
-            <Input
-              {...props}
-              value={district}
-              maxLength={100}
-              onChange={(event) => setDistrict(event.target.value)}
-            />
-          )}
-        </FormField>
-        <FormField label="Filter severity">
-          {(props) => (
-            <Select
-              {...props}
-              value={query.hazardSeverity || ""}
-              onChange={(event) => {
-                setLoading(true);
-                setQuery((old) => ({
-                  ...old,
-                  page: 1,
-                  hazardSeverity:
-                    (event.target.value as RiskZoneQuery["hazardSeverity"]) ||
-                    undefined,
-                }));
-              }}
-            >
-              <option value="">All severities</option>
-              {hazardSeverities.map((value) => (
-                <option key={value}>{value}</option>
-              ))}
-            </Select>
-          )}
-        </FormField>
-        <FormField label="Filter assessment status">
-          {(props) => (
-            <Select
-              {...props}
-              value={query.assessmentStatus || ""}
-              onChange={(event) => {
-                setLoading(true);
-                setQuery((old) => ({
-                  ...old,
-                  page: 1,
-                  assessmentStatus:
-                    (event.target.value as AssessmentStatus) || undefined,
-                }));
-              }}
-            >
-              <option value="">All statuses</option>
-              {assessmentStatuses.map((value) => (
-                <option key={value}>{value}</option>
-              ))}
-            </Select>
-          )}
-        </FormField>
-        <Button type="submit" variant="outline">
-          Apply district
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => {
-            reload();
-            if (selected) void details(selected._id);
-          }}
-          disabled={busy}
-        >
-          Refresh risk zones
-        </Button>
-      </form>
-      {error && (
-        <p role="alert">{error} Previous records, if any, remain visible.</p>
-      )}
-      {loading && <p role="status">Loading community risk zones...</p>}
-      <div className="rqRiskList">
-        {data?.items.map((zone) => (
-          <button
-            className="rqCommandCard rqRiskRecord"
-            key={zone._id}
-            onClick={() => void details(zone._id)}
-            disabled={busy}
-          >
-            <span className="rqCommandSeverity">{zone.hazardSeverity}</span>
-            <h3>{zone.communityName}</h3>
-            <p>
-              {zone.district} / {zone.hazardType.replaceAll("_", " ")}
-            </p>
-            <p>{zone.approximateLocation.landmarkDescription}</p>
+        <div className="siHeaderWeather">
+          <WeatherIcon code={weather?.current.weatherCode} />
+          <div>
+            <strong>{selected?.name || "Sindh Monitoring"}</strong>
+            <b>
+              {weather
+                ? `${weather.current.temperatureC}Ã‚Â°C`
+                : "Forecast pending"}
+            </b>
             <small>
-              {zone.assessmentStatus.replaceAll("_", " ")}
-              {zone.isSimulated ? " / SIMULATED" : ""}
+              {weather
+                ? `${weather.next24Hours.precipitationMm} mm / next 24h`
+                : "Representative locations"}
             </small>
-          </button>
-        ))}
-      </div>
-      {!loading && data?.items.length === 0 && (
-        <p>No risk zones match these filters.</p>
-      )}
-      {data && (
-        <nav className="rqRiskPagination" aria-label="Risk zone pages">
-          <Button
-            variant="outline"
-            disabled={(query.page || 1) <= 1 || loading}
-            onClick={() => {
-              setLoading(true);
-              setQuery((old) => ({ ...old, page: (old.page || 1) - 1 }));
-            }}
-          >
-            Previous page
-          </Button>
-          <span>
-            Page {query.page || 1} of {Math.max(1, data.pagination.totalPages)}{" "}
-            / {data.pagination.total} records
-          </span>
-          <Button
-            variant="outline"
-            disabled={
-              (query.page || 1) >= data.pagination.totalPages || loading
-            }
-            onClick={() => {
-              setLoading(true);
-              setQuery((old) => ({ ...old, page: (old.page || 1) + 1 }));
-            }}
-          >
-            Next page
-          </Button>
-        </nav>
-      )}
-      {selected && (
-        <section
-          className="rqCommandCard rqRiskDetail"
-          ref={selectedSection}
-          tabIndex={-1}
-          aria-label="Selected community risk zone"
-        >
-          <header>
-            <h3>{selected.communityName}</h3>
-            <Button
-              variant="outline"
-              disabled={busy}
-              onClick={() => setSelected(null)}
-            >
-              Close zone details
-            </Button>
-          </header>
-          <p>
-            {selected.district} /{" "}
-            {selected.assessmentStatus.replaceAll("_", " ")}
-            {selected.isSimulated ? " / SIMULATED" : ""}
-          </p>
-          <p>{selected.approximateLocation.landmarkDescription}</p>
-          <p>
-            {selected.approximateLocation.latitude != null &&
-            selected.approximateLocation.longitude != null
-              ? `Estimated coordinates: ${selected.approximateLocation.latitude}, ${selected.approximateLocation.longitude}`
-              : "Coordinates unknown / landmark only"}
-          </p>
-          <p>
-            Connectivity: {selected.connectivityStatus.replaceAll("_", " ")} /
-            Information confidence: {selected.informationConfidence}
-          </p>
-          <p>
-            Estimated population:{" "}
-            {selected.vulnerablePopulation?.estimatedTotalPopulation ??
-              "Unknown"}{" "}
-            / Vulnerable:{" "}
-            {selected.vulnerablePopulation?.estimatedVulnerableCount ??
-              "Unknown"}
-          </p>
-          <ul>
-            {selected.confidenceReasons?.map((reason, index) => (
-              <li key={index}>{reason}</li>
-            ))}
-          </ul>
-          {selected.fieldAssessment && (
-            <p>
-              Last assessment request:{" "}
-              {selected.fieldAssessment.priorityUrgency} /{" "}
-              {selected.fieldAssessment.assessmentNotes} / Officer:{" "}
-              {selected.fieldAssessment.assignedOfficer || "Not assigned"}
-            </p>
-          )}
-          <div className="rqRiskFields">
-            <form onSubmit={assess}>
-              <fieldset disabled={busy || (uncertain && !ack)}>
-                <legend>Request a field assessment</legend>
-                <FormField label="Assessment urgency" required>
-                  {(props) => (
-                    <Select
-                      {...props}
-                      value={urgency}
-                      onChange={(event) => setUrgency(event.target.value)}
-                    >
-                      <option value="">Choose urgency</option>
-                      {assessmentUrgencies.map((value) => (
-                        <option key={value}>{value}</option>
-                      ))}
-                    </Select>
-                  )}
-                </FormField>
-                <FormField label="Assigned officer (optional)">
-                  {(props) => (
-                    <Input
-                      {...props}
-                      maxLength={100}
-                      value={officer}
-                      onChange={(event) => setOfficer(event.target.value)}
-                    />
-                  )}
-                </FormField>
-                <FormField label="Assessment request notes" required>
-                  {(props) => (
-                    <Textarea
-                      {...props}
-                      minLength={5}
-                      maxLength={1000}
-                      value={assessmentNotes}
-                      onChange={(event) =>
-                        setAssessmentNotes(event.target.value)
-                      }
-                    />
-                  )}
-                </FormField>
-                <Button type="submit" loading={busy}>
-                  Record assessment request
-                </Button>
-              </fieldset>
-            </form>
-            <form onSubmit={changeStatus}>
-              <fieldset disabled={busy || (uncertain && !ack)}>
-                <legend>Update assessment status</legend>
-                <FormField label="New assessment status" required>
-                  {(props) => (
-                    <Select
-                      {...props}
-                      value={
-                        newStatus === selected.assessmentStatus ? "" : newStatus
-                      }
-                      onChange={(event) => setNewStatus(event.target.value)}
-                    >
-                      <option value="">Choose a different status</option>
-                      {assessmentStatuses
-                        .filter((value) => value !== selected.assessmentStatus)
-                        .map((value) => (
-                          <option key={value}>{value}</option>
-                        ))}
-                    </Select>
-                  )}
-                </FormField>
-                <FormField label="Assessment status notes" required>
-                  {(props) => (
-                    <Textarea
-                      {...props}
-                      minLength={3}
-                      maxLength={1000}
-                      value={statusNotes}
-                      onChange={(event) => setStatusNotes(event.target.value)}
-                    />
-                  )}
-                </FormField>
-                <Button type="submit" loading={busy}>
-                  Save assessment status
-                </Button>
-              </fieldset>
-            </form>
+            {weather && (
+              <small>
+                {weather.freshness} forecast Â· {date(weather.current.time)}
+              </small>
+            )}
           </div>
-          <h4>Status history</h4>
-          <ul>
-            {selected.statusHistory?.map((entry, index) => (
-              <li key={index}>
-                {entry.previousStatus} to {entry.newStatus}: {entry.notes}
-              </li>
-            ))}
-          </ul>
+        </div>
+        <button
+          className="siPrimary"
+          disabled={model.refreshing}
+          onClick={model.refresh}
+        >
+          <RefreshCw size={16} className={model.refreshing ? "siSpin" : ""} />
+          {model.refreshing ? "Fetching forecastsÃ¢â‚¬Â¦" : "Refresh Weather"}
+        </button>
+      </header>
+      <div
+        className="siMainTabs"
+        role="tablist"
+        aria-label="Risk intelligence views"
+      >
+        <button
+          role="tab"
+          aria-selected={mode === "districts"}
+          onClick={() => setMode("districts")}
+        >
+          District Monitoring
+        </button>
+        <button
+          role="tab"
+          aria-selected={mode === "communities"}
+          onClick={() => {
+            setCommunitiesOpened(true);
+            setMode("communities");
+          }}
+        >
+          Community Assessments
+        </button>
+        <span>
+          <i />
+          Prototype decision support
+        </span>
+      </div>
+      {communitiesOpened && (
+        <section hidden={mode !== "communities"}>
+          <CommunityAssessments />
         </section>
       )}
+      {mode === "districts" && (
+        <>
+          <section
+            className="siMetrics"
+            aria-label="District monitoring totals"
+          >
+            {[
+              {
+                name: "Monitored Districts",
+                icon: Globe2,
+                tone: "blue",
+                caption: "Verified monitoring locations",
+              },
+              {
+                name: "Urgent Review",
+                icon: AlertTriangle,
+                tone: "red",
+                caption: "Human review attention",
+              },
+              {
+                name: "Elevated Attention",
+                icon: CloudRain,
+                tone: "amber",
+                caption: "Review forecast evidence",
+              },
+              {
+                name: "Routine Monitoring",
+                icon: ShieldCheck,
+                tone: "blue",
+                caption: "Below prototype thresholds",
+              },
+            ].map((metric, index) => (
+              <article className={`siMetric ${metric.tone}`} key={metric.name}>
+                <i>
+                  <metric.icon size={29} />
+                </i>
+                <div>
+                  <h2>{metric.name}</h2>
+                  <strong>
+                    {index > 0 && !model.overview ? "?" : counts[index]}
+                  </strong>
+                  <p>{metric.caption}</p>
+                </div>
+              </article>
+            ))}
+          </section>
+          <div className="siCoverage">
+            <span>
+              <Info size={13} />
+              {model.overview?.coverage ||
+                "Verified seven-district subset Ã‚Â· Remaining Sindh districts are not configured."}
+            </span>
+            <span>
+              {model.refreshing
+                ? "Forecast retrieval in progress"
+                : `${unavailable} data unavailable`}{" "}
+              Ã‚Â·{" "}
+              {model.overview
+                ? `Updated ${date(model.overview.retrievedAt)}`
+                : "Waiting for provider"}
+            </span>
+          </div>
+          {model.error && (
+            <p className="siError" role="alert">
+              {model.error}{" "}
+              <button onClick={model.refresh}>Retry Weather</button>
+            </p>
+          )}
+          <div className="siGrid">
+            <section className="siCard siDirectory">
+              <header>
+                <h2>
+                  Sindh Districts <small>({model.records.length})</small>
+                </h2>
+                <span>{model.records.length} configured locations</span>
+              </header>
+              <div className="siDirectoryFilters">
+                <label className="siSearch">
+                  <Search size={16} />
+                  <input
+                    aria-label="Search districts"
+                    placeholder="Search districtsÃ¢â‚¬Â¦"
+                    value={model.search}
+                    onChange={(event) => model.setSearch(event.target.value)}
+                  />
+                </label>
+                <select
+                  aria-label="Filter weather attention"
+                  value={model.filter}
+                  onChange={(event) =>
+                    model.setFilter(event.target.value as AttentionLevel | "")
+                  }
+                >
+                  <option value="">All attention levels</option>
+                  {Object.entries(attentionLabels).map(([value, text]) => (
+                    <option key={value} value={value}>
+                      {text}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="siDirectoryList">
+                {!model.records.length ? (
+                  <div className="siEmptyCompact" role="status">
+                    {model.error
+                      ? "Monitoring registry is unavailable."
+                      : "Loading verified monitoring locationsÃ¢â‚¬Â¦"}
+                  </div>
+                ) : !model.visible.length ? (
+                  <div className="siEmptyCompact">
+                    No districts match these filters.{" "}
+                    <button
+                      onClick={() => {
+                        model.setSearch("");
+                        model.setFilter("");
+                      }}
+                    >
+                      Clear filters
+                    </button>
+                  </div>
+                ) : (
+                  model.visible.map((item) => (
+                    <button
+                      className="siDistrictRow"
+                      key={item.id}
+                      aria-pressed={model.selectedId === item.id}
+                      onClick={() => model.setSelectedId(item.id)}
+                    >
+                      <i
+                        className={`siDistrictIcon ${(item.attention?.level || "DATA_UNAVAILABLE").toLowerCase()}`}
+                      >
+                        <WeatherIcon
+                          code={item.weather?.current.weatherCode}
+                          size={26}
+                        />
+                      </i>
+                      <div>
+                        <strong>{item.name}</strong>
+                        <small>
+                          <MapPin size={11} />
+                          {item.monitoringLocation}
+                        </small>
+                        <span className="siRowStats">
+                          {item.weather
+                            ? `${item.weather.next24Hours.precipitationMm} mm / 24h Ã‚Â· ${item.weather.next24Hours.maxProbabilityPercent}% max probability`
+                            : model.refreshing
+                              ? "Retrieving forecastÃ¢â‚¬Â¦"
+                              : "Forecast unavailable"}
+                        </span>
+                        <small className="siRetrieved">
+                          {item.weather
+                            ? `${item.weather.freshness} Ã‚Â· ${date(item.weather.retrievedAt)}`
+                            : "No current provider evidence"}
+                        </small>
+                      </div>
+                      <div className="siRowEnd">
+                        <Attention
+                          level={item.attention?.level || "DATA_UNAVAILABLE"}
+                        />
+                        <ChevronRight size={16} />
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+              <footer>
+                <span>
+                  {model.visible.length} of {model.records.length} monitored
+                  locations
+                </span>
+                <a
+                  href="https://www.pbs.gov.pk/result-excel/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  District source <ArrowUpRight size={12} />
+                </a>
+              </footer>
+            </section>
+            <div className="siCenterColumn">
+              <MonitoringMap
+                items={model.records}
+                selectedId={model.selectedId}
+                onSelect={model.setSelectedId}
+              />
+              <div className="siDetailsSlot">
+                {model.detailError && (
+                  <p className="siError" role="alert">
+                    {model.detailError}
+                  </p>
+                )}
+                <DistrictDetails
+                  district={selected}
+                  tab={tab}
+                  setTab={setTab}
+                  onCommunities={() => {
+                    setCommunitiesOpened(true);
+                    setMode("communities");
+                  }}
+                />
+              </div>
+            </div>
+            <div className="siRightColumn">
+              <div className="siAiSlot">
+                <DistrictAiPanel
+                  key={selected?.id || "none"}
+                  district={selected}
+                />
+              </div>
+              <div className="siForecastSlot">
+                <DistrictForecastPanel
+                  district={selected}
+                  onHourly={() => setTab("Forecast Evidence")}
+                />
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+      <p className="siPageNotice">
+        Weather attention is separate from recorded community risk. No automatic
+        dispatch or official warnings. Forecast shown for a representative
+        district monitoring location.
+      </p>
     </div>
   );
 }

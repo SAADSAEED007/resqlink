@@ -66,6 +66,7 @@ const schema = new Schema<ICommunityRiskZone>(
         confidenceReasons: { type: [String], default: [] },
         assessmentStatus: { type: String, enum: ASSESSMENT_STATUSES, default: 'PENDING_ASSESSMENT', required: true },
         fieldAssessment: { type: assessmentSubSchema, default: null },
+        assessments: { type: [assessmentSubSchema], default: [] },
         statusHistory: { type: [statusHistorySubSchema], default: [] },
         notes: { type: String, trim: true, maxlength: 1000 },
         isSimulated: { type: Boolean, default: false, required: true },

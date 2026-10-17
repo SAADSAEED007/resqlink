@@ -9,6 +9,8 @@ import { EUserRoles } from '../../constant/users'
 import { CustomError } from '../../utils/errors'
 import * as schema from './validation'
 import * as service from './risk-zones.service'
+import * as intelligence from './intelligence.service'
+import { forecast } from './weather.service'
 import { CommunityRiskZoneInput, FieldAssessmentInput, AssessmentStatus } from './types'
 
 const coordinator: RequestHandler = (req, _res, next) => {
@@ -87,6 +89,50 @@ router.patch(
     })
 )
 
+const aiRequests = new Map<string, number[]>()
+const aiRunning = new Set<string>()
+router.get(
+    '/:id/weather',
+    asyncHandler(async (req, res) => {
+        const zone = await service.getRiskZone(req.params.id)
+        const data = await forecast(zone.approximateLocation.latitude, zone.approximateLocation.longitude)
+        httpResponse(res, req, 200, 'Community weather forecast', data)
+    })
+)
+router.get(
+    '/:id/intelligence',
+    asyncHandler(async (req, res) => {
+        const data = await intelligence.context(req.params.id)
+        httpResponse(res, req, 200, 'Community risk context', {
+            weather: data.weather,
+            weatherError: data.weatherError,
+            review: data.review,
+            aiConfigured: data.aiConfigured,
+            model: data.model
+        })
+    })
+)
+router.post(
+    '/:id/ai-analysis',
+    asyncHandler(async (req, res) => {
+        if (Object.keys((req.body || {}) as Record<string, unknown>).length)
+            throw new CustomError('Analysis accepts no custom prompts or parameters', 400)
+        const user = (req as IAuthenticateRequest).authenticatedUser as IUserWithId
+        const key = String(user._id),
+            times = (aiRequests.get(key) || []).filter((time) => Date.now() - time < 600000)
+        if (times.length >= 5 || aiRunning.has(key)) throw new CustomError('Analysis request limit reached; retry later', 429)
+        if (aiRequests.size > 1000) aiRequests.delete(aiRequests.keys().next().value as string)
+        aiRequests.set(key, [...times, Date.now()])
+        aiRunning.add(key)
+        try {
+            const data = await intelligence.analyze(req.params.id)
+            httpResponse(res, req, 200, 'Evidence-grounded preparedness analysis', data)
+        } finally {
+            aiRunning.delete(key)
+        }
+    })
+)
+
 router.use((_req, _res, next) => next(new CustomError('Risk zone route not found', 404)))
 
 export const riskZoneErrorHandler: ErrorRequestHandler = (error: unknown, _req, res, _next) => {
@@ -119,4 +165,3 @@ export const riskZoneErrorHandler: ErrorRequestHandler = (error: unknown, _req, 
 router.use(riskZoneErrorHandler)
 
 export default router
-
