@@ -37,9 +37,11 @@ export async function transactional<T>(work: (session: ClientSession) => Promise
 export async function createIncident(input: IncidentInput) {
     const windowMs = 2 * 60 * 60 * 1000
     const since = new Date(Date.now() - windowMs)
+    const isSimulated = Boolean((input as { isSimulated?: boolean }).isSimulated)
     const candidateFilter: FilterQuery<IncidentRecord> = {
         createdAt: { $gte: since },
-        status: { $in: ['PENDING', 'ASSIGNED', 'IN_PROGRESS'] }
+        status: { $in: ['PENDING', 'ASSIGNED', 'IN_PROGRESS'] },
+        isSimulated
     }
     const candidates = await Incident.find(candidateFilter).select('_id emergencyType location reporterPhone createdAt isSimulated status').lean()
     const duplicateCheck = detectPotentialDuplicates(input, candidates as DuplicateCandidate[])
@@ -216,6 +218,19 @@ export async function updateVerification(id: string, status: VerificationStatus,
     return transactional(async (session) => {
         const incident = await Incident.findById(id).session(session)
         if (!incident) throw new CustomError('Incident not found', 404)
+        if (!incident.verification) {
+            incident.set('verification', {
+                status: 'NEEDS_REVIEW',
+                requiresManualReview: Boolean(incident.locationVerificationRequired),
+                isPotentialDuplicate: false,
+                potentialDuplicateIncidents: [],
+                missingFields: !incident.location ? ['location'] : [],
+                warnings: !incident.location ? ['Missing location coordinates: manual location verification required before team dispatch'] : [],
+                reviewedBy: null,
+                reviewedAt: null,
+                reviewNotes: null
+            })
+        }
         incident.verification.status = status
         incident.verification.reviewNotes = reviewNotes
         incident.verification.reviewedBy = new mongoose.Types.ObjectId(coordinatorId)

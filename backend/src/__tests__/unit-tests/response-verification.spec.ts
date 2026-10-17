@@ -139,6 +139,26 @@ describe('lightweight verification - duplicate detection', () => {
         const result = detectPotentialDuplicates(completeInput, [farCandidate], { distanceThresholdKm: 0.5 })
         expect(result.isPotentialDuplicate).toBe(false)
     })
+
+    it('does not compare simulated and non-simulated incidents during duplicate detection', () => {
+        const simulatedCandidate: DuplicateCandidate = {
+            ...recentCandidate,
+            isSimulated: true
+        }
+        const nonSimulatedInput = { ...completeInput, isSimulated: false }
+        const result = detectPotentialDuplicates(nonSimulatedInput, [simulatedCandidate])
+        expect(result.isPotentialDuplicate).toBe(false)
+        expect(result.duplicateIds).toHaveLength(0)
+
+        const simulatedInput = { ...completeInput, isSimulated: true }
+        const nonSimulatedCandidate: DuplicateCandidate = {
+            ...recentCandidate,
+            isSimulated: false
+        }
+        const result2 = detectPotentialDuplicates(simulatedInput, [nonSimulatedCandidate])
+        expect(result2.isPotentialDuplicate).toBe(false)
+        expect(result2.duplicateIds).toHaveLength(0)
+    })
 })
 
 describe('lightweight verification - evaluation policy', () => {
@@ -261,6 +281,41 @@ describe('coordinator verification updates', () => {
         expect(updated.verification.requiresManualReview).toBe(false)
         expect(updated.verification.reviewNotes).toContain('Verified distinct house')
         expect(updated.status).toBe('PENDING')
+    })
+
+    it('safely initializes verification fallback on older incidents without verification subdocument', async () => {
+        const olderIncident = new Incident({
+            _id: incidentId,
+            ...completeInput,
+            locationVerificationRequired: false,
+            priorityScore: 50,
+            priorityLevel: 'HIGH',
+            confidenceLevel: 'MEDIUM',
+            priorityReasons: ['High water level']
+        })
+        olderIncident.set('verification', undefined)
+
+        jest.spyOn(olderIncident, 'save').mockResolvedValue(olderIncident)
+        jest.spyOn(Incident, 'findById').mockReturnValue({
+            session: jest.fn().mockResolvedValue(olderIncident)
+        } as unknown as ReturnType<typeof Incident.findById>)
+
+        const updated = await updateVerification(
+            String(incidentId),
+            'VERIFIED',
+            'Backfilled and verified older incident record',
+            String(coordinatorId)
+        )
+
+        expect(updated.verification).toBeDefined()
+        expect(updated.verification.status).toBe('VERIFIED')
+        expect(updated.verification.requiresManualReview).toBe(false)
+        expect(updated.verification.reviewNotes).toBe('Backfilled and verified older incident record')
+        expect(updated.verification.reviewedBy).toEqual(coordinatorId)
+        expect(updated.verification.reviewedAt).toBeInstanceOf(Date)
+        expect(updated.verification.isPotentialDuplicate).toBe(false)
+        expect(updated.status).toBe('PENDING')
+        expect(updated.priorityLevel).toBe('HIGH')
     })
 
     it('throws 404 when updating nonexistent incident', async () => {

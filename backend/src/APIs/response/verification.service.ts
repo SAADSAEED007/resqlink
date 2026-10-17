@@ -69,8 +69,12 @@ export function detectPotentialDuplicates(
     const duplicateIds: string[] = []
     const duplicateReasons: string[] = []
     const now = Date.now()
+    const inputIsSimulated = Boolean((input as { isSimulated?: boolean }).isSimulated)
 
     for (const candidate of candidates) {
+        const candidateIsSimulated = Boolean(candidate.isSimulated)
+        if (inputIsSimulated !== candidateIsSimulated) continue
+
         const candidateTime = new Date(candidate.createdAt).getTime()
         const diffMinutes = Math.abs(now - candidateTime) / (1000 * 60)
         if (diffMinutes > windowMinutes) continue
