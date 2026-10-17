@@ -303,16 +303,9 @@ html:has(.rqLandingPage) {
   color: var(--landing-white);
   font-weight: 550;
 }
-.rqLandingHowSection,
 .rqLandingAboutSection {
   padding-block: 6rem;
   scroll-margin-top: 2rem;
-}
-.rqLandingSectionHeading {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: end;
-  column-gap: 5rem;
 }
 .rqLandingSectionLabel {
   color: var(--landing-muted);
@@ -321,59 +314,12 @@ html:has(.rqLandingPage) {
   font-weight: 550;
   margin-bottom: 1.25rem;
 }
-.rqLandingSectionHeading .rqLandingSectionLabel {
-  grid-column: 1 / -1;
-}
-.rqLandingPage .rqLandingSectionHeading h2,
 .rqLandingPage .rqLandingCommunitySection h2,
 .rqLandingPage .rqLandingAboutSection h2 {
   font-size: clamp(2rem, 3vw, 2.8rem);
   line-height: 1.15;
   letter-spacing: -0.04em;
   font-weight: 550;
-}
-.rqLandingSectionHeading > p:last-child {
-  color: var(--landing-text);
-  font-size: 0.9375rem;
-  max-width: 29rem;
-}
-.rqLandingSteps {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  list-style: none;
-  padding: 0;
-  margin: 3rem 0 1.5rem;
-  gap: 2.5rem;
-}
-.rqLandingSteps li {
-  border-top: 1px solid var(--landing-border);
-  padding-top: 1.5rem;
-}
-.rqLandingStepNumber {
-  display: block;
-  color: var(--landing-red);
-  font-size: 0.8125rem;
-  margin-bottom: 1.5rem;
-  font-variant-numeric: tabular-nums;
-}
-.rqLandingSteps h3 {
-  font-size: 1.125rem;
-  font-weight: 550;
-  margin-bottom: 0.875rem;
-  letter-spacing: -0.02em;
-}
-.rqLandingSteps p {
-  color: var(--landing-text);
-  font-size: 0.875rem;
-  line-height: 1.8;
-  max-width: 24rem;
-}
-.rqLandingCapabilityNote {
-  color: var(--landing-muted);
-  font-size: 0.75rem;
-  line-height: 1.8;
-  max-width: 61rem;
-  margin-top: 2rem;
 }
 .rqLandingCommunitySection {
   background: var(--landing-surface);
@@ -608,13 +554,9 @@ html:has(.rqLandingPage) {
   .rqLandingHeroBottom {
     padding-bottom: 2.75rem;
   }
-  .rqLandingSectionHeading,
   .rqLandingCommunityGrid,
   .rqLandingAboutSection > div {
     gap: 2.5rem;
-  }
-  .rqLandingDesktopBreak {
-    display: none;
   }
 }
 @media (max-width: 767px) {
@@ -713,43 +655,17 @@ html:has(.rqLandingPage) {
   .rqLandingSafetyNotice p {
     font-size: 0.75rem;
   }
-  .rqLandingHowSection,
   .rqLandingAboutSection {
     padding-block: 3.5rem;
   }
-  .rqLandingSectionHeading,
   .rqLandingCommunityGrid,
   .rqLandingAboutSection > div {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
-  .rqLandingSectionHeading {
-    row-gap: 1rem;
-  }
-  .rqLandingSectionHeading .rqLandingSectionLabel {
-    margin-bottom: 0;
-  }
-  .rqLandingPage .rqLandingSectionHeading h2,
   .rqLandingPage .rqLandingCommunitySection h2,
   .rqLandingPage .rqLandingAboutSection h2 {
     font-size: 2rem;
-  }
-  .rqLandingSectionHeading > p:last-child {
-    font-size: 0.875rem;
-  }
-  .rqLandingSteps {
-    grid-template-columns: 1fr;
-    gap: 1.75rem;
-    margin-top: 2rem;
-  }
-  .rqLandingSteps li {
-    padding-top: 1.25rem;
-  }
-  .rqLandingStepNumber {
-    margin-bottom: 0.75rem;
-  }
-  .rqLandingSteps p {
-    max-width: none;
   }
   .rqLandingCommunitySection {
     padding-block: 3rem;
