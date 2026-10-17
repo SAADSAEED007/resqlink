@@ -36,20 +36,25 @@ async function mockAuth(page: Page) {
       },
       body: JSON.stringify({
         success: true,
-        data: { items: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 0 } },
+        data: {
+          items: [],
+          pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
+        },
       }),
     });
   });
 }
 
-test.describe("Emergency Operations Command Center Dashboard", () => {
-  test("renders all key command center panels and KPI cards", async ({ page }) => {
+test.describe("Command Center Dashboard", () => {
+  test("renders all key command center panels and KPI cards", async ({
+    page,
+  }) => {
     await mockAuth(page);
     await page.goto("/dashboard");
 
     // 1. Heading & Brand
     await expect(
-      page.getByRole("heading", { name: "Emergency Operations Command Center" }),
+      page.getByRole("heading", { name: "Command Center" }),
     ).toBeVisible();
     await expect(page.getByText("Simulation / Prototype")).toBeVisible();
 
@@ -64,7 +69,9 @@ test.describe("Emergency Operations Command Center Dashboard", () => {
       page.getByRole("heading", { name: "Operations Map" }),
     ).toBeVisible();
     await expect(page.getByText("Map Legend")).toBeVisible();
-    await expect(page.getByText("Critical Incident", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText("Critical Incident", { exact: true }),
+    ).toBeVisible();
 
     await expect(page.locator(".leaflet-container")).toBeVisible();
     await expect(page.locator(".leaflet-tile-pane")).toBeAttached();
@@ -73,7 +80,7 @@ test.describe("Emergency Operations Command Center Dashboard", () => {
     await expect(
       page.getByRole("heading", { name: "Priority Incident Queue" }),
     ).toBeVisible();
-    await expect(page.getByText("AI Confidence").first()).toBeVisible();
+    await expect(page.getByText(/Priority score/).first()).toBeVisible();
 
     // 5. Lower panels
     await expect(
@@ -87,48 +94,62 @@ test.describe("Emergency Operations Command Center Dashboard", () => {
     ).toBeVisible();
   });
 
-  test("search input filters priority incident queue in real time", async ({ page }) => {
+  test("search input filters priority incident queue in real time", async ({
+    page,
+  }) => {
     await mockAuth(page);
     await page.goto("/dashboard");
 
-    const searchInput = page.getByPlaceholder("Search locations, incidents, teams...");
+    const searchInput = page.getByPlaceholder(
+      "Search locations, incidents, teams...",
+    );
     await expect(searchInput).toBeVisible();
 
     // Type 'Korangi'
     await searchInput.fill("Korangi");
-    await expect(page.getByRole("heading", { name: "Severe Urban Flooding" }).first()).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Building Structure Collapse" })).not.toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Flooding" }).first(),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Stranded / evacuation" }),
+    ).not.toBeVisible();
 
     // Clear search
     await searchInput.fill("");
-    await expect(page.getByRole("heading", { name: "Building Structure Collapse" }).first()).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Stranded / evacuation" }).first(),
+    ).toBeVisible();
   });
 
-  test("clicking an incident opens the interactive detail modal", async ({ page }) => {
+  test("clicking an incident opens the interactive detail modal", async ({
+    page,
+  }) => {
     await mockAuth(page);
     await page.goto("/dashboard");
 
     // Click first incident
-    await page.getByRole("heading", { name: "Severe Urban Flooding" }).first().click();
+    await page.getByRole("heading", { name: "Flooding" }).first().click();
 
     // Verify modal content
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText("Risk Factor Analysis")).toBeVisible();
-    await expect(dialog.getByText("Vulnerable Demographics")).toBeVisible();
+    await expect(dialog.getByText("Children", { exact: true })).toBeVisible();
 
     // Close modal
     await dialog.getByRole("button", { name: "Close", exact: true }).click();
     await expect(dialog).not.toBeVisible();
   });
 
-  test("responsive viewport check: no horizontal overflow at 375px", async ({ page }) => {
+  test("responsive viewport check: no horizontal overflow at 375px", async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 375, height: 900 });
     await mockAuth(page);
     await page.goto("/dashboard");
 
     await expect(
-      page.getByRole("heading", { name: "Emergency Operations Command Center" }),
+      page.getByRole("heading", { name: "Command Center" }),
     ).toBeVisible();
 
     const noOverflow = await page.evaluate(
@@ -137,12 +158,14 @@ test.describe("Emergency Operations Command Center Dashboard", () => {
     expect(noOverflow).toBe(true);
   });
 
-  test("captures 1600px desktop reference screenshot", async ({ page }, testInfo) => {
+  test("captures 1600px desktop reference screenshot", async ({
+    page,
+  }, testInfo) => {
     await page.setViewportSize({ width: 1600, height: 1000 });
     await mockAuth(page);
     await page.goto("/dashboard");
     await expect(
-      page.getByRole("heading", { name: "Emergency Operations Command Center" }),
+      page.getByRole("heading", { name: "Command Center" }),
     ).toBeVisible();
     await page.waitForTimeout(1500);
     await page.screenshot({

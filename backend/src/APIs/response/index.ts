@@ -29,6 +29,12 @@ router.post(
     })
 )
 router.use(authenticate, coordinator)
+router.use((_req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+    res.setHeader('Pragma', 'no-cache')
+    res.setHeader('Expires', '0')
+    next()
+})
 router.get(
     '/incidents',
     asyncHandler(async (req, res) => {

@@ -75,7 +75,7 @@ for (const width of [375, 768, 1280, 1440])
     await page.goto("/dashboard");
     await expect(
       page.getByRole("heading", {
-        name: "Emergency Operations Command Center",
+        name: "Command Center",
       }),
     ).toBeVisible();
     expect(
@@ -104,7 +104,13 @@ test("public navigation and keyboard skip link", async ({ page }) => {
   ).toBeFocused();
   await page.getByRole("link", { name: "Request Emergency Help" }).click();
   await expect(page).toHaveURL(/\/sos$/);
-  await expect(page.getByRole("heading", { name: "Report an Emergency", exact: true, level: 1 })).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: "Report an Emergency",
+      exact: true,
+      level: 1,
+    }),
+  ).toBeVisible();
 });
 test("validates fields, toggles password, and reports invalid login", async ({
   page,
@@ -177,7 +183,7 @@ test("rejects ordinary users and recovers from network errors", async ({
   await page.getByRole("button", { name: "Try again" }).click();
   await expect(
     page.getByRole("heading", {
-      name: "Emergency Operations Command Center",
+      name: "Command Center",
     }),
   ).toBeVisible();
 });

@@ -16,4 +16,5 @@ const schema = new Schema(
     { timestamps: true, optimisticConcurrency: true }
 )
 schema.index({ demoKey: 1 }, { unique: true, partialFilterExpression: { demoKey: { $type: 'string' } } })
+schema.index({ status: 1, teamCode: 1 })
 export default model('RescueTeam', schema)

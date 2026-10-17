@@ -7,6 +7,7 @@ import {
   useEffect,
   useCallback,
   useMemo,
+  useRef,
   type ReactNode,
 } from "react";
 import type { Incident, RescueTeam, Assignment } from "@/types/api";
@@ -45,6 +46,7 @@ interface DashboardContextType {
   setSelectedTeam: (team: RescueTeam | null) => void;
   refresh: () => Promise<void>;
   isRefreshing: boolean;
+  lastUpdated: number | null;
   filteredIncidents: Incident[];
   filteredTeams: RescueTeam[];
   stats: DashboardStats;
@@ -60,79 +62,111 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Default to Demo Mode if URL param ?demo=true or local development preference
+  // Coordinators use authenticated API records by default. Demo mode is an
+  // explicit, clearly labeled preview selected with ?demo=true or the toggle.
   const [isDemoMode, setIsDemoMode] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       if (params.get("demo") === "false") return false;
       if (params.get("demo") === "true") return true;
     }
-    return true;
+    return false;
   });
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
+  const [selectedIncident, setSelectedIncident] = useState<Incident | null>(
+    null,
+  );
   const [selectedTeam, setSelectedTeam] = useState<RescueTeam | null>(null);
 
   const [attempt, setAttempt] = useState(0);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+  const refreshTask = useRef<(() => Promise<void>) | null>(null);
 
   useEffect(() => {
-    let isSubscribed = true;
-    const controller = new AbortController();
-
-    Promise.allSettled([
-      incidentsApi.list({ limit: 100, sort: "priority" }, controller.signal),
-      teamsApi.list({ limit: 50 }, controller.signal),
-      assignmentsApi.list({ limit: 50 }, controller.signal),
-    ])
-      .then(([incidentsRes, teamsRes, assignmentsRes]) => {
-        if (!isSubscribed) return;
-        let hasSuccess = false;
-
-        if (incidentsRes.status === "fulfilled") {
-          setLiveIncidents(incidentsRes.value.items);
-          hasSuccess = true;
-        }
-        if (teamsRes.status === "fulfilled") {
-          setLiveTeams(teamsRes.value.items);
-          hasSuccess = true;
-        }
-        if (assignmentsRes.status === "fulfilled") {
-          setLiveAssignments(assignmentsRes.value.items);
-          hasSuccess = true;
-        }
-
-        if (!hasSuccess) {
-          const firstError =
-            incidentsRes.status === "rejected"
-              ? incidentsRes.reason
-              : teamsRes.status === "rejected"
-                ? teamsRes.reason
-                : assignmentsRes.status === "rejected"
-                  ? assignmentsRes.reason
-                  : null;
-          setError(errorMessage(firstError));
-        } else {
-          setError(null);
-        }
-        setLoading(false);
-        setIsRefreshing(false);
-      })
-      .catch((err: unknown) => {
-        if (!isSubscribed) return;
-        setError(errorMessage(err));
-        setLoading(false);
-        setIsRefreshing(false);
-      });
-
+    if (isDemoMode) {
+      refreshTask.current = null;
+      return;
+    }
+    let active = true;
+    let running = false;
+    let refreshOnComplete = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let controller: AbortController | null = null;
+    async function load() {
+      if (!active || document.hidden) return;
+      if (running) {
+        refreshOnComplete = true;
+        return;
+      }
+      running = true;
+      setIsRefreshing(true);
+      controller = new AbortController();
+      const results = await Promise.allSettled([
+        incidentsApi.list({ limit: 100, sort: "priority" }, controller.signal),
+        teamsApi.list({ limit: 100 }, controller.signal),
+        assignmentsApi.list({ limit: 100 }, controller.signal),
+      ]);
+      if (!active) return;
+      const [incidentResult, teamResult, assignmentResult] = results;
+      if (incidentResult.status === "fulfilled") {
+        setLiveIncidents(incidentResult.value.items);
+        setSelectedIncident((previous) =>
+          previous
+            ? incidentResult.value.items.find(
+                (item) => item._id === previous._id,
+              ) || previous
+            : null,
+        );
+      }
+      if (teamResult.status === "fulfilled") {
+        setLiveTeams(teamResult.value.items);
+        setSelectedTeam((previous) =>
+          previous
+            ? teamResult.value.items.find(
+                (item) => item._id === previous._id,
+              ) || previous
+            : null,
+        );
+      }
+      if (assignmentResult.status === "fulfilled")
+        setLiveAssignments(assignmentResult.value.items);
+      const failed = results.find((result) => result.status === "rejected");
+      setError(
+        failed?.status === "rejected" ? errorMessage(failed.reason) : null,
+      );
+      if (!failed) setLastUpdated(Date.now());
+      setLoading(false);
+      setIsRefreshing(false);
+      running = false;
+      clearTimeout(timer);
+      if (!document.hidden) {
+        if (refreshOnComplete) {
+          refreshOnComplete = false;
+          void load();
+        } else timer = setTimeout(() => void load(), 7000);
+      }
+    }
+    function visibility() {
+      clearTimeout(timer);
+      if (document.hidden) controller?.abort();
+      else if (running) refreshOnComplete = true;
+      else void load();
+    }
+    refreshTask.current = load;
+    document.addEventListener("visibilitychange", visibility);
+    void load();
     return () => {
-      isSubscribed = false;
-      controller.abort();
+      active = false;
+      clearTimeout(timer);
+      controller?.abort();
+      refreshTask.current = null;
+      document.removeEventListener("visibilitychange", visibility);
     };
-  }, [attempt]);
+  }, [isDemoMode, attempt]);
 
   const refresh = useCallback(async () => {
-    setIsRefreshing(true);
-    setAttempt((n) => n + 1);
+    if (refreshTask.current) await refreshTask.current();
+    else setAttempt((value) => value + 1);
   }, []);
 
   const currentIncidents = useMemo(() => {
@@ -198,22 +232,17 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         i.status !== "RESOLVED" &&
         i.status !== "CANCELLED",
     ).length;
-    const available = currentTeams.filter((t) => t.status === "AVAILABLE").length;
+    const available = currentTeams.filter(
+      (t) => t.status === "AVAILABLE",
+    ).length;
     const totalTeams = currentTeams.length;
     const busy = currentTeams.filter((t) => t.status === "BUSY").length;
-    const resolved = currentIncidents.filter((i) => i.status === "RESOLVED").length;
-
-    // If demo mode, accurately reflect the reference values if active incidents are 12
-    if (isDemoMode) {
-      return {
-        activeIncidents: 12,
-        criticalCases: 4,
-        availableTeams: 6,
-        totalTeams: 8,
-        busyTeams: 2,
-        resolvedToday: 18,
-      };
-    }
+    const today = new Date().toDateString();
+    const resolved = currentIncidents.filter(
+      (i) =>
+        i.status === "RESOLVED" &&
+        new Date(i.updatedAt).toDateString() === today,
+    ).length;
 
     return {
       activeIncidents: active,
@@ -223,14 +252,14 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       busyTeams: busy,
       resolvedToday: resolved,
     };
-  }, [currentIncidents, currentTeams, isDemoMode]);
+  }, [currentIncidents, currentTeams]);
 
   const value = useMemo(
     () => ({
       incidents: currentIncidents,
       teams: currentTeams,
       assignments: currentAssignments,
-      loading,
+      loading: isDemoMode ? false : loading,
       error,
       isDemoMode,
       setIsDemoMode,
@@ -241,7 +270,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       selectedTeam,
       setSelectedTeam,
       refresh,
-      isRefreshing,
+      isRefreshing: isDemoMode ? false : isRefreshing,
+      lastUpdated,
       filteredIncidents,
       filteredTeams,
       stats,
@@ -258,6 +288,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       selectedTeam,
       refresh,
       isRefreshing,
+      lastUpdated,
       filteredIncidents,
       filteredTeams,
       stats,
@@ -287,6 +318,7 @@ const defaultDashboardContext: DashboardContextType = {
   setSelectedTeam: () => {},
   refresh: async () => {},
   isRefreshing: false,
+  lastUpdated: null,
   filteredIncidents: MOCK_INCIDENTS,
   filteredTeams: MOCK_RESCUE_TEAMS,
   stats: {
