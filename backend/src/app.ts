@@ -1,4 +1,5 @@
 import responseRouter from './APIs/response'
+import riskZonesRouter from './APIs/riskZones'
 import config from './config/config'
 import express, { Application } from 'express'
 import path from 'path'
@@ -26,6 +27,7 @@ app.use(express.static(path.join(__dirname, '../', 'public')))
 
 //Router
 // app.use('/v1', router)
+app.use('/api/community-risk-zones', riskZonesRouter)
 app.use('/api', responseRouter)
 router(app)
 
