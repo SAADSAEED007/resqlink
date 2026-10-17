@@ -757,12 +757,211 @@
 .rqCommand[data-theme="dark"] .rqCommandIncident.is-selected {
   background: var(--command-soft);
 }
-.rqCommand[data-theme="dark"] .rqCommandSeverity {background:#293b50;color:var(--command-muted);}
-.rqCommand[data-theme="dark"] .rqCommandSeverity.critical {background:#492432;color:var(--command-red);}
-.rqCommand[data-theme="dark"] .rqCommandSeverity.high {background:#433522;color:var(--command-amber);}
-.rqCommand[data-theme="dark"] .rqCommandDetail {color-scheme:dark;}
-@media(max-width:374px) {
- .rqCommandAccount {gap:4px;}
- .rqCommand .rqCommandIcon {width:34px;height:38px;}
- .rqCommandHeading h1 {font-size:20px;}
+.rqCommand[data-theme="dark"] .rqCommandSeverity {
+  background: #293b50;
+  color: var(--command-muted);
 }
+.rqCommand[data-theme="dark"] .rqCommandSeverity.critical {
+  background: #492432;
+  color: var(--command-red);
+}
+.rqCommand[data-theme="dark"] .rqCommandSeverity.high {
+  background: #433522;
+  color: var(--command-amber);
+}
+.rqCommand[data-theme="dark"] .rqCommandDetail {
+  color-scheme: dark;
+}
+@media (max-width: 374px) {
+  .rqCommandAccount {
+    gap: 4px;
+  }
+  .rqCommand .rqCommandIcon {
+    width: 34px;
+    height: 38px;
+  }
+  .rqCommandHeading h1 {
+    font-size: 20px;
+  }
+}
+
+.rqOperations {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--command-border);
+}
+.rqOperations fieldset,
+.rqRiskWorkspace fieldset {
+  min-width: 0;
+  border: 1px solid var(--command-border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 16px;
+}
+.rqOperations legend,
+.rqRiskWorkspace legend {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0 6px;
+}
+.rqOperations form,
+.rqRiskDetail form fieldset {
+  display: grid;
+  gap: 12px;
+}
+.rqOperations .control,
+.rqRiskWorkspace .control {
+  background: var(--command-surface);
+  color: var(--command-ink);
+  border-color: var(--command-border);
+}
+.rqOperations .button,
+.rqRiskWorkspace .button {
+  font-size: 12px;
+  min-height: 44px;
+}
+.rqOperations p,
+.rqRiskWorkspace p {
+  font-size: 12px;
+  line-height: 1.8;
+}
+.rqOperations [role="alert"],
+.rqRiskWorkspace [role="alert"] {
+  color: var(--command-red);
+  padding: 12px;
+  border: 1px solid var(--command-border);
+  border-radius: 8px;
+}
+.rqOperationsNotice {
+  background: var(--command-soft);
+  border: 1px solid var(--command-border);
+  border-radius: 10px;
+  padding: 12px;
+  margin-block: 16px;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--command-muted);
+}
+.rqOperationsAck {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12px;
+  line-height: 1.8;
+  padding: 12px;
+}
+.rqOperationsAck input {
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+.rqRiskHeading,
+.rqRiskDetail > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.rqRiskHeading h2 {
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+}
+.rqRiskWorkspace h3 {
+  font-size: 16px;
+  font-weight: 600;
+}
+.rqRiskWorkspace h4 {
+  margin-top: 16px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.rqRiskHeading p,
+.rqRiskWorkspace small {
+  color: var(--command-muted);
+}
+.rqRiskFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.rqRiskForm,
+.rqRiskDetail {
+  padding: 24px;
+  margin-block: 16px;
+}
+.rqRiskForm fieldset {
+  border: 0;
+  padding: 0;
+}
+.rqRiskForm fieldset > p {
+  margin-block: 16px;
+}
+.rqRiskFilters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-block: 20px;
+}
+.rqRiskFilters > .form-field {
+  flex: 1;
+  min-width: 160px;
+}
+.rqRiskList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.rqRiskRecord {
+  display: block;
+  text-align: left;
+  padding: 20px;
+  overflow-wrap: anywhere;
+}
+.rqRiskRecord h3 {
+  margin-top: 10px;
+}
+.rqRiskRecord p {
+  margin-top: 6px;
+}
+.rqRiskPagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  font-size: 11px;
+}
+.rqRiskDetail .rqRiskFields {
+  margin-top: 20px;
+}
+.rqRiskDetail li {
+  font-size: 12px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.rqRiskDetail > p {
+  margin-block: 8px;
+}
+@media (max-width: 599px) {
+  .rqRiskFields,
+  .rqRiskList {
+    grid-template-columns: 1fr;
+  }
+  .rqRiskHeading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .rqRiskForm,
+  .rqRiskDetail {
+    padding: 16px;
+  }
+  .rqRiskPagination {
+    flex-wrap: wrap;
+  }
+  .rqRiskHeading h2 {
+    font-size: 20px;
+  }
+}
+
+.rqCommandAccount {margin-left:auto;}

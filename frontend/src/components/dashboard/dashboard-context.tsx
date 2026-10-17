@@ -92,7 +92,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     let timer: ReturnType<typeof setTimeout> | undefined;
     let controller: AbortController | null = null;
     async function load() {
-      if (!active || running || document.hidden) return;
+      if (!active || document.hidden) return;
+      if (running) {
+        refreshOnComplete = true;
+        return;
+      }
       running = true;
       setIsRefreshing(true);
       controller = new AbortController();

@@ -71,6 +71,11 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const navItems = [
     { label: "Overview", href: "/dashboard", icon: Home, active: true },
     {
+      label: "Community Risk Zones",
+      href: "/dashboard/risk-zones",
+      icon: MapPin,
+    },
+    {
       label: "Incidents",
       href: "/dashboard/incidents",
       icon: AlertTriangle,
@@ -207,7 +212,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             <h1>Command Center</h1>
             <p>Emergency Operations</p>
           </div>
-          <div className="rqCommandSearch">
+          {pathname === "/dashboard" && (<div className="rqCommandSearch">
             <Search size={17} aria-hidden="true" />
             <input
               aria-label="Search locations, incidents, teams"
@@ -223,7 +228,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                 <X size={16} />
               </button>
             )}
-          </div>
+          </div>)}
           <div className="rqCommandAccount">
             <button
               className="rqCommandIcon"
