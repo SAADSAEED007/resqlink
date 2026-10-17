@@ -1152,15 +1152,57 @@
 .rqCommandMap h2 { display: flex; align-items: center; gap: 9px; }
 .rqCommandMapMode { margin-left: auto; font-size: 10px; color: var(--command-blue); white-space: nowrap; }
 .rqCommand .rqCommandMapLegend { background: color-mix(in srgb, var(--command-surface) 94%, transparent); backdrop-filter: blur(8px); gap: 7px; }
-.rqCommand .rqCommandMapLegend i { width: 22px; height: 22px; display: block; background: none; }
-.rqMapSymbol { display: grid; place-items: center; width: 36px; height: 36px; margin: 2px; border-radius: 50%; color: white; background: var(--marker-color); border: 2px solid #e4f3ffb8; box-shadow: 0 3px 10px #020c1980; }
-.rqMapSymbol svg { width: 22px; height: 22px; }
-.rqMapSymbol.critical { box-shadow: 0 0 0 6px #ee354b25, 0 0 22px #ee354b70; }
-.rqMapSymbol.available, .rqMapSymbol.busy { border-radius: 12px; }
-.rqMapSymbol.is-selected, .rqMapMarker:focus-visible .rqMapSymbol { outline: 3px solid white; outline-offset: 4px; }
-.rqMapMarker:hover .rqMapSymbol { transform: scale(1.12); }
-.rqCommandMapLegend .rqMapSymbol { width: 20px; height: 20px; margin: 1px; border-width: 1px; box-shadow: none; }
-.rqCommandMapLegend .rqMapSymbol svg { width: 14px; height: 14px; }
+.rqCommand .rqCommandMapLegend span { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 500; color: var(--command-ink); }
+.rqLegendIconImg { width: 20px; height: 20px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45)); }
+.rqCommandMapLegend img[alt*="Critical"], .rqCommandMapLegend img[alt*="critical"] { filter: drop-shadow(0 0 5px rgba(238, 53, 75, 0.85)); }
+.rqCommandMapLegend img[alt*="High"], .rqCommandMapLegend img[alt*="high"] { filter: drop-shadow(0 0 5px rgba(241, 132, 41, 0.85)); }
+.rqCommandMapLegend img[alt*="Medium"], .rqCommandMapLegend img[alt*="medium"] { filter: drop-shadow(0 0 5px rgba(37, 137, 250, 0.85)); }
+.rqCommandMapLegend img[alt*="Low"], .rqCommandMapLegend img[alt*="low"] { filter: drop-shadow(0 0 4px rgba(101, 125, 152, 0.8)); }
+.rqCommandMapLegend img[alt*="Available"], .rqCommandMapLegend img[alt*="available"] { filter: drop-shadow(0 0 5px rgba(9, 172, 113, 0.85)); }
+.rqCommandMapLegend img[alt*="Mission"], .rqCommandMapLegend img[alt*="busy"] { filter: drop-shadow(0 0 5px rgba(40, 121, 220, 0.85)); }
+
+.rqMapSymbol { display: block; position: relative; width: 100%; height: 100%; border-radius: 50%; background: transparent; border: none; box-shadow: none; transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.18s ease; cursor: pointer; pointer-events: auto; }
+.rqMapSymbol::before { content: ""; position: absolute; inset: -7px; border-radius: 50%; pointer-events: none; z-index: -1; transition: transform 0.25s ease, opacity 0.25s ease; }
+.rqMapSymbol img.rqMapIconImg { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; -webkit-user-drag: none; }
+
+/* Blushing light radial auras matching each category's color */
+.rqMapSymbol.critical::before { background: radial-gradient(circle, rgba(238, 53, 75, 0.52) 0%, rgba(238, 53, 75, 0.25) 55%, rgba(238, 53, 75, 0) 78%); filter: blur(4px); animation: rqCriticalBlush 2.4s ease-in-out infinite; }
+.rqMapSymbol.critical img.rqMapIconImg { filter: drop-shadow(0 0 7px rgba(238, 53, 75, 0.85)) drop-shadow(0 2px 7px rgba(0, 0, 0, 0.55)); }
+
+.rqMapSymbol.high::before { background: radial-gradient(circle, rgba(241, 132, 41, 0.52) 0%, rgba(241, 132, 41, 0.25) 55%, rgba(241, 132, 41, 0) 78%); filter: blur(4px); animation: rqHighBlush 2.6s ease-in-out infinite; }
+.rqMapSymbol.high img.rqMapIconImg { filter: drop-shadow(0 0 7px rgba(241, 132, 41, 0.85)) drop-shadow(0 2px 7px rgba(0, 0, 0, 0.55)); }
+
+.rqMapSymbol.medium::before { background: radial-gradient(circle, rgba(37, 137, 250, 0.52) 0%, rgba(37, 137, 250, 0.25) 55%, rgba(37, 137, 250, 0) 78%); filter: blur(4px); animation: rqMediumBlush 2.8s ease-in-out infinite; }
+.rqMapSymbol.medium img.rqMapIconImg { filter: drop-shadow(0 0 7px rgba(37, 137, 250, 0.85)) drop-shadow(0 2px 7px rgba(0, 0, 0, 0.55)); }
+
+.rqMapSymbol.low::before { background: radial-gradient(circle, rgba(101, 125, 152, 0.45) 0%, rgba(101, 125, 152, 0.22) 55%, rgba(101, 125, 152, 0) 78%); filter: blur(4px); animation: rqLowBlush 3.1s ease-in-out infinite; }
+.rqMapSymbol.low img.rqMapIconImg { filter: drop-shadow(0 0 6px rgba(101, 125, 152, 0.75)) drop-shadow(0 2px 7px rgba(0, 0, 0, 0.55)); }
+
+.rqMapSymbol.available::before { background: radial-gradient(circle, rgba(9, 172, 113, 0.55) 0%, rgba(9, 172, 113, 0.26) 55%, rgba(9, 172, 113, 0) 78%); filter: blur(4px); animation: rqAvailableBlush 2.5s ease-in-out infinite; }
+.rqMapSymbol.available img.rqMapIconImg { filter: drop-shadow(0 0 7px rgba(9, 172, 113, 0.85)) drop-shadow(0 2px 7px rgba(0, 0, 0, 0.55)); }
+
+.rqMapSymbol.busy::before { background: radial-gradient(circle, rgba(40, 121, 220, 0.55) 0%, rgba(40, 121, 220, 0.26) 55%, rgba(40, 121, 220, 0) 78%); filter: blur(4px); animation: rqBusyBlush 2.4s ease-in-out infinite; }
+.rqMapSymbol.busy img.rqMapIconImg { filter: drop-shadow(0 0 7px rgba(40, 121, 220, 0.85)) drop-shadow(0 2px 7px rgba(0, 0, 0, 0.55)); }
+
+/* Interactive Hover & Selection */
+.rqMapMarker:hover .rqMapSymbol { transform: scale(1.09); filter: brightness(1.15); }
+.rqMapMarker:hover .rqMapSymbol::before { transform: scale(1.35); opacity: 1; }
+.rqMapSymbol.is-selected, .rqMapMarker:focus-visible .rqMapSymbol { outline: none; filter: drop-shadow(0 0 9px #ffffff) drop-shadow(0 0 18px rgba(255, 255, 255, 0.9)); transform: scale(1.14); }
+.rqMapSymbol.is-selected::before { transform: scale(1.4); opacity: 1; }
+
+/* Blushing light pulsations */
+@keyframes rqCriticalBlush { 0%, 100% { transform: scale(0.92); opacity: 0.65; } 50% { transform: scale(1.35); opacity: 1; } }
+@keyframes rqHighBlush { 0%, 100% { transform: scale(0.92); opacity: 0.6; } 50% { transform: scale(1.32); opacity: 0.95; } }
+@keyframes rqMediumBlush { 0%, 100% { transform: scale(0.92); opacity: 0.6; } 50% { transform: scale(1.3); opacity: 0.95; } }
+@keyframes rqLowBlush { 0%, 100% { transform: scale(0.94); opacity: 0.55; } 50% { transform: scale(1.25); opacity: 0.9; } }
+@keyframes rqAvailableBlush { 0%, 100% { transform: scale(0.92); opacity: 0.65; } 50% { transform: scale(1.32); opacity: 1; } }
+@keyframes rqBusyBlush { 0%, 100% { transform: scale(0.92); opacity: 0.65; } 50% { transform: scale(1.35); opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .rqMapSymbol.critical::before, .rqMapSymbol.high::before, .rqMapSymbol.medium::before,
+  .rqMapSymbol.low::before, .rqMapSymbol.available::before, .rqMapSymbol.busy::before { animation: none; opacity: 0.8; }
+  .rqMapSymbol, .rqMapSymbol::before { transition: none; }
+}
 .rqCommand .leaflet-tooltip { background: var(--command-surface); border-color: var(--command-border); color: var(--command-ink); }
 .rqCommandIncident { border-left: 3px solid var(--command-border); padding: 10px; }
 .rqCommandIncident:has(.critical) { border-left-color: var(--command-red); }

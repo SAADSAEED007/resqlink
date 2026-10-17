@@ -188,7 +188,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               <Link
                 key={label}
                 href={href}
-                aria-current={pathname === href ? "page" : undefined}
+                aria-current={pathname === href || (href !== "/dashboard" && pathname.startsWith(`${href}/`)) ? "page" : undefined}
                 onClick={() => setMenu(false)}
               >
                 <Icon size={18} />

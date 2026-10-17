@@ -2,8 +2,13 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import type { Incident, RescueTeam } from "@/types/api";
 import type { Map as LeafletMap, LayerGroup } from "leaflet";
+import Image from "next/image";
 import { Map as MapIcon, Maximize2, Minimize2, Plus, Minus, Crosshair } from "lucide-react";
-import { markerMarkup, type MarkerKind } from "./map-marker";
+import {
+  getIncidentMarkerIcon,
+  getRescueTeamMarkerIcon,
+  LEGEND_ITEMS,
+} from "./map-marker";
 import { useDashboard } from "./dashboard-context";
 interface Props {
   incidents: Incident[];
@@ -14,12 +19,6 @@ interface Props {
   loading?: boolean;
 }
 const center: [number, number] = [24.8607, 67.0011];
-const colors = {
-  CRITICAL: "#e11d38",
-  HIGH: "#d97706",
-  MEDIUM: "#2563eb",
-  LOW: "#64748b",
-};
 export function OperationsMap({
   incidents,
   teams,
@@ -98,10 +97,19 @@ export function OperationsMap({
       valid.forEach((incident) => {
         const point = incident.location!;
         const marker = L.marker([point.latitude, point.longitude], {
-          icon: L.divIcon({ className: "rqMapMarker", html: markerMarkup(incident.priorityLevel, selectedIncident?._id === incident._id), iconSize: [40, 40], iconAnchor: [20, 20] }),
+          icon: getIncidentMarkerIcon(
+            L,
+            incident.priorityLevel,
+            selectedIncident?._id === incident._id,
+          ),
           title: `${incident.priorityLevel}: ${incident.description}`,
           alt: `${incident.priorityLevel} incident: ${incident.description}`,
-          zIndexOffset: selectedIncident?._id === incident._id ? 1000 : incident.priorityLevel === "CRITICAL" ? 500 : 200,
+          zIndexOffset:
+            selectedIncident?._id === incident._id
+              ? 1000
+              : incident.priorityLevel === "CRITICAL"
+                ? 500
+                : 200,
         });
         const text = document.createElement("div");
         text.textContent = `${incident.priorityLevel}: ${incident.description}`;
@@ -123,7 +131,7 @@ export function OperationsMap({
           const marker = L.marker(
             [team.location.latitude, team.location.longitude],
             {
-              icon: L.divIcon({ className: "rqMapMarker", html: markerMarkup(team.status === "AVAILABLE" ? "AVAILABLE" : "BUSY"), iconSize: [40, 40], iconAnchor: [20, 20] }),
+              icon: getRescueTeamMarkerIcon(L, team.status),
               title: `${team.name}: ${team.status}`,
               alt: `${team.name}: ${team.status} rescue team`,
               zIndexOffset: 100,
@@ -185,17 +193,19 @@ export function OperationsMap({
         )}
         <div className="rqCommandMapLegend">
           <strong>Map Legend</strong>
-          {Object.keys(colors).map((level) => (
-            <span key={level}>
-              <i dangerouslySetInnerHTML={{ __html: markerMarkup(level as MarkerKind) }} />
-              {level[0] + level.slice(1).toLowerCase()} Incident
+          {LEGEND_ITEMS.map((item) => (
+            <span key={item.kind}>
+              <Image
+                src={item.asset}
+                alt={item.label}
+                className="rqLegendIconImg"
+                width={20}
+                height={20}
+                unoptimized
+              />
+              {item.label}
             </span>
           ))}
-          <span>
-            <i dangerouslySetInnerHTML={{ __html: markerMarkup("AVAILABLE") }} />
-            Available team
-          </span>
-          {teams.some(team => team.status === "BUSY") && <span><i dangerouslySetInnerHTML={{ __html: markerMarkup("BUSY") }} />Team on mission</span>}
         </div>
         <div className="rqCommandMapControls">
           <button
