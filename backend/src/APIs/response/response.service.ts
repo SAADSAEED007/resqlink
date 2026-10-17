@@ -2,7 +2,7 @@ import mongoose, { ClientSession, FilterQuery } from 'mongoose'
 import Incident, { IncidentRecord } from './models/incident.model'
 import Team from './models/team.model'
 import Assignment from './models/assignment.model'
-import { IncidentInput, TeamInput, IncidentStatus, Priority, Location, VerificationStatus, EmergencyType } from './types'
+import { IncidentInput, TeamInput, TeamUpdateInput, TeamQuery, IncidentStatus, Priority, Location, VerificationStatus, EmergencyType } from './types'
 import { assertAssignable, assertTransition, calculatePriority, distanceKm, isCapable } from './priority.service'
 import { detectPotentialDuplicates, evaluateVerification, DuplicateCandidate } from './verification.service'
 import { CustomError } from '../../utils/errors'
@@ -88,15 +88,70 @@ export async function getIncident(id: string) {
     return incident
 }
 export async function getTeam(id: string) {
-    const team = await Team.findById(id)
+    const query = Team.findById(id)
+    const team =
+        typeof query.populate === 'function'
+            ? await query.populate({
+                  path: 'currentIncident',
+                  select: '_id emergencyType priorityLevel status location reporterName peopleAffected createdAt'
+              })
+            : await query
     if (!team) throw new CustomError('Rescue team not found', 404)
     return team
 }
 export async function createTeam(input: TeamInput) {
-    return Team.create(input)
+    const normalizedCode = input.teamCode.trim().toUpperCase()
+    const existing = await Team.findOne({ teamCode: normalizedCode })
+    if (existing) {
+        throw new CustomError(`A rescue team with team code '${normalizedCode}' already exists`, 409)
+    }
+    return Team.create({
+        ...input,
+        teamCode: normalizedCode
+    })
 }
-export async function listTeams(query: Page & { status?: string }) {
-    const filter = query.status ? { status: query.status } : {}
+export async function updateTeam(id: string, input: TeamUpdateInput) {
+    const team = await Team.findById(id)
+    if (!team) throw new CustomError('Rescue team not found', 404)
+
+    const isActivelyAssigned = team.status === 'BUSY' || Boolean(team.currentIncident)
+    const activeAssignment = await Assignment.exists({ teamId: team._id, status: 'ACTIVE' })
+
+    if (input.status) {
+        if (isActivelyAssigned || activeAssignment) {
+            throw new CustomError(
+                'Cannot manually modify availability of an actively assigned (BUSY) rescue team. Complete or cancel the active incident assignment first.',
+                409
+            )
+        }
+        team.status = input.status
+    }
+
+    if (input.name !== undefined) team.name = input.name
+    if (input.capacity !== undefined) team.capacity = input.capacity
+    if (input.capabilities !== undefined) team.capabilities = input.capabilities
+    if (input.location !== undefined) team.location = input.location
+    if (input.contact !== undefined) {
+        const currentContact = (team.toObject() as { contact?: Record<string, unknown> }).contact || {}
+        team.set('contact', { ...currentContact, ...input.contact })
+    }
+
+    if ((isActivelyAssigned || activeAssignment) && !input.status) {
+        team.status = 'BUSY'
+    }
+
+    await team.save()
+    return team
+}
+export async function listTeams(query: TeamQuery) {
+    const filter: FilterQuery<typeof Team> = {}
+    if (query.status) filter.status = query.status
+    if (query.capability) filter.capabilities = query.capability
+    if (query.isSimulated !== undefined) filter.isSimulated = query.isSimulated
+    if (query.search) {
+        const escaped = query.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        filter.$or = [{ name: { $regex: escaped, $options: 'i' } }, { teamCode: { $regex: escaped, $options: 'i' } }]
+    }
     const [items, total] = await Promise.all([
         Team.find(filter)
             .sort({ teamCode: 1 })

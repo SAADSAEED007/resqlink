@@ -1,4 +1,4 @@
-﻿import { Schema, model } from 'mongoose'
+import { Schema, model } from 'mongoose'
 import { CAPABILITIES, TEAM_STATUSES } from '../types'
 import { locationSchema } from './incident.model'
 const schema = new Schema(
@@ -9,6 +9,11 @@ const schema = new Schema(
         status: { type: String, enum: TEAM_STATUSES, default: 'AVAILABLE', required: true },
         location: { type: locationSchema, required: true },
         capacity: { type: Number, min: 1, max: 10000, required: true, validate: Number.isInteger },
+        contact: {
+            phone: { type: String, trim: true, maxlength: 32 },
+            email: { type: String, trim: true, maxlength: 100 },
+            leadName: { type: String, trim: true, maxlength: 100 }
+        },
         currentIncident: { type: Schema.Types.ObjectId, ref: 'Incident', default: null },
         isSimulated: { type: Boolean, default: false, required: true },
         demoKey: { type: String }

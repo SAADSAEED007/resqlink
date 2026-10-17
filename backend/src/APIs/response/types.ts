@@ -40,6 +40,11 @@ export interface IncidentInput extends RiskInput {
     reporterPhone?: string
     description: string
 }
+export interface TeamContact {
+    phone?: string
+    email?: string
+    leadName?: string
+}
 export interface TeamInput {
     name: string
     teamCode: string
@@ -47,9 +52,31 @@ export interface TeamInput {
     status?: 'AVAILABLE' | 'OFFLINE'
     location: Location
     capacity: number
+    contact?: TeamContact
+    isSimulated?: boolean
+}
+export interface TeamUpdateInput {
+    name?: string
+    capabilities?: Capability[]
+    status?: 'AVAILABLE' | 'OFFLINE'
+    location?: Location
+    capacity?: number
+    contact?: TeamContact
 }
 export type TeamStatus = (typeof TEAM_STATUSES)[number]
 export type AssignmentStatus = 'ACTIVE' | 'COMPLETED' | 'CANCELLED'
+
+export interface Page {
+    page: number
+    limit: number
+}
+
+export interface TeamQuery extends Page {
+    status?: TeamStatus
+    capability?: Capability
+    search?: string
+    isSimulated?: boolean
+}
 
 export interface DashboardQuery {
     isSimulated?: boolean

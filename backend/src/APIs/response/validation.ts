@@ -29,6 +29,14 @@ export const incidentSchema = Joi.object({
     waterLevel: Joi.string().valid(...WATER_LEVELS),
     immediateDanger: Joi.boolean()
 })
+export const teamContactSchema = Joi.object({
+    phone: Joi.string()
+        .trim()
+        .pattern(/^[+\d ()-]{5,32}$/)
+        .allow(''),
+    email: Joi.string().email().trim().max(100).allow(''),
+    leadName: text(100).allow('')
+})
 export const teamSchema = Joi.object({
     name: text(100).min(2).required(),
     teamCode: Joi.string()
@@ -43,8 +51,23 @@ export const teamSchema = Joi.object({
         .required(),
     status: Joi.string().valid('AVAILABLE', 'OFFLINE').default('AVAILABLE'),
     location: locationSchema.required(),
-    capacity: Joi.number().integer().min(1).max(10000).required()
+    capacity: Joi.number().integer().min(1).max(10000).required(),
+    contact: teamContactSchema,
+    isSimulated: Joi.boolean()
 })
+export const teamUpdateSchema = Joi.object({
+    name: text(100).min(2),
+    capabilities: Joi.array()
+        .items(Joi.string().valid(...CAPABILITIES))
+        .min(1)
+        .unique(),
+    status: Joi.string().valid('AVAILABLE', 'OFFLINE'),
+    location: locationSchema,
+    capacity: Joi.number().integer().min(1).max(10000),
+    contact: teamContactSchema
+})
+    .min(1)
+    .unknown(false)
 export const idSchema = Joi.string().hex().length(24).required()
 export const assignmentSchema = Joi.object({ incidentId: idSchema, teamId: idSchema, notes: text(1000) })
 export const statusSchema = Joi.object({
@@ -74,7 +97,13 @@ export const incidentQuerySchema = Joi.object({
     updatedSince: Joi.date().iso(),
     sort: Joi.string().valid('priority', 'oldest', 'newest').default('priority')
 })
-export const teamQuerySchema = Joi.object({ ...paging, status: Joi.string().valid(...TEAM_STATUSES) })
+export const teamQuerySchema = Joi.object({
+    ...paging,
+    status: Joi.string().valid(...TEAM_STATUSES),
+    capability: Joi.string().valid(...CAPABILITIES),
+    search: text(100),
+    isSimulated: Joi.boolean()
+})
 export const assignmentQuerySchema = Joi.object({ ...paging, status: Joi.string().valid('ACTIVE', 'COMPLETED', 'CANCELLED') })
 export const dashboardQuerySchema = Joi.object({
     isSimulated: Joi.boolean()
