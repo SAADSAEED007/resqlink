@@ -116,7 +116,6 @@ export default {
                     path: '/',
                     domain: DOMAIN,
                     sameSite: 'strict',
-                    maxAge: 1000 * config.TOKENS.ACCESS.EXPIRY,
                     httpOnly: true,
                     secure: !(config.ENV === EApplicationEnvironment.DEVELOPMENT)
                 })
@@ -124,7 +123,6 @@ export default {
                     path: '/',
                     domain: DOMAIN,
                     sameSite: 'strict',
-                    maxAge: 1000 * config.TOKENS.REFRESH.EXPIRY,
                     httpOnly: true,
                     secure: !(config.ENV === EApplicationEnvironment.DEVELOPMENT)
                 })

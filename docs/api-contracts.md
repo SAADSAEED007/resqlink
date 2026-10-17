@@ -164,3 +164,7 @@ Missing location always gives LOW confidence. Otherwise two or more missing/unce
 All seed names/descriptions are labeled SIMULATED and all three seeded model types have isSimulated=true. The seed requires DEMO_MODE=true, nonproduction environment, and a separate DEMO_DATABASE_URL whose database name ends `_demo`. Existing records are not reset; duplicate keys abort the transaction. Run `npm run seed:demo` from backend. To view seeded records, point the demo backend's DATABASE_URL to that same demo database. Never change a real-data backend to a demo database during active use.
 
 `npm test -- --runInBand` runs isolated tests; real MongoDB integration tests skip unless TEST_DATABASE_URL names `resqlink_core_test_<hex>`. Those tests create and clean only that test database. Never point TEST_DATABASE_URL at an application database. See verification.md for actual execution results.
+
+## Frontend session contract
+
+`GET /v1/user/me` requires the access-token cookie and returns HTTP 200 with the existing success envelope and `data: { _id, name, email, role }`. It sends `Cache-Control: no-store`; confirmation/reset fields are excluded. `PUT /v1/logout` clears both cookies with matching path/domain/security options and a past expiry. The frontend uses these existing routes and verifies session cookies after login. See [frontend-foundation.md](frontend-foundation.md) for same-site deployment requirements.
