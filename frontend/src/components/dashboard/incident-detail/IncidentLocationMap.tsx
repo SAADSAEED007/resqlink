@@ -20,16 +20,6 @@ export function validLocation(
   );
 }
 
-const KARACHI_NEIGHBORHOODS = [
-  { name: "North Karachi", lat: 24.985, lng: 67.065 },
-  { name: "University of Karachi", lat: 24.945, lng: 67.128 },
-  { name: "Gulshan-e-Iqbal", lat: 24.928, lng: 67.098 },
-  { name: "Karachi", lat: 24.855, lng: 67.01 },
-  { name: "PECHS", lat: 24.872, lng: 67.062 },
-  { name: "Shah Faisal", lat: 24.885, lng: 67.155 },
-  { name: "Korangi", lat: 24.83, lng: 67.135 },
-];
-
 export function IncidentLocationMap({
   incident,
   teams,
@@ -77,19 +67,17 @@ export function IncidentLocationMap({
 
         const instance = L.map(container.current, {
           center: [latitude, longitude],
-          zoom: 12.8,
+          zoom: 13,
           zoomControl: false,
           scrollWheelZoom: false,
           attributionControl: false,
         });
         map.current = instance;
 
-        // Dark cartographic tiles
+        // Dark cartographic tiles for Command Center aesthetic
         L.tileLayer(
           "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-          {
-            maxZoom: 16,
-          },
+          { maxZoom: 16 },
         )
           .on("tileerror", () => {
             if (active) setFailed(true);
@@ -101,59 +89,35 @@ export function IncidentLocationMap({
           { maxZoom: 16 },
         ).addTo(instance);
 
-        // Concentric impact risk zones matching reference
-        // Outer Low Risk Zone (Dashed amber/yellow)
-        L.circle([latitude, longitude], {
-          radius: 2000,
-          color: "#EAB308",
+        // Visual-only subtle focus halo around the selected incident (non-geographic impact claim)
+        const priorityColor =
+          incident.priorityLevel === "CRITICAL"
+            ? "#dc2626"
+            : incident.priorityLevel === "HIGH"
+              ? "#d97706"
+              : incident.priorityLevel === "MEDIUM"
+                ? "#2563eb"
+                : "#64748b";
+
+        L.circleMarker([latitude, longitude], {
+          radius: 22,
+          color: priorityColor,
           weight: 1.5,
-          dashArray: "4, 6",
-          fillColor: "#EAB308",
-          fillOpacity: 0.08,
+          opacity: 0.8,
+          fillColor: priorityColor,
+          fillOpacity: 0.15,
           interactive: false,
         }).addTo(instance);
 
-        // Middle Medium Risk Zone (Amber)
-        L.circle([latitude, longitude], {
-          radius: 1250,
-          color: "#F59E0B",
-          weight: 1.8,
-          fillColor: "#F59E0B",
-          fillOpacity: 0.16,
-          interactive: false,
-        }).addTo(instance);
-
-        // Inner High Risk Zone (Red)
-        L.circle([latitude, longitude], {
-          radius: 650,
-          color: "#FF4655",
-          weight: 2,
-          fillColor: "#FF4655",
-          fillOpacity: 0.28,
-          interactive: false,
-        }).addTo(instance);
-
-        // Neighborhood labels
-        for (const hood of KARACHI_NEIGHBORHOODS) {
-          const isCenter = hood.name === "Gulshan-e-Iqbal";
-          const icon = L.divIcon({
-            className: `rqMapLabelWrap ${isCenter ? "is-center" : ""}`,
-            html: `<span class="rqMapLabelText">${hood.name}</span>`,
-            iconSize: [110, 20],
-            iconAnchor: [55, 10],
-          });
-          L.marker([hood.lat, hood.lng], { icon, interactive: false }).addTo(instance);
-        }
-
-        // Center Incident Marker with custom glowing icon
+        // Center Incident Marker with custom icon
         const popup = document.createElement("div");
         popup.className = "rqMapPopupContent";
-        popup.innerHTML = `<strong>${incident.location?.address || "Gulshan-e-Iqbal, Karachi"}</strong><p>${incident.priorityLevel || "CRITICAL"} Priority Incident</p>`;
+        popup.innerHTML = `<strong>${incident.location?.address || "Reported incident location"}</strong><p>${incident.priorityLevel || "CRITICAL"} Priority Incident. Focus halo is decorative.</p>`;
 
         L.marker([latitude, longitude], {
           icon: getIncidentMarkerIcon(L, incident.priorityLevel || "CRITICAL"),
-          title: "Incident Location",
-          alt: "Incident Location",
+          title: "Reported incident location",
+          alt: "Reported incident location",
         })
           .bindPopup(popup)
           .addTo(instance);
@@ -241,49 +205,37 @@ export function IncidentLocationMap({
           <div className="rqDetailMapZoom">
             <button
               type="button"
-              aria-label="Zoom in"
+              aria-label="Zoom incident map in"
               onClick={() => map.current?.zoomIn()}
             >
               <Plus size={15} />
             </button>
             <button
               type="button"
-              aria-label="Zoom out"
+              aria-label="Zoom incident map out"
               onClick={() => map.current?.zoomOut()}
             >
               <Minus size={15} />
             </button>
           </div>
 
-          {/* Bottom Right High-Fidelity Legend Overlay matching Image 2 */}
+          {/* Bottom Right Honest Legend Overlay */}
           <div className="rqDetailMapLegendBox">
             <div className="rqLegendRow">
-              <span className="rqLegendDot rqDotRedPin" />
-              <span>Incident Location</span>
-            </div>
-            <div className="rqLegendRow">
-              <span className="rqLegendSquare rqSquareRed" />
-              <span>Affected Area (High)</span>
-            </div>
-            <div className="rqLegendRow">
-              <span className="rqLegendSquare rqSquareAmber" />
-              <span>Affected Area (Medium)</span>
-            </div>
-            <div className="rqLegendRow">
-              <span className="rqLegendSquare rqSquareYellow" />
-              <span>Affected Area (Low)</span>
+              <span className="rqLegendDot rqDotIncident" />
+              <span>Reported Location</span>
             </div>
             <div className="rqLegendRow">
               <span className="rqLegendCircle rqCircleBlue" />
-              <span>Rescue Team</span>
+              <span>Available / Dispatched Team</span>
             </div>
           </div>
         </div>
       ) : (
         <div className="rqDetailMapMissing">
           <MapPin size={36} />
-          <h3>Location verification required</h3>
-          <p>{incident.location?.address || "No location coordinates provided."}</p>
+          <h2>Location verification required</h2>
+          <p>{incident.location?.address || "No valid coordinates reported for this incident."}</p>
         </div>
       )}
 

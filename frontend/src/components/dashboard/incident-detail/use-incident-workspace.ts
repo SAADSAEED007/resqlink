@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { incidents } from "@/lib/api/incidents";
 import { ApiError, errorMessage } from "@/lib/api/client";
 import type { Incident, Recommendations } from "@/types/api";
@@ -84,8 +84,9 @@ export function useIncidentWorkspace(id: string) {
   const generation = useRef(0);
   const validId = /^[a-f\d]{24}$/i.test(id);
   const isDemoRef = id === "INC-2024-0814-001" || id.startsWith("INC-");
+  const isSimulatedTarget = isDemoMode || isDemoRef;
   const demoFound = demoRecords.find(record => record._id === id);
-  const demo = (isDemoMode || isDemoRef || !validId)
+  const demo = useMemo(() => isSimulatedTarget
     ? (demoFound
         ? { ...demoFound, _id: id }
         : {
@@ -137,10 +138,10 @@ export function useIncidentWorkspace(id: string) {
             },
           }
       )
-    : null;
+    : null, [isSimulatedTarget, demoFound, id, demoRecords]);
 
   const loadRecommendations = useCallback(async (record: Incident, signal?: AbortSignal) => {
-    if (isDemoMode || record.isSimulated || isDemoRef || !validId) {
+    if (isSimulatedTarget || record.isSimulated) {
       if (!signal?.aborted && active.current) {
         setRecommendations(DEMO_RECOMMENDATIONS);
         setRecommendationError("");
@@ -163,7 +164,7 @@ export function useIncidentWorkspace(id: string) {
         setRecommendationError(errorMessage(failure));
       }
     }
-  }, [isDemoMode, isDemoRef, validId]);
+  }, [isSimulatedTarget]);
 
   useEffect(() => {
     active.current = true;
@@ -175,8 +176,8 @@ export function useIncidentWorkspace(id: string) {
       if (running || lock.current || document.hidden) return;
       running = true;
       try {
-        if (!validId && !isDemoMode && !isDemoRef) throw new ApiError("Invalid incident reference.", 400);
-        const record = (isDemoMode || isDemoRef || !validId) ? demo : await incidents.get(id, controller.signal);
+        if (!validId && !isSimulatedTarget) throw new ApiError("Invalid incident reference.", 400);
+        const record = isSimulatedTarget ? demo : await incidents.get(id, controller.signal);
         if (!record) throw new ApiError("Incident not found.", 404);
         if (!record._id || record._id !== id || !["CRITICAL", "HIGH", "MEDIUM", "LOW"].includes(record.priorityLevel) || typeof record.description !== "string" || !["PENDING", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CANCELLED"].includes(record.status))
           throw new ApiError("The incident response could not be read. Please retry.", 0, "protocol");
@@ -208,7 +209,7 @@ export function useIncidentWorkspace(id: string) {
       clearTimeout(timer);
       document.removeEventListener("visibilitychange", visible);
     };
-  }, [id, isDemoMode, demo, validId, isDemoRef, attempt, loadRecommendations]);
+  }, [id, isDemoMode, demo, validId, isDemoRef, isSimulatedTarget, attempt, loadRecommendations]);
 
   async function mutate(task: () => Promise<{ _id: string }>, success: string) {
     if (lock.current || isDemoMode || !incident || incident.isSimulated || (uncertain && !acknowledged)) return false;
@@ -247,7 +248,7 @@ export function useIncidentWorkspace(id: string) {
       if (active.current) setBusy(false);
     }
   }
-  return { ...dashboard, incident: (isDemoMode || isDemoRef || !validId) ? (demo ?? incident) : incident, loading, error, recommendations, recommendationError,
+  return { ...dashboard, incident: isSimulatedTarget ? (demo ?? incident) : incident, loading, error, recommendations, recommendationError,
     busy, feedback, actionError, uncertain, acknowledged, setAcknowledged, mutate,
     reload: () => setAttempt(value => value + 1),
     blocked: busy || (uncertain && !acknowledged) || isDemoMode || !!incident?.isSimulated,

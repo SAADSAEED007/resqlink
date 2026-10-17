@@ -49,7 +49,7 @@ export function IncidentManagement() {
   return <div className="rqIncidentPage">
     <div className="rqIncidentNotice" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
       <span>{isDemoMode ? "Simulation Preview · Fictional incidents for coordinator workflow review." : "Select a report below to open its full incident command workspace."}</span>
-      <button onClick={preview}>Preview demo incident workspace (INC-2024-0814-001)</button>
+      <button onClick={preview} aria-label="Preview demo incident workspace">Preview demo incident workspace</button>
     </div>
     <header className="rqIncidentPageHead"><div><p className="rqIncidentEyebrow">Coordinator workspace</p><h1>Incident Management</h1><p>Monitor reports, assess urgency, and coordinate response.</p></div><div><small>{updated ? `Updated ${new Date(updated).toLocaleTimeString()}` : ""}</small><button onClick={() => { void load(); void refreshDashboard(); }} disabled={loading}><RefreshCw size={15} className={loading ? "animate-spin" : ""} /> Refresh</button></div></header>
     <>

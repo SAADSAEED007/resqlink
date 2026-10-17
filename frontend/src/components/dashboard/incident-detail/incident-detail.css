@@ -1,44 +1,90 @@
 /* ==========================================================================
-   RESQLINK — INCIDENT COMMAND WORKSPACE HIGH-FIDELITY THEME (IMAGE 2 TARGET)
+   RESQLINK — INCIDENT COMMAND WORKSPACE
+   LIGHT & DARK THEME ENGINE + RESPONSIVE GRID LAYOUT
    ========================================================================== */
 
+/* --------------------------------------------------------------------------
+   Default: LIGHT THEME (Clean Emergency Management Workspace)
+   -------------------------------------------------------------------------- */
 .rqIncidentWorkspace {
-  --navy-ground: #f5f8fc;
-  --navy-sidebar: #ffffff;
+  --navy-ground: #f8fafc;
   --navy-card: #ffffff;
+  --navy-card-border: #e2e8f0;
   --navy-elevated: #f8fafc;
-  --navy-border: #e2e8f0;
+  --navy-elevated-border: #cbd5e1;
   --navy-text: #0f172a;
-  --navy-muted: #64748b;
-  --navy-sub: #94a3b8;
+  --navy-text-heading: #0f172a;
+  --navy-muted: #475569;
+  --navy-sub: #64748b;
+  --navy-subsurface: #f1f5f9;
+  --navy-subsurface-border: #e2e8f0;
+  --navy-subsurface-text: #0f172a;
+  --navy-subsurface-hover: #e2e8f0;
+
   --navy-blue: #2563eb;
-  --navy-red: #ff4655;
-  --navy-amber: #f59e0b;
-  --navy-green: #10b981;
+  --navy-blue-bg: #eff6ff;
+  --navy-blue-border: #bfdbfe;
+
+  --navy-red: #dc2626;
+  --navy-red-bg: #fef2f2;
+  --navy-red-border: #fecaca;
+
+  --navy-amber: #d97706;
+  --navy-amber-bg: #fffbeb;
+  --navy-amber-border: #fde68a;
+
+  --navy-green: #059669;
+  --navy-green-bg: #ecfdf5;
+  --navy-green-border: #a7f3d0;
+
+  --navy-card-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 14px rgba(15, 23, 42, 0.04);
+  --navy-gauge-track: #e2e8f0;
 
   max-width: 1680px;
   margin: 0 auto;
   font-family: inherit;
   color: var(--navy-text);
   font-size: 12px;
-  padding: 4px 6px 32px;
+  padding: 12px 16px 40px;
 }
 
-/* Dark Mode Tokens matching Image 2 */
+/* --------------------------------------------------------------------------
+   DARK THEME (Command Center Dark Aesthetic)
+   -------------------------------------------------------------------------- */
 .rqCommand[data-theme="dark"] .rqIncidentWorkspace,
 .rqIncidentWorkspace.is-dark {
   --navy-ground: #061629;
-  --navy-sidebar: #071a2d;
   --navy-card: #0b2139;
+  --navy-card-border: rgba(126, 166, 210, 0.17);
   --navy-elevated: #112c47;
-  --navy-border: rgba(126, 166, 210, 0.17);
+  --navy-elevated-border: rgba(126, 166, 210, 0.25);
   --navy-text: #f8fafc;
+  --navy-text-heading: #ffffff;
   --navy-muted: #a5bcd5;
   --navy-sub: #7a94b0;
+  --navy-subsurface: #0d2642;
+  --navy-subsurface-border: rgba(126, 166, 210, 0.16);
+  --navy-subsurface-text: #f8fafc;
+  --navy-subsurface-hover: #12345a;
+
   --navy-blue: #2684ff;
+  --navy-blue-bg: rgba(38, 132, 255, 0.12);
+  --navy-blue-border: rgba(38, 132, 255, 0.3);
+
   --navy-red: #ff4655;
+  --navy-red-bg: rgba(255, 70, 85, 0.12);
+  --navy-red-border: rgba(255, 70, 85, 0.35);
+
   --navy-amber: #f59e0b;
+  --navy-amber-bg: rgba(245, 158, 11, 0.12);
+  --navy-amber-border: rgba(245, 158, 11, 0.35);
+
   --navy-green: #16d69a;
+  --navy-green-bg: rgba(22, 214, 154, 0.1);
+  --navy-green-border: rgba(22, 214, 154, 0.3);
+
+  --navy-card-shadow: 0 4px 20px rgba(2, 12, 25, 0.35);
+  --navy-gauge-track: rgba(126, 166, 210, 0.18);
 }
 
 /* ==========================================================================
@@ -57,6 +103,7 @@
 .rqDetailBreadcrumb a {
   color: var(--navy-muted);
   text-decoration: none;
+  font-weight: 550;
   transition: color 0.15s ease;
 }
 
@@ -70,8 +117,9 @@
 }
 
 .rqCurrentBreadcrumb {
-  color: #cde1f7;
-  font-weight: 500;
+  color: var(--navy-text);
+  font-weight: 600;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 .rqIncidentHeader {
@@ -93,29 +141,55 @@
   flex-wrap: wrap;
 }
 
+/* Authoritative Severity Badge */
 .rqSeverityBadgeOutline {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 5px 10px;
-  border: 1px solid var(--navy-red);
-  background: rgba(255, 70, 85, 0.12);
-  color: var(--navy-red);
   border-radius: 6px;
   font-size: 11px;
   font-weight: 750;
   letter-spacing: 0.04em;
-  box-shadow: 0 0 10px rgba(255, 70, 85, 0.15);
+  text-transform: uppercase;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.rqSeverityBadgeOutline.is-critical {
+  border-color: var(--navy-red);
+  background: var(--navy-red-bg);
+  color: var(--navy-red);
+  box-shadow: 0 0 10px rgba(220, 38, 38, 0.12);
+}
+
+.rqSeverityBadgeOutline.is-high {
+  border-color: var(--navy-amber);
+  background: var(--navy-amber-bg);
+  color: var(--navy-amber);
+  box-shadow: 0 0 10px rgba(217, 119, 6, 0.12);
+}
+
+.rqSeverityBadgeOutline.is-medium {
+  border-color: var(--navy-blue);
+  background: var(--navy-blue-bg);
+  color: var(--navy-blue);
+}
+
+.rqSeverityBadgeOutline.is-low {
+  border-color: var(--navy-sub);
+  background: var(--navy-subsurface);
+  color: var(--navy-muted);
 }
 
 .rqSeverityIcon {
-  color: var(--navy-red);
+  color: inherit;
 }
 
 .rqIncidentTitle {
-  font-size: clamp(20px, 2.2vw, 27px);
+  font-size: clamp(19px, 2.2vw, 25px);
   font-weight: 700;
-  color: var(--navy-text);
+  color: var(--navy-text-heading);
   line-height: 1.25;
   letter-spacing: -0.02em;
   margin: 0;
@@ -131,10 +205,10 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  background: #0d2642;
-  border: 1px solid rgba(126, 166, 210, 0.25);
-  color: #f1f7fe;
-  padding: 8px 14px;
+  background: var(--navy-subsurface);
+  border: 1px solid var(--navy-card-border);
+  color: var(--navy-text);
+  padding: 7px 13px;
   border-radius: 7px;
   font-size: 12px;
   font-weight: 600;
@@ -143,25 +217,26 @@
 }
 
 .rqShareIncidentBtn:hover {
-  background: #14355a;
+  background: var(--navy-subsurface-hover);
   border-color: var(--navy-blue);
 }
 
 .rqMoreOptionsBtn {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  background: #0d2642;
-  border: 1px solid rgba(126, 166, 210, 0.25);
-  color: #f1f7fe;
+  width: 34px;
+  height: 34px;
+  background: var(--navy-subsurface);
+  border: 1px solid var(--navy-card-border);
+  color: var(--navy-muted);
   border-radius: 7px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .rqMoreOptionsBtn:hover {
-  background: #14355a;
+  background: var(--navy-subsurface-hover);
+  color: var(--navy-text);
   border-color: var(--navy-blue);
 }
 
@@ -172,16 +247,21 @@
   flex-wrap: wrap;
   font-size: 12px;
   color: var(--navy-muted);
-  margin-top: 6px;
+  margin-top: 8px;
+}
+
+.rqMetaItem {
+  color: var(--navy-text);
+  font-weight: 500;
 }
 
 .rqMetaBullet {
   color: var(--navy-sub);
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 /* ==========================================================================
-   2. COMMAND GRID COMPOSITION (1648px DESKTOP REFERENCE)
+   2. COMMAND GRID COMPOSITION
    ========================================================================== */
 
 .rqCommandGrid {
@@ -193,10 +273,10 @@
 
 .rqDetailCard {
   background: var(--navy-card);
-  border: 1px solid var(--navy-border);
+  border: 1px solid var(--navy-card-border);
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(2, 12, 25, 0.25);
+  box-shadow: var(--navy-card-shadow);
   display: flex;
   flex-direction: column;
 }
@@ -206,32 +286,43 @@
   align-items: center;
   justify-content: space-between;
   padding: 11px 16px;
-  border-bottom: 1px solid rgba(126, 166, 210, 0.12);
+  border-bottom: 1px solid var(--navy-card-border);
   min-height: 44px;
+  background: var(--navy-card);
 }
 
 .rqCardHeader h2 {
   font-size: 13.5px;
   font-weight: 700;
-  color: var(--navy-text);
+  color: var(--navy-text-heading);
   margin: 0;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-/* Top Row (50% / 50%) */
+.rqDetailBadge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--navy-blue-bg);
+  color: var(--navy-blue);
+  border: 1px solid var(--navy-blue-border);
+}
+
+/* Grid Area Layout */
 .rqDetailInformation {
   grid-column: span 6;
-  min-height: 300px;
+  min-height: 290px;
 }
 
 .rqDetailLocation {
   grid-column: span 6;
-  min-height: 300px;
+  min-height: 290px;
 }
 
-/* Middle Row (3 asymmetrical columns: ~42% / ~28% / ~30%) */
 .rqGridAreaRisk {
   grid-column: span 5;
   display: flex;
@@ -250,27 +341,28 @@
   gap: 12px;
 }
 
-/* Row 3: Wide Assignment Action Panel */
 .rqDetailAssignmentPanel {
   grid-column: 1 / -1;
-  background: rgba(22, 214, 154, 0.06) !important;
-  border: 1px solid rgba(22, 214, 154, 0.28) !important;
+  padding: 14px 18px;
+  background: var(--navy-green-bg);
+  border: 1px solid var(--navy-green-border);
   border-radius: 10px;
-  padding: 12px 18px;
 }
 
-/* Row 4: Timeline & Notes */
 .rqGridAreaTimeline {
   grid-column: 1 / -1;
 }
 
-/* Row 5: Verification Review */
 .rqDetailVerification {
   grid-column: 1 / -1;
 }
 
+.rqDetailLifecycleCard {
+  grid-column: 1 / -1;
+}
+
 /* ==========================================================================
-   3. INCIDENT DETAILS CARD (LEFT INFO ROWS + RIGHT MEDIA)
+   3. INCIDENT DETAILS CARD
    ========================================================================== */
 
 .rqDetailInformationBody {
@@ -298,8 +390,8 @@
 .rqFactIconBox {
   width: 36px;
   height: 36px;
-  background: #112c47;
-  border: 1px solid rgba(38, 132, 255, 0.25);
+  background: var(--navy-subsurface);
+  border: 1px solid var(--navy-subsurface-border);
   color: var(--navy-blue);
   border-radius: 8px;
   display: grid;
@@ -321,7 +413,7 @@
 .rqFactValue {
   font-size: 12.5px;
   font-weight: 650;
-  color: var(--navy-text);
+  color: var(--navy-text-heading);
   line-height: 1.3;
 }
 
@@ -330,96 +422,69 @@
   color: var(--navy-muted);
 }
 
+/* Media / Narrative Panel */
 .rqDetailMediaPanel {
   position: relative;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid rgba(126, 166, 210, 0.18);
-  min-height: 175px;
-  background: #081a2e;
+  border: 1px solid var(--navy-card-border);
+  background: var(--navy-subsurface);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 16px;
 }
 
-.rqMediaWrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 175px;
+.rqMediaPlaceholderBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
 }
 
-.rqMediaImg {
-  object-fit: cover;
+.rqMediaCategoryIconWrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--navy-blue-bg);
+  border: 1px solid var(--navy-blue-border);
+  color: var(--navy-blue);
+  display: grid;
+  place-items: center;
 }
 
-.rqMediaLiveBadge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 2;
+.rqMediaPlaceholderTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--navy-text-heading);
+}
+
+.rqMediaPlaceholderDesc {
+  font-size: 11px;
+  color: var(--navy-muted);
+  line-height: 1.45;
+  margin: 0;
+  max-height: 60px;
+  overflow-y: auto;
+}
+
+.rqMediaVerificationTag {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: var(--navy-red);
-  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--navy-sub);
+  background: var(--navy-card);
+  border: 1px solid var(--navy-card-border);
   padding: 3px 8px;
   border-radius: 4px;
-  font-size: 10px;
-  font-weight: 750;
-  letter-spacing: 0.05em;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-}
-
-.rqLiveDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #fff;
-}
-
-.rqMediaPlayOverlay {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: rgba(4, 18, 34, 0.2);
-  z-index: 1;
-}
-
-.rqPlayCircle {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: rgba(7, 24, 43, 0.75);
-  border: 1.5px solid rgba(255, 255, 255, 0.8);
-  color: #fff;
-  display: grid;
-  place-items: center;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
-}
-
-.rqMediaCaptionOverlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 2;
-  padding: 16px 10px 8px;
-  background: linear-gradient(to top, rgba(6, 22, 41, 0.95) 0%, rgba(6, 22, 41, 0.75) 60%, transparent 100%);
-}
-
-.rqCaptionTitle {
-  font-size: 11px;
-  font-weight: 650;
-  color: #fff;
-}
-
-.rqCaptionMeta {
-  font-size: 9.5px;
-  color: var(--navy-muted);
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 /* ==========================================================================
-   4. INCIDENT LOCATION MAP CARD (IMAGE 2 TARGET)
+   4. INCIDENT LOCATION MAP CARD
    ========================================================================== */
 
 .rqOpenMapsLink {
@@ -440,7 +505,7 @@
   position: relative;
   flex: 1;
   min-height: 250px;
-  background: #06182c;
+  background: var(--navy-subsurface);
 }
 
 .rqDetailMap {
@@ -449,12 +514,11 @@
   z-index: 0;
 }
 
-/* Dark mode tile blend */
-.rqDetailMap .leaflet-tile-pane {
+/* Map tiles contrast */
+.rqCommand[data-theme="dark"] .rqDetailMap .leaflet-tile-pane {
   filter: sepia(0.8) saturate(1.7) hue-rotate(170deg) brightness(0.72) contrast(1.15);
 }
 
-/* Top Right Zoom Controls */
 .rqDetailMapZoom {
   position: absolute;
   top: 10px;
@@ -468,37 +532,35 @@
 .rqDetailMapZoom button {
   width: 28px;
   height: 28px;
-  background: rgba(11, 33, 57, 0.9);
-  border: 1px solid rgba(126, 166, 210, 0.3);
-  color: #f1f7fe;
+  background: var(--navy-card);
+  border: 1px solid var(--navy-card-border);
+  color: var(--navy-text);
   border-radius: 5px;
   display: grid;
   place-items: center;
   cursor: pointer;
   padding: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .rqDetailMapZoom button:hover {
-  background: #153c64;
+  background: var(--navy-subsurface-hover);
   border-color: var(--navy-blue);
 }
 
-/* Bottom Right High-Fidelity Map Legend Box */
 .rqDetailMapLegendBox {
   position: absolute;
   right: 10px;
   bottom: 10px;
   z-index: 1000;
-  background: rgba(7, 24, 43, 0.88);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(126, 166, 210, 0.22);
+  background: var(--navy-card);
+  border: 1px solid var(--navy-card-border);
   border-radius: 7px;
-  padding: 8px 10px;
+  padding: 7px 10px;
   display: flex;
   flex-direction: column;
   gap: 5px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .rqLegendRow {
@@ -506,37 +568,16 @@
   align-items: center;
   gap: 7px;
   font-size: 10px;
-  color: #dbe8f7;
-  font-weight: 500;
+  color: var(--navy-text);
+  font-weight: 550;
 }
 
-.rqLegendDot.rqDotRedPin {
+.rqLegendDot.rqDotIncident {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: var(--navy-red);
-  box-shadow: 0 0 6px var(--navy-red);
-}
-
-.rqLegendSquare {
-  width: 9px;
-  height: 9px;
-  border-radius: 2px;
-}
-
-.rqSquareRed {
-  background: rgba(255, 70, 85, 0.5);
-  border: 1px solid var(--navy-red);
-}
-
-.rqSquareAmber {
-  background: rgba(245, 158, 11, 0.5);
-  border: 1px solid var(--navy-amber);
-}
-
-.rqSquareYellow {
-  background: rgba(234, 179, 8, 0.35);
-  border: 1px dashed #eab308;
+  box-shadow: 0 0 6px rgba(220, 38, 38, 0.5);
 }
 
 .rqLegendCircle.rqCircleBlue {
@@ -546,42 +587,39 @@
   background: var(--navy-blue);
 }
 
-/* Map label styling */
-.rqMapLabelWrap {
-  background: transparent !important;
-  border: 0 !important;
-  text-align: center;
-  pointer-events: none;
-}
-
-.rqMapLabelText {
-  color: #c9e0fa;
-  font-size: 10px;
-  font-weight: 650;
-  letter-spacing: 0.02em;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95), 0 0 5px rgba(4, 18, 34, 0.9);
-  white-space: nowrap;
-}
-
-.rqMapLabelWrap.is-center .rqMapLabelText {
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: 750;
-}
-
 .rqDetailMapMissing {
   min-height: 250px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   padding: 24px;
   color: var(--navy-muted);
+  text-align: center;
+}
+
+.rqDetailMapMissing h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy-text-heading);
+  margin: 0;
+}
+
+.rqDetailMapMissing p {
+  font-size: 11px;
+  margin: 0;
+}
+
+.rqDetailFootnote {
+  font-size: 10px;
+  color: var(--navy-muted);
+  padding: 6px 16px;
+  margin: 0;
 }
 
 /* ==========================================================================
-   5. RISK ASSESSMENT & PRIORITY CARD (IMAGE 2 TARGET)
+   5. RISK ASSESSMENT & PRIORITY CARD
    ========================================================================== */
 
 .rqPriorityHeaderLeft {
@@ -590,24 +628,47 @@
   gap: 10px;
 }
 
-.rqPriorityBadgeRed {
+.rqPriorityBadge {
   font-size: 10px;
   font-weight: 700;
-  color: var(--navy-red);
-  background: rgba(255, 70, 85, 0.12);
-  border: 1px solid rgba(255, 70, 85, 0.35);
   border-radius: 20px;
   padding: 3px 9px;
   letter-spacing: 0.03em;
+  border-width: 1px;
+  border-style: solid;
 }
 
-.rqConfidenceBadgeGreen {
+.rqPriorityBadge.rqPriority-critical {
+  color: var(--navy-red);
+  background: var(--navy-red-bg);
+  border-color: var(--navy-red-border);
+}
+
+.rqPriorityBadge.rqPriority-high {
+  color: var(--navy-amber);
+  background: var(--navy-amber-bg);
+  border-color: var(--navy-amber-border);
+}
+
+.rqPriorityBadge.rqPriority-medium {
+  color: var(--navy-blue);
+  background: var(--navy-blue-bg);
+  border-color: var(--navy-blue-border);
+}
+
+.rqPriorityBadge.rqPriority-low {
+  color: var(--navy-muted);
+  background: var(--navy-subsurface);
+  border-color: var(--navy-subsurface-border);
+}
+
+.rqConfidenceBadge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(22, 214, 154, 0.1);
-  color: var(--navy-green);
-  border: 1px solid rgba(22, 214, 154, 0.28);
+  background: var(--navy-blue-bg);
+  color: var(--navy-blue);
+  border: 1px solid var(--navy-blue-border);
   border-radius: 20px;
   padding: 3px 9px;
   font-size: 11px;
@@ -618,11 +679,11 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--navy-green);
+  background: var(--navy-blue);
 }
 
 .rqInfoIcon {
-  color: var(--navy-green);
+  color: var(--navy-blue);
   opacity: 0.8;
 }
 
@@ -638,15 +699,15 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 1px solid rgba(126, 166, 210, 0.15);
+  border: 1px solid var(--navy-card-border);
   border-radius: 8px;
-  background: #0d2642;
+  background: var(--navy-subsurface);
   padding: 10px 8px 14px;
 }
 
 .rqRiskGaugeLabel {
   font-size: 11px;
-  color: var(--navy-muted);
+  color: var(--navy-sub);
   font-weight: 600;
   margin-bottom: 4px;
 }
@@ -667,16 +728,30 @@
 
 .rqGaugeTrackCircle {
   fill: none;
-  stroke: rgba(126, 166, 210, 0.18);
+  stroke: var(--navy-gauge-track);
   stroke-width: 9;
 }
 
 .rqGaugeValueCircle {
   fill: none;
-  stroke: var(--navy-red);
   stroke-width: 9;
   stroke-linecap: round;
-  filter: drop-shadow(0 0 6px rgba(255, 70, 85, 0.45));
+}
+
+.rqGaugeValueCircle.is-critical {
+  stroke: var(--navy-red);
+}
+
+.rqGaugeValueCircle.is-high {
+  stroke: var(--navy-amber);
+}
+
+.rqGaugeValueCircle.is-medium {
+  stroke: var(--navy-blue);
+}
+
+.rqGaugeValueCircle.is-low {
+  stroke: var(--navy-muted);
 }
 
 .rqGaugeCenterText {
@@ -688,16 +763,16 @@
 }
 
 .rqGaugeNumber {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 750;
-  color: #fff;
+  color: var(--navy-text-heading);
   line-height: 1.1;
   letter-spacing: -0.02em;
 }
 
 .rqGaugeMax {
   font-size: 10px;
-  color: var(--navy-muted);
+  color: var(--navy-sub);
 }
 
 .rqWhyPrioritySection {
@@ -709,7 +784,7 @@
 .rqWhyPriorityHeading {
   font-size: 12px;
   font-weight: 700;
-  color: #f1f7fe;
+  color: var(--navy-text-heading);
   margin: 0 0 2px;
 }
 
@@ -731,8 +806,8 @@
 .rqWhyIconBox {
   width: 24px;
   height: 24px;
-  background: #112d4a;
-  border: 1px solid rgba(38, 132, 255, 0.2);
+  background: var(--navy-subsurface);
+  border: 1px solid var(--navy-subsurface-border);
   color: var(--navy-blue);
   border-radius: 5px;
   display: grid;
@@ -743,8 +818,15 @@
 
 .rqWhyText {
   font-size: 11px;
-  color: #c0d4ea;
+  color: var(--navy-text);
   line-height: 1.45;
+}
+
+.rqWhyEmptyText {
+  font-size: 11px;
+  color: var(--navy-muted);
+  font-style: italic;
+  margin: 0;
 }
 
 .rqAdjustPriorityRow {
@@ -756,13 +838,78 @@
   border: 0;
   color: var(--navy-blue);
   font-size: 11px;
+  font-weight: 600;
   cursor: pointer;
   padding: 0;
   text-decoration: underline;
 }
 
+/* Adjust Priority Form */
+.rqAdjustForm {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rqFormGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rqFormGroup label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--navy-muted);
+}
+
+.rqSelectInput,
+.rqTextareaInput {
+  background: var(--navy-subsurface);
+  border: 1px solid var(--navy-card-border);
+  color: var(--navy-text);
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 11.5px;
+  outline: none;
+}
+
+.rqSelectInput:focus,
+.rqTextareaInput:focus {
+  border-color: var(--navy-blue);
+}
+
+.rqFormBtnRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.rqFormSubmitBtn {
+  background: var(--navy-blue);
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 11.5px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.rqFormCancelBtn {
+  background: transparent;
+  color: var(--navy-muted);
+  border: 1px solid var(--navy-card-border);
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
 /* ==========================================================================
-   6. AFFECTED PEOPLE & VULNERABILITY (IMAGE 2 TARGET)
+   6. AFFECTED PEOPLE & VULNERABILITY
    ========================================================================== */
 
 .rqVulnerabilityBody {
@@ -782,8 +929,8 @@
 .rqPeopleHeroIcon {
   width: 44px;
   height: 44px;
-  background: #112d4a;
-  border: 1px solid rgba(38, 132, 255, 0.25);
+  background: var(--navy-blue-bg);
+  border: 1px solid var(--navy-blue-border);
   color: var(--navy-blue);
   border-radius: 8px;
   display: grid;
@@ -797,16 +944,16 @@
 }
 
 .rqPeopleHeroCount {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 750;
-  color: #fff;
+  color: var(--navy-text-heading);
   line-height: 1.15;
   letter-spacing: -0.02em;
 }
 
 .rqPeopleHeroLabel {
   font-size: 11px;
-  color: #dbe8f7;
+  color: var(--navy-text);
   font-weight: 600;
 }
 
@@ -817,15 +964,15 @@
 
 .rqVulnerabilityStatsRow {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .rqVulnStatTile {
-  background: #0d2642;
-  border: 1px solid rgba(126, 166, 210, 0.16);
+  background: var(--navy-subsurface);
+  border: 1px solid var(--navy-subsurface-border);
   border-radius: 7px;
-  padding: 8px 6px;
+  padding: 8px 4px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -843,21 +990,21 @@
   color: var(--navy-blue);
 }
 
-.rqVulnPercent {
-  font-size: 13px;
+.rqVulnValue {
+  font-size: 12.5px;
   font-weight: 700;
-  color: #fff;
+  color: var(--navy-text-heading);
 }
 
 .rqVulnTitle {
-  font-size: 9px;
-  color: var(--navy-muted);
+  font-size: 9.5px;
+  color: var(--navy-sub);
   line-height: 1.25;
 }
 
 .rqHighVulnAlertCard {
-  background: rgba(255, 70, 85, 0.08);
-  border: 1px solid rgba(255, 70, 85, 0.28);
+  background: var(--navy-red-bg);
+  border: 1px solid var(--navy-red-border);
   border-radius: 7px;
   padding: 9px 12px;
   display: flex;
@@ -885,17 +1032,30 @@
 
 .rqVulnAlertDesc {
   font-size: 10px;
-  color: #e2ecf7;
+  color: var(--navy-text);
   line-height: 1.45;
   margin: 0;
 }
 
+.rqStandardVulnCard {
+  background: var(--navy-subsurface);
+  border: 1px solid var(--navy-subsurface-border);
+  border-radius: 7px;
+  padding: 8px 12px;
+}
+
+.rqVulnStandardDesc {
+  font-size: 10.5px;
+  color: var(--navy-muted);
+  margin: 0;
+}
+
 /* ==========================================================================
-   7. INCIDENT STATUS & RECOMMENDED RESCUE TEAMS (IMAGE 2 TARGET)
+   7. INCIDENT STATUS & RECOMMENDED RESCUE TEAMS
    ========================================================================== */
 
 .rqStatusBody {
-  padding: 18px 16px;
+  padding: 16px;
 }
 
 .rqStatusTrackerTrack {
@@ -920,7 +1080,7 @@
   left: 50%;
   width: 100%;
   height: 2px;
-  background: rgba(126, 166, 210, 0.2);
+  background: var(--navy-card-border);
   z-index: 1;
 }
 
@@ -932,8 +1092,8 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #0b2139;
-  border: 2px solid rgba(126, 166, 210, 0.3);
+  background: var(--navy-card);
+  border: 2px solid var(--navy-card-border);
   display: grid;
   place-items: center;
   margin-bottom: 6px;
@@ -943,7 +1103,7 @@
 .rqStatusNode.is-current .rqStatusCircle {
   border-color: var(--navy-red);
   background: var(--navy-red);
-  box-shadow: 0 0 0 4px rgba(255, 70, 85, 0.2);
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.2);
 }
 
 .rqStatusInnerDot {
@@ -980,7 +1140,17 @@
   margin-top: 1px;
 }
 
-/* Recommended Rescue Teams List */
+.rqStatusCancelledBadge {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--navy-red);
+  background: var(--navy-red-bg);
+  border: 1px solid var(--navy-red-border);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Recommended Rescue Teams */
 .rqDetailRecommendedTeams {
   flex: 1;
 }
@@ -1001,6 +1171,8 @@
   flex-direction: column;
   padding: 8px 10px;
   gap: 6px;
+  max-height: 230px;
+  overflow-y: auto;
 }
 
 .rqTeamRow {
@@ -1009,20 +1181,20 @@
   gap: 12px;
   padding: 9px 12px;
   border-radius: 8px;
-  background: #0d2642;
-  border: 1px solid rgba(126, 166, 210, 0.14);
+  background: var(--navy-subsurface);
+  border: 1px solid var(--navy-subsurface-border);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .rqTeamRow:hover {
-  border-color: rgba(38, 132, 255, 0.4);
-  background: #112f52;
+  border-color: var(--navy-blue);
+  background: var(--navy-subsurface-hover);
 }
 
 .rqTeamRow.is-selected {
   border-color: var(--navy-blue);
-  background: #12345a;
+  background: var(--navy-blue-bg);
   box-shadow: 0 0 0 1px var(--navy-blue);
 }
 
@@ -1030,25 +1202,11 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
+  background: var(--navy-blue);
+  color: #fff;
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  color: #fff;
-}
-
-.rqTeamEmblem.red {
-  background: linear-gradient(135deg, #e11d48, #9f1239);
-  border: 1px solid #f43f5e;
-}
-
-.rqTeamEmblem.navy {
-  background: linear-gradient(135deg, #1e3a8a, #0f172a);
-  border: 1px solid #3b82f6;
-}
-
-.rqTeamEmblem.edhi {
-  background: linear-gradient(135deg, #059669, #064e3b);
-  border: 1px solid #10b981;
 }
 
 .rqTeamMeta {
@@ -1061,7 +1219,7 @@
 .rqTeamName {
   font-size: 11.5px;
   font-weight: 700;
-  color: #fff;
+  color: var(--navy-text-heading);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1071,6 +1229,9 @@
   font-size: 10px;
   color: var(--navy-muted);
   margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .rqTeamMetrics {
@@ -1086,38 +1247,52 @@
   align-items: center;
   gap: 4px;
   font-size: 10px;
+  color: var(--navy-text);
+  font-weight: 600;
+}
+
+.rqCapacityWarningTag {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--navy-amber);
+  background: var(--navy-amber-bg);
+  border: 1px solid var(--navy-amber-border);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.rqNoTeamsBox {
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
   color: var(--navy-muted);
 }
 
-.rqEta {
-  color: #8da4be;
+.rqNoTeamsIcon {
+  color: var(--navy-sub);
 }
 
-.rqTeamMatchBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 7px;
-  border-radius: 12px;
-  font-size: 10px;
-  background: rgba(38, 132, 255, 0.15);
-  color: #80b3ff;
-  border: 1px solid rgba(38, 132, 255, 0.3);
+.rqNoTeamsText {
+  font-size: 11.5px;
+  margin: 0;
 }
 
-.rqTeamMatchBadge.is-best {
-  background: rgba(22, 214, 154, 0.15);
-  color: var(--navy-green);
-  border-color: rgba(22, 214, 154, 0.35);
+.rqNoTeamsLink {
+  font-size: 11px;
+  color: var(--navy-blue);
+  text-decoration: underline;
 }
 
 /* ==========================================================================
-   8. ASSIGNMENT ACTION PANEL (WIDE GREEN PANEL MATCHING IMAGE 2)
+   8. ASSIGNMENT ACTION PANEL
    ========================================================================== */
 
 .rqAssignmentContent {
   display: grid;
-  grid-template-columns: 240px 1fr 280px;
+  grid-template-columns: 260px 1fr 280px;
   align-items: center;
   gap: 16px;
 }
@@ -1125,59 +1300,57 @@
 .rqAssignmentLeft {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .rqAssignIconWrap {
-  width: 36px;
-  height: 36px;
-  background: rgba(22, 214, 154, 0.15);
-  border: 1px solid rgba(22, 214, 154, 0.3);
-  color: var(--navy-green);
+  width: 38px;
+  height: 38px;
+  background: var(--navy-green);
+  color: #fff;
   border-radius: 8px;
   display: grid;
   place-items: center;
+  flex-shrink: 0;
+}
+
+.rqAssignTitles {
+  display: flex;
+  flex-direction: column;
 }
 
 .rqAssignTitle {
   font-size: 13.5px;
   font-weight: 700;
-  color: #fff;
+  color: var(--navy-text-heading);
+}
+
+.rqAssignSubtitle {
+  font-size: 10.5px;
+  color: var(--navy-muted);
 }
 
 .rqAssignmentSelectorWrap {
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
-.rqTeamSelectorPill {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #081a2e;
-  border: 1px solid rgba(126, 166, 210, 0.25);
-  border-radius: 7px;
-  padding: 8px 14px;
+.rqTeamSelectDropdown {
   width: 100%;
+  background: var(--navy-card);
+  border: 1px solid var(--navy-card-border);
+  color: var(--navy-text-heading);
+  border-radius: 7px;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  outline: none;
   cursor: pointer;
 }
 
-.rqSelectorEmblem {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #e11d48;
-}
-
-.rqSelectorTeamName {
-  font-size: 12px;
-  color: #fff;
-  font-weight: 600;
-  flex: 1;
-}
-
-.rqSelectorCaret {
-  color: var(--navy-sub);
+.rqTeamSelectDropdown:focus {
+  border-color: var(--navy-green);
 }
 
 .rqAssignmentActionWrap {
@@ -1189,7 +1362,7 @@
 
 .rqAssignTeamSolidBtn {
   background: var(--navy-green);
-  color: #032318;
+  color: #ffffff;
   border: 0;
   border-radius: 7px;
   padding: 10px 18px;
@@ -1201,16 +1374,16 @@
   gap: 8px;
   cursor: pointer;
   transition: all 0.15s ease;
-  box-shadow: 0 4px 14px rgba(22, 214, 154, 0.3);
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
 }
 
 .rqAssignTeamSolidBtn:hover:not(:disabled) {
-  background: #25e2a7;
+  opacity: 0.92;
   transform: translateY(-1px);
 }
 
 .rqAssignTeamSolidBtn:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
@@ -1220,228 +1393,376 @@
   text-align: center;
 }
 
-/* ==========================================================================
-   9. TIMELINE & ACTIVITY LOG + INTERNAL NOTES COMPOSER (IMAGE 2 TARGET)
-   ========================================================================== */
+/* Already Assigned State */
+.rqDetailAssignmentPanel.is-assigned-state {
+  background: var(--navy-blue-bg);
+  border-color: var(--navy-blue-border);
+}
 
-.rqTimelineHeaderLeft {
+.rqAssignedSummary {
   display: flex;
   align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.rqAssignedIconWrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--navy-blue);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.rqAssignedDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.rqAssignedTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy-text-heading);
+}
+
+.rqAssignedSub {
+  font-size: 11px;
+  color: var(--navy-muted);
+}
+
+.rqAssignedBase {
+  font-size: 11px;
+  color: var(--navy-sub);
+  background: var(--navy-card);
+  border: 1px solid var(--navy-card-border);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+/* ==========================================================================
+   9. TIMELINE & ACTIVITY LOG
+   ========================================================================== */
+
+.rqTimelineCount {
+  font-size: 10.5px;
+  color: var(--navy-sub);
+  font-weight: 600;
+}
+
+.rqTimelineBody {
+  padding: 14px 16px;
+}
+
+.rqTimelineList {
+  display: flex;
+  flex-direction: column;
   gap: 12px;
 }
 
-.rqAddNoteHeaderBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: transparent;
-  border: 1px solid rgba(126, 166, 210, 0.25);
-  color: var(--navy-muted);
-  border-radius: 5px;
-  padding: 3px 8px;
-  font-size: 10.5px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.rqTimelineNotesGrid {
-  display: grid;
-  grid-template-columns: 1.35fr 0.95fr;
-  gap: 18px;
-  padding: 14px 16px;
-  align-items: center;
-}
-
-.rqHorizontalTimeline {
+.rqTimelineEvent {
   display: flex;
   align-items: flex-start;
-  gap: 18px;
-  overflow-x: auto;
+  gap: 12px;
+  position: relative;
 }
 
-.rqTimelineMilestone {
+.rqTimelineEventMarker {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  flex: 1;
-  min-width: 170px;
-}
-
-.rqMilestoneHeader {
-  display: flex;
   align-items: center;
-  gap: 6px;
+  position: relative;
+  width: 14px;
+  padding-top: 3px;
+  flex-shrink: 0;
 }
 
-.rqMilestoneDot {
-  width: 7px;
-  height: 7px;
+.rqTimelineEventDot {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-}
-
-.rqMilestoneDot.red {
-  background: var(--navy-red);
-  box-shadow: 0 0 6px var(--navy-red);
-}
-
-.rqMilestoneDot.blue {
   background: var(--navy-blue);
-  box-shadow: 0 0 6px var(--navy-blue);
+  z-index: 2;
 }
 
-.rqMilestoneTime {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--navy-muted);
+.rqTimelineEvent.is-priority .rqTimelineEventDot {
+  background: var(--navy-amber);
 }
 
-.rqMilestoneTitle {
-  font-size: 11px;
-  font-weight: 650;
-  color: #fff;
-  line-height: 1.3;
+.rqTimelineEvent.is-verification .rqTimelineEventDot {
+  background: var(--navy-green);
 }
 
-.rqMilestoneSub {
-  font-size: 9.5px;
-  color: var(--navy-sub);
+.rqTimelineEventLine {
+  position: absolute;
+  top: 12px;
+  bottom: -16px;
+  width: 2px;
+  background: var(--navy-card-border);
+  z-index: 1;
 }
 
-.rqInternalNotesComposer {
+.rqTimelineEvent:last-child .rqTimelineEventLine {
+  display: none;
+}
+
+.rqTimelineEventContent {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-}
-
-.rqNotesForm {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: #081a2e;
-  border: 1px solid rgba(126, 166, 210, 0.22);
-  border-radius: 7px;
-  padding: 4px 6px;
-}
-
-.rqNotesInput {
-  background: transparent;
-  border: 0;
-  color: #fff;
-  font-size: 11px;
+  gap: 2px;
   flex: 1;
-  padding: 6px 8px;
-  outline: none;
 }
 
-.rqNotesInput::placeholder {
-  color: var(--navy-sub);
-}
-
-.rqNotesScopeSelector {
+.rqTimelineEventHeader {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  border-left: 1px solid rgba(126, 166, 210, 0.18);
-  border-right: 1px solid rgba(126, 166, 210, 0.18);
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rqTimelineEventTitle {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--navy-text-heading);
+}
+
+.rqTimelineEventTime {
   font-size: 10px;
-  color: var(--navy-muted);
-  cursor: pointer;
-}
-
-.rqDropdownCaret {
-  font-size: 9px;
   color: var(--navy-sub);
+  font-mono: true;
 }
 
-.rqPostNoteBtn {
-  background: var(--navy-blue);
-  color: #fff;
-  border: 0;
-  border-radius: 5px;
-  padding: 6px 12px;
+.rqTimelineEventSub {
   font-size: 11px;
-  font-weight: 650;
-  cursor: pointer;
-  white-space: nowrap;
+  color: var(--navy-muted);
+  margin: 0;
+  line-height: 1.4;
 }
 
-.rqPostNoteBtn:hover {
-  background: #3991ff;
-}
-
-.rqNoteFeedback {
-  font-size: 9.5px;
-  color: var(--navy-green);
-  padding: 0 4px;
+.rqTimelineEmpty {
+  font-size: 11px;
+  color: var(--navy-muted);
+  font-style: italic;
+  margin: 0;
 }
 
 /* ==========================================================================
-   10. VERIFICATION REVIEW & NOTICES
+   10. VERIFICATION REVIEW & LIFECYCLE
    ========================================================================== */
 
-.rqDetailVerificationDisclosure summary {
+.rqDetailMicro {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--navy-sub);
+}
+
+.rqVerificationSummary {
   padding: 10px 16px;
-  color: var(--navy-muted);
+  color: var(--navy-text);
   cursor: pointer;
-  font-size: 11px;
-  font-weight: 550;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: var(--navy-subsurface);
+  border-bottom: 1px solid var(--navy-card-border);
 }
 
 .rqDetailVerificationContent {
-  padding: 8px 16px 14px;
+  padding: 14px 16px;
   color: var(--navy-muted);
   font-size: 11px;
   line-height: 1.6;
 }
 
-.rqDetailVerificationContent form {
-  display: grid;
-  grid-template-columns: 1fr 2fr auto;
-  gap: 12px;
-  align-items: end;
-  margin-top: 10px;
-}
-
-.rqDetailVerificationContent select,
-.rqDetailVerificationContent textarea {
-  width: 100%;
-  border: 1px solid rgba(126, 166, 210, 0.22);
+.rqDetailRiskAlert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--navy-red);
+  background: var(--navy-red-bg);
+  border: 1px solid var(--navy-red-border);
+  padding: 8px 12px;
   border-radius: 6px;
-  background: #081a2e;
-  color: #fff;
-  padding: 7px 10px;
-  font-size: 11px;
+  font-weight: 600;
+  margin: 0 0 10px;
 }
 
-.rqDetailVerificationContent button {
+.rqVerificationWarningList {
+  margin: 0 0 10px;
+  padding-left: 20px;
+  color: var(--navy-amber);
+}
+
+.rqMissingFieldsNote,
+.rqDuplicatesNote,
+.rqLatestReviewNote {
+  margin: 4px 0 8px;
+  color: var(--navy-text);
+}
+
+.rqDupLink {
+  color: var(--navy-blue);
+  text-decoration: underline;
+  font-family: monospace;
+  margin-right: 6px;
+}
+
+.rqVerificationForm {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.rqFormRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rqFormRow.flex-grow {
+  flex: 1;
+  min-width: 240px;
+}
+
+.rqFormRow label {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--navy-sub);
+}
+
+.rqVerifySubmitBtn {
   background: var(--navy-blue);
   color: #fff;
   border: 0;
   border-radius: 6px;
-  padding: 8px 14px;
+  padding: 8px 16px;
+  font-size: 11.5px;
+  font-weight: 650;
+  cursor: pointer;
+  white-space: nowrap;
+  height: 35px;
+}
+
+.rqReadOnlyNotice {
+  font-size: 11px;
+  color: var(--navy-muted);
+  font-style: italic;
+  margin: 8px 0 0;
+}
+
+/* Lifecycle Card (Full Width, Never Squeezed!) */
+.rqLifecycleBody {
+  padding: 14px 16px;
+}
+
+.rqDetailLifecycleForm {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.rqLifecycleInputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 260px;
+}
+
+.rqLifecycleLabel {
   font-size: 11px;
   font-weight: 600;
+  color: var(--navy-muted);
+}
+
+.rqLifecycleSelect {
+  width: 100%;
+}
+
+.rqLifecycleSubmitBtn {
+  background: var(--navy-subsurface);
+  border: 1px solid var(--navy-card-border);
+  color: var(--navy-text-heading);
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 11.5px;
+  font-weight: 650;
   cursor: pointer;
+  height: 35px;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.rqLifecycleSubmitBtn:hover:not(:disabled) {
+  background: var(--navy-subsurface-hover);
+  border-color: var(--navy-blue);
+}
+
+.rqLifecycleSubmitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   11. NOTICES, FEEDBACK & FOOTER
+   ========================================================================== */
+
+.rqDetailToast {
+  background: var(--navy-blue);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
 .rqDetailNotice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 10px 14px;
   margin-bottom: 12px;
-  border: 1px solid rgba(126, 166, 210, 0.2);
   border-radius: 8px;
-  font-size: 11px;
-  color: var(--navy-muted);
+  font-size: 11.5px;
+  border-width: 1px;
+  border-style: solid;
 }
 
 .rqDetailNotice.is-error {
   color: var(--navy-red);
-  border-color: rgba(255, 70, 85, 0.4);
+  background: var(--navy-red-bg);
+  border-color: var(--navy-red-border);
 }
 
 .rqDetailNotice.is-success {
   color: var(--navy-green);
-  border-color: rgba(22, 214, 154, 0.4);
+  background: var(--navy-green-bg);
+  border-color: var(--navy-green-border);
+}
+
+.rqNoticeAction {
+  background: transparent;
+  border: 0;
+  text-decoration: underline;
+  color: inherit;
+  font-weight: 650;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 6px;
+}
+
+.rqDetailFooter {
+  margin-top: 20px;
+  padding-top: 12px;
 }
 
 .rqDetailBack {
@@ -1449,8 +1770,7 @@
   align-items: center;
   gap: 7px;
   color: var(--navy-blue);
-  margin-top: 16px;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   text-decoration: none;
 }
@@ -1459,6 +1779,7 @@
   text-decoration: underline;
 }
 
+/* Loading & Failure States */
 .rqDetailLoading {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1466,23 +1787,80 @@
   padding: 24px;
 }
 
-.rqDetailLoading > div {
-  min-height: 200px;
-  background: #0b2139;
+.rqLoadingCard {
+  min-height: 220px;
+  background: var(--navy-card);
+  border: 1px solid var(--navy-card-border);
   border-radius: 10px;
+  animation: rqPulse 1.5s ease-in-out infinite;
+}
+
+.rqLoadingText {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--navy-muted);
+  font-size: 12px;
+  margin: 0;
+}
+
+@keyframes rqPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.9; }
 }
 
 .rqDetailFailure {
-  padding: 48px 24px;
+  padding: 56px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   text-align: center;
 }
 
+.rqFailureIcon {
+  color: var(--navy-red);
+}
+
+.rqDetailFailure h1 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--navy-text-heading);
+  margin: 0;
+}
+
+.rqDetailFailure p {
+  color: var(--navy-muted);
+  font-size: 12px;
+  max-width: 440px;
+  margin: 0;
+}
+
+.rqFailureActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.rqRetryBtn {
+  background: var(--navy-blue);
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.rqBackLink {
+  color: var(--navy-muted);
+  font-size: 12px;
+  text-decoration: underline;
+}
+
 /* ==========================================================================
-   11. RESPONSIVENESS (1440px, 1024px, 768px, 430px)
+   12. RESPONSIVENESS (1440px, 1280px, 1024px, 768px, 430px, 390px, 320px)
    ========================================================================== */
 
 @media (max-width: 1280px) {
@@ -1500,9 +1878,6 @@
   }
   .rqAssignmentActionWrap {
     grid-column: span 2;
-  }
-  .rqTimelineNotesGrid {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -1528,14 +1903,21 @@
   .rqAssignmentActionWrap {
     grid-column: span 1;
   }
-  .rqDetailVerificationContent form {
-    grid-template-columns: 1fr;
+  .rqVerificationForm {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .rqFormRow.flex-grow {
+    min-width: 0;
   }
 }
 
 @media (max-width: 600px) {
+  .rqIncidentWorkspace {
+    padding: 8px 8px 32px;
+  }
   .rqIncidentTitle {
-    font-size: 18px;
+    font-size: 17px;
   }
   .rqPriorityBody {
     grid-template-columns: 1fr;
@@ -1544,13 +1926,13 @@
     width: 100%;
   }
   .rqVulnerabilityStatsRow {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
-  .rqHorizontalTimeline {
+  .rqDetailLifecycleForm {
     flex-direction: column;
-    gap: 12px;
+    align-items: stretch;
   }
-  .rqTimelineMilestone {
-    min-width: 0;
+  .rqDetailLoading {
+    grid-template-columns: 1fr;
   }
 }

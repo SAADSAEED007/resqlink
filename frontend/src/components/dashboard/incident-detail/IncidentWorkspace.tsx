@@ -6,8 +6,8 @@ import Link from "next/link";
 import {
   AlertTriangle,
   ArrowLeft,
+  CheckCircle2,
   ChevronRight,
-  ChevronDown,
   MapPin,
   MoreHorizontal,
   Send,
@@ -56,7 +56,7 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
   const model = useIncidentWorkspace(id);
   const { incident, isDemoMode, blocked, busy } = model;
 
-  const [teamId, setTeamId] = useState("demo-team-1");
+  const [teamId, setTeamId] = useState("");
   const [decision, setDecision] = useState<VerificationStatus | "">("");
   const [reviewNotes, setReviewNotes] = useState("");
   const [priority, setPriority] = useState<PriorityLevel>("HIGH");
@@ -72,10 +72,9 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
   if (model.loading && !incident) {
     return (
       <div className="rqIncidentWorkspace rqDetailLoading" role="status">
-        <div />
-        <div />
-        <div />
-        <p>Loading incident command workspace…</p>
+        <div className="rqLoadingCard" />
+        <div className="rqLoadingCard" />
+        <p className="rqLoadingText">Loading incident command workspace…</p>
       </div>
     );
   }
@@ -83,20 +82,26 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
   if (!incident || (incident._id !== id && !id.startsWith("INC-"))) {
     return (
       <section className="rqIncidentWorkspace rqDetailFailure">
-        <AlertTriangle size={32} />
+        <AlertTriangle size={36} className="rqFailureIcon" />
         <h1>Incident unavailable</h1>
-        <p role="alert">{model.error || "Incident not found."}</p>
-        <button onClick={model.reload}>Retry incident</button>
-        <Link href={listHref}>Return to incidents</Link>
+        <p role="alert">{model.error || "Incident not found. It may have been removed or the reference is incorrect."}</p>
+        <div className="rqFailureActions">
+          <button type="button" onClick={model.reload} className="rqRetryBtn">
+            Retry incident
+          </button>
+          <Link href={listHref} className="rqBackLink">
+            Return to incidents
+          </Link>
+        </div>
       </section>
     );
   }
 
   const readOnly = isDemoMode || incident.isSimulated;
-  const pending = incident.status === "PENDING" && !incident.assignedTeam;
+  const isAssigned = incident.status !== "PENDING" || !!incident.assignedTeam;
   const canAdjust = !readOnly && !["RESOLVED", "CANCELLED"].includes(incident.status);
 
-  // Recommended rescue teams
+  // Recommended rescue teams from API
   const recItems = Array.isArray(model.recommendations?.items)
     ? model.recommendations.items.filter((item) => item?.team?._id)
     : [];
@@ -113,10 +118,10 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
       !team.currentIncident,
   );
 
+  const effectiveTeamId = teamId || availableTeams[0]?._id || "";
   const chosenTeam =
-    availableTeams.find((team) => team._id === teamId) ||
-    availableTeams[0] ||
-    recommendedTeams[0];
+    availableTeams.find((team) => team._id === effectiveTeamId) ||
+    availableTeams[0];
 
   const assignedTeam = model.teams.find(
     (team) => team._id === incident.assignedTeam,
@@ -145,7 +150,7 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
   async function confirmAction() {
     if (!confirm || blocked) return;
     let success = false;
-    if (confirm.kind === "assignment" && chosenTeam && (pending || readOnly)) {
+    if (confirm.kind === "assignment" && chosenTeam && (!isAssigned || readOnly)) {
       if (readOnly) {
         setValidation("");
         model.reload();
@@ -154,7 +159,7 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
       }
       success = await model.mutate(
         () => assignmentApi.create({ incidentId: id, teamId: chosenTeam._id }),
-        "Team assignment recorded in the prototype. No official emergency dispatch performed.",
+        "Team assignment recorded in ResQLink. Field status updated.",
       );
     }
     if (confirm.kind === "status" && allowed.includes(status as IncidentStatus)) {
@@ -175,14 +180,24 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
     }
   }
 
-  // Display title matching reference
-  const headline =
-    id === "INC-2024-0814-001" || incident.emergencyType === "FLOOD"
-      ? "Severe Urban Flooding - Gulshan-e-Iqbal"
-      : `${incidentTitle(incident)}${incident.location?.address ? ` - ${incident.location.address}` : ""}`;
+  // Authoritative severity badge styling
+  const priorityLevel = incident.priorityLevel || "LOW";
+  const priorityClass = priorityLevel.toLowerCase();
+
+  // Authoritative Headline
+  const typeLabel = incidentTitle(incident);
+  const locationLabel = incident.location?.address;
+  const headline = locationLabel ? `${typeLabel} — ${locationLabel}` : typeLabel;
 
   return (
     <article className="rqIncidentWorkspace">
+      {/* Read-Only Demo Mode Banner */}
+      {readOnly && (
+        <div className="rqDemoBanner" role="status" style={{ background: "rgba(38,132,255,0.12)", border: "1px solid rgba(38,132,255,0.3)", color: "var(--navy-blue)", padding: "8px 14px", borderRadius: 8, marginBottom: 12, fontWeight: 600 }}>
+          Simulation / Prototype · Read-only incident
+        </div>
+      )}
+
       {/* 1. Breadcrumb navigation */}
       <nav className="rqDetailBreadcrumb" aria-label="Breadcrumb">
         <Link href={listHref}>Incidents</Link>
@@ -190,13 +205,13 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
         <span className="rqCurrentBreadcrumb">{id}</span>
       </nav>
 
-      {/* 2. Incident Header matching Image 2 */}
-      <header className="rqIncidentHeader">
+      {/* 2. Incident Header */}
+      <header className="rqIncidentHeader rqDetailHero">
         <div className="rqHeaderTopRow">
           <div className="rqHeaderLeft">
-            <span className="rqSeverityBadgeOutline">
+            <span className={`rqSeverityBadgeOutline is-${priorityClass}`}>
               <AlertTriangle size={15} className="rqSeverityIcon" />
-              <span>CRITICAL</span>
+              <span>{priorityLevel}</span>
             </span>
             <h1 className="rqIncidentTitle">{headline}</h1>
           </div>
@@ -209,55 +224,77 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
                 try {
                   await navigator.clipboard.writeText(window.location.href);
                   setCopied("Incident link copied to clipboard.");
+                  setTimeout(() => setCopied(""), 3500);
                 } catch {
                   setCopied("Link ready in address bar.");
+                  setTimeout(() => setCopied(""), 3500);
                 }
               }}
             >
               <Share2 size={14} />
-              <span>Share Incident</span>
+              <span>Share Link</span>
             </button>
             <button
               type="button"
               className="rqMoreOptionsBtn"
-              aria-label="More options"
+              aria-label="Refresh incident details"
               onClick={() => model.reload()}
+              title="Refresh"
             >
               <MoreHorizontal size={17} />
             </button>
           </div>
         </div>
 
-        {/* Subtitle metadata row with bullets */}
+        {/* Subtitle metadata row */}
         <div className="rqHeaderMetaRow">
-          <span>{id}</span>
+          <span className="rqMetaItem font-mono">{id}</span>
           <span className="rqMetaBullet">•</span>
-          <span>{incident.location?.address || "Gulshan-e-Iqbal, Karachi"}</span>
+          <span className="rqMetaItem">
+            <MapPin size={12} className="inline mr-1" />
+            {incident.location?.address || "Address not reported"}
+          </span>
           <span className="rqMetaBullet">•</span>
-          <span>{formatIncidentDate(incident.createdAt)}</span>
+          <span className="rqMetaItem">{formatIncidentDate(incident.createdAt)}</span>
           <span className="rqMetaBullet">•</span>
-          <span>From Citizen Report (App)</span>
+          <span className="rqMetaItem">Source: {incident.reporterName || "Direct portal"}</span>
+          <span className="rqMetaBullet">•</span>
+          <span className="rqMetaItem rqHeroVerification">{verification?.status?.replaceAll("_", " ") || "VERIFIED"}</span>
         </div>
       </header>
 
-      {copied && <p role="status" className="rqDetailNotice">{copied}</p>}
+      {/* Temporary feedback banner */}
+      {copied && <div role="status" className="rqDetailToast">{copied}</div>}
+      {model.uncertain && (
+        <label className="rqOperationsAck" style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "var(--navy-amber-bg)", border: "1px solid var(--navy-amber-border)", borderRadius: 6, color: "var(--navy-amber)", marginBottom: 12 }}>
+          <input
+            type="checkbox"
+            checked={model.acknowledged}
+            onChange={(e) => model.setAcknowledged(e.target.checked)}
+          />
+          I reviewed current records and understand a retry could repeat this change.
+        </label>
+      )}
       {model.error && (
-        <p role="alert" className="rqDetailNotice is-error">
-          Current refresh failed: {model.error} <button onClick={model.reload}>Retry</button>
-        </p>
+        <div role="alert" className="rqDetailNotice is-error">
+          <span>Failed to refresh records: {model.error}</span>
+          <button type="button" onClick={model.reload} className="rqNoticeAction">Retry incident</button>
+        </div>
       )}
       {model.feedback && (
-        <p role="status" className="rqDetailNotice is-success">
-          {model.feedback}
-        </p>
+        <div role="status" className="rqDetailNotice is-success">
+          <CheckCircle2 size={15} />
+          <span>{model.feedback}</span>
+        </div>
       )}
       {(model.actionError || validation) && (
-        <p role="alert" className="rqDetailNotice is-error">
-          {validation || model.actionError}
-        </p>
+        <div role="alert" className="rqDetailNotice is-error">
+          <AlertTriangle size={15} />
+          <span>{validation || model.actionError}</span>
+        </div>
       )}
 
-      {/* 3. Main Dashboard Grid matching Image 2 */}
+      {/* 3. Main Dashboard CSS Grid */}
       <div className="rqCommandGrid">
         {/* Row 1 Left (50%): Incident Details */}
         <IncidentInformationCard incident={incident} />
@@ -277,9 +314,10 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
           {adjusting && (
             <section className="rqDetailCard rqDetailForm">
               <header className="rqCardHeader">
-                <h2>Adjust Priority</h2>
+                <h2>Adjust Incident Priority</h2>
               </header>
               <form
+                className="rqAdjustForm"
                 onSubmit={(event) => {
                   event.preventDefault();
                   const text = normalized(reason);
@@ -292,38 +330,56 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
                   setValidation("");
                   setConfirm({
                     kind: "priority",
-                    title: "Confirm priority override",
-                    detail: `Change this incident to ${priority}. The backend records your explanation.`,
+                    title: "Confirm Priority Override",
+                    detail: `Change priority level to ${priority}? This will update the authoritative incident record and activity log.`,
                   });
                 }}
               >
-                <label>
-                  New priority
+                <div className="rqFormGroup">
+                  <label htmlFor="priority-select">New priority</label>
                   <select
+                    id="priority-select"
                     aria-label="New priority"
                     value={priority}
                     onChange={(e) => setPriority(e.target.value as PriorityLevel)}
+                    className="rqSelectInput"
                   >
                     {["CRITICAL", "HIGH", "MEDIUM", "LOW"].map((v) => (
-                      <option key={v}>{v}</option>
+                      <option key={v} value={v}>{v}</option>
                     ))}
                   </select>
-                </label>
-                <label>
-                  Override explanation
+                </div>
+                <div className="rqFormGroup">
+                  <label htmlFor="override-reason">Override explanation</label>
                   <textarea
+                    id="override-reason"
                     aria-label="Override explanation"
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                     minLength={5}
                     maxLength={1000}
+                    placeholder="Enter operational rationale for priority modification..."
                     required
                     rows={2}
+                    className="rqTextareaInput"
                   />
-                </label>
-                <button disabled={blocked} type="submit">
-                  Review priority change
-                </button>
+                </div>
+                <div className="rqFormBtnRow">
+                  <button
+                    disabled={blocked}
+                    type="submit"
+                    className="rqFormSubmitBtn"
+                  >
+                    Review priority change
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAdjusting(false)}
+                    className="rqFormCancelBtn"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </form>
             </section>
           )}
@@ -334,7 +390,7 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
           <IncidentVulnerabilityCard incident={incident} />
         </div>
 
-        {/* Row 2 Right (~30%): Stacked Incident Status & Recommended Teams */}
+        {/* Row 2 Right (~30%): Incident Status & Recommended Teams */}
         <div className="rqGridAreaResponse">
           <IncidentStatusTracker incident={incident} />
 
@@ -348,162 +404,186 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
             </header>
 
             <div className="rqRecommendedTeamsList">
-              {/* Team 1: Karachi Rescue Team 1 */}
-              <div
-                className={`rqTeamRow ${chosenTeam?._id === (recItems[0]?.team?._id || "demo-team-1") ? "is-selected" : ""}`}
-                onClick={() => setTeamId(recItems[0]?.team?._id || "demo-team-1")}
-                role="button"
-                tabIndex={0}
-              >
-                <div className="rqTeamEmblem red">
-                  <Truck size={17} />
-                </div>
-                <div className="rqTeamMeta">
-                  <strong className="rqTeamName">Karachi Rescue Team 1</strong>
-                  <span className="rqTeamCapabilities">Boats • Medical • 12 members</span>
-                </div>
-                <div className="rqTeamMetrics">
-                  <div className="rqTeamDistance">
-                    <MapPin size={11} /> 3.2 km <span className="rqEta">~ 8 min</span>
-                  </div>
-                  <div className="rqTeamMatchBadge is-best">
-                    <span>Best Match</span>
-                    <strong>96%</strong>
-                  </div>
-                </div>
-              </div>
+              {recItems.length > 0 ? (
+                <ul className="rqDetailRecommendations" style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 6 }}>
+                  {recItems.map((item) => {
+                    const team = item.team;
+                    const isSelected = chosenTeam?._id === team._id;
+                    const caps = Array.isArray(team.capabilities)
+                      ? team.capabilities.map((c) => c.replaceAll("_", " ")).join(" • ")
+                      : "Rescue Unit";
 
-              {/* Team 2: Pakistan Navy (Flood Relief) */}
-              <div
-                className={`rqTeamRow ${chosenTeam?._id === (recItems[1]?.team?._id || "demo-team-2") ? "is-selected" : ""}`}
-                onClick={() => setTeamId(recItems[1]?.team?._id || "demo-team-2")}
-                role="button"
-                tabIndex={0}
-              >
-                <div className="rqTeamEmblem navy">
-                  <ShieldCheck size={17} />
+                    return (
+                      <li key={team._id}>
+                        <button
+                          type="button"
+                          className={`rqTeamRow ${isSelected ? "is-selected" : ""}`}
+                          onClick={() => setTeamId(team._id)}
+                          style={{ width: "100%", textAlign: "left", background: "none", border: "1px solid var(--navy-subsurface-border)" }}
+                        >
+                          <div className="rqTeamEmblem">
+                            <Truck size={16} />
+                          </div>
+                          <div className="rqTeamMeta">
+                            <strong className="rqTeamName">{team.name}</strong>
+                            <span className="rqTeamCapabilities">
+                              {caps} • Capacity: {team.capacity}
+                            </span>
+                          </div>
+                          <div className="rqTeamMetrics">
+                            <span className="rqTeamDistance">
+                              <MapPin size={11} /> {item.approximateDistanceKm.toFixed(1)} km
+                            </span>
+                            {item.capacityWarning && (
+                              <span className="rqCapacityWarningTag" title={item.capacityWarning}>
+                                Capacity Limit
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <div className="rqNoTeamsBox">
+                  <Truck size={24} className="rqNoTeamsIcon" />
+                  <p className="rqNoTeamsText">No eligible rescue teams are currently available.</p>
+                  <Link href="/dashboard/rescue-teams" className="rqNoTeamsLink">
+                    Check rescue teams registry
+                  </Link>
                 </div>
-                <div className="rqTeamMeta">
-                  <strong className="rqTeamName">Pakistan Navy (Flood Relief)</strong>
-                  <span className="rqTeamCapabilities">Boats • High Capacity • 20 members</span>
-                </div>
-                <div className="rqTeamMetrics">
-                  <div className="rqTeamDistance">
-                    <MapPin size={11} /> 5.6 km <span className="rqEta">~ 14 min</span>
-                  </div>
-                  <div className="rqTeamMatchBadge">
-                    <strong>89%</strong>
-                  </div>
-                </div>
-              </div>
-
-              {/* Team 3: Edhi Rescue Unit */}
-              <div
-                className={`rqTeamRow ${chosenTeam?._id === (recItems[2]?.team?._id || "demo-team-3") ? "is-selected" : ""}`}
-                onClick={() => setTeamId(recItems[2]?.team?._id || "demo-team-3")}
-                role="button"
-                tabIndex={0}
-              >
-                <div className="rqTeamEmblem edhi">
-                  <Truck size={17} />
-                </div>
-                <div className="rqTeamMeta">
-                  <strong className="rqTeamName">Edhi Rescue Unit</strong>
-                  <span className="rqTeamCapabilities">Medical • Evacuation • 10 members</span>
-                </div>
-                <div className="rqTeamMetrics">
-                  <div className="rqTeamDistance">
-                    <MapPin size={11} /> 6.1 km <span className="rqEta">~ 15 min</span>
-                  </div>
-                  <div className="rqTeamMatchBadge">
-                    <strong>85%</strong>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </section>
         </div>
 
-        {/* Row 3: Assignment Action Panel matching wide green panel in Image 2 */}
-        <section className="rqDetailCard rqDetailAssignmentPanel">
-          <div className="rqAssignmentContent">
-            {/* Left: Assign Rescue Team label */}
-            <div className="rqAssignmentLeft">
-              <div className="rqAssignIconWrap">
-                <Users size={18} />
+        {/* Row 3: Assignment Action Panel */}
+        <section className={`rqDetailCard rqDetailAssignmentPanel rqDetailAssignment ${isAssigned ? "is-assigned-state" : ""}`}>
+          {isAssigned ? (
+            <div className="rqAssignedSummary">
+              <div className="rqAssignedIconWrap">
+                <CheckCircle2 size={20} />
               </div>
-              <span className="rqAssignTitle">Assign Rescue Team</span>
-            </div>
-
-            {/* Middle: Team Selector Pill */}
-            <div className="rqAssignmentSelectorWrap">
-              <div className="rqTeamSelectorPill">
-                <span className="rqSelectorEmblem" />
-                <span className="rqSelectorTeamName">
-                  {chosenTeam?.name || "Karachi Rescue Team 1"}
-                  {chosenTeam?.name?.includes("1") ? " (Best Match)" : ""}
+              <div className="rqAssignedDetails">
+                <strong className="rqAssignedTitle">
+                  Assigned to: {assignedTeam?.name || "Dispatched Rescue Team"}
+                </strong>
+                <span className="rqAssignedSub">
+                  Lifecycle status: <strong>{incident.status.replaceAll("_", " ")}</strong>. Active operations in progress.
                 </span>
-                <ChevronDown size={14} className="rqSelectorCaret" />
+              </div>
+              {assignedTeam?.location?.address && (
+                <span className="rqAssignedBase">
+                  Base: {assignedTeam.location.address}
+                </span>
+              )}
+            </div>
+          ) : (
+            <div className="rqAssignmentContent">
+              <div className="rqAssignmentLeft">
+                <div className="rqAssignIconWrap">
+                  <Users size={18} />
+                </div>
+                <div className="rqAssignTitles">
+                  <span className="rqAssignTitle">Assign Rescue Team</span>
+                  <span className="rqAssignSubtitle">Deploy units to coordinate response</span>
+                </div>
+              </div>
+
+              <div className="rqAssignmentSelectorWrap">
+                <label htmlFor="team-assign-select" className="sr-only">
+                  Select available rescue team
+                </label>
+                <select
+                  id="team-assign-select"
+                  aria-label="Select rescue team"
+                  value={chosenTeam?._id || ""}
+                  onChange={(e) => setTeamId(e.target.value)}
+                  className="rqTeamSelectDropdown rqDetailAssignmentSelect"
+                  disabled={blocked || availableTeams.length === 0}
+                >
+                  {availableTeams.length > 0 ? (
+                    availableTeams.map((t) => (
+                      <option key={t._id} value={t._id}>
+                        {t.name} ({t.teamCode}) — Capacity: {t.capacity}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="">No available teams to assign</option>
+                  )}
+                </select>
+              </div>
+
+              <div className="rqAssignmentActionWrap">
+                {!readOnly && (
+                  <button
+                    type="button"
+                    className="rqAssignTeamSolidBtn"
+                    disabled={blocked || !chosenTeam}
+                    onClick={() => {
+                      if (!chosenTeam) return;
+                      setConfirm({
+                        kind: "assignment",
+                        title: "Confirm Rescue Team Assignment",
+                        detail: `Assign ${chosenTeam.name} to this incident? Records the selected rescue team's assignment in ResQLink.`,
+                      });
+                    }}
+                  >
+                    <Send size={15} />
+                    <span>Assign Team</span>
+                  </button>
+                )}
+                <span className="rqAssignFootnote">
+                  Records the selected rescue team&apos;s assignment in ResQLink.
+                </span>
               </div>
             </div>
-
-            {/* Right: Large Solid Green Action Button */}
-            <div className="rqAssignmentActionWrap">
-              <button
-                type="button"
-                className="rqAssignTeamSolidBtn"
-                disabled={blocked && !readOnly}
-                onClick={() => {
-                  setConfirm({
-                    kind: "assignment",
-                    title: "Confirm Rescue Team Assignment",
-                    detail: `Assign ${chosenTeam?.name || "Karachi Rescue Team 1"} to ${headline}? This notifies the response unit and coordinates mission parameters.`,
-                  });
-                }}
-              >
-                <Send size={15} />
-                <span>Assign Team</span>
-              </button>
-              <span className="rqAssignFootnote">
-                This will notify the team and share incident details.
-              </span>
-            </div>
-          </div>
+          )}
         </section>
 
-        {/* Row 4: Timeline & Activity Log + Internal Notes */}
+        {/* Row 4: Timeline & Activity Log */}
         <div className="rqGridAreaTimeline">
           <IncidentActivityTimeline
             incident={incident}
             assignments={model.assignments}
           />
+          <div className="rqTimelineNotesAction" style={{ padding: "6px 16px 12px", display: "flex", justifyContent: "flex-end" }}>
+            <button
+              type="button"
+              disabled
+              className="rqPostNoteDisabledBtn"
+              title="Operational notes are recorded through Verification Review"
+              style={{ opacity: 0.55, cursor: "not-allowed", fontSize: 11, fontWeight: 600, padding: "5px 12px", background: "var(--navy-subsurface)", border: "1px solid var(--navy-card-border)", color: "var(--navy-muted)", borderRadius: 6 }}
+            >
+              Post Note
+            </button>
+          </div>
         </div>
 
-        {/* Row 5: Verification & Duplicate Review (Preserving Saba's features) */}
+        {/* Row 5: Verification & Duplicate Review */}
         <section className="rqDetailCard rqDetailVerification">
           <header className="rqCardHeader">
             <h2>
               <ShieldCheck size={16} /> Verification &amp; Duplicate Review
             </h2>
             <span className="rqDetailMicro">
-              {verification?.status?.replaceAll("_", " ") || "Verified"}
+              {verification?.status?.replaceAll("_", " ") || "VERIFIED"}
             </span>
           </header>
           <details className="rqDetailVerificationDisclosure">
-            <summary>
-              {verification?.requiresManualReview ? "Manual review required · " : ""}
-              {verification?.isPotentialDuplicate ? "Possible duplicates · " : ""}
+            <summary className="rqVerificationSummary">
               Review verification details
             </summary>
             <div className="rqDetailVerificationContent">
               {verification?.requiresManualReview && (
                 <p className="rqDetailRiskAlert">
-                  <AlertTriangle size={18} /> Manual coordinator review is required.
+                  <AlertTriangle size={18} /> Manual coordinator review is required for this report.
                 </p>
               )}
               {Array.isArray(verification?.warnings) &&
                 verification.warnings.length > 0 && (
-                  <ul>
+                  <ul className="rqVerificationWarningList">
                     {verification.warnings.map((warning, index) => (
                       <li key={index}>{warning}</li>
                     ))}
@@ -511,11 +591,13 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
                 )}
               {Array.isArray(verification?.missingFields) &&
                 verification.missingFields.length > 0 && (
-                  <p>Missing information: {verification.missingFields.join(", ")}</p>
+                  <p className="rqMissingFieldsNote">
+                    Missing required fields: <strong>{verification.missingFields.join(", ")}</strong>
+                  </p>
                 )}
               {Array.isArray(verification?.potentialDuplicateIncidents) &&
                 verification.potentialDuplicateIncidents.length > 0 && (
-                  <p>
+                  <p className="rqDuplicatesNote">
                     Potential duplicate reports:{" "}
                     {verification.potentialDuplicateIncidents
                       .filter((dup) => typeof dup === "string")
@@ -523,22 +605,24 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
                         <Link
                           href={`/dashboard/incidents/${encodeURIComponent(dup)}${isDemoMode ? "?demo=true" : ""}`}
                           key={dup}
+                          className="rqDupLink"
                         >
-                          {dup}
+                          #{dup.slice(-6)}
                         </Link>
                       ))}
                   </p>
                 )}
               {verification?.reviewNotes && (
-                <p>
-                  <strong>Latest review:</strong> {verification.reviewNotes}
+                <p className="rqLatestReviewNote">
+                  <strong>Latest Review Notes:</strong> {verification.reviewNotes}
                 </p>
               )}
               {!readOnly ? (
-                <form onSubmit={verify}>
-                  <label>
-                    Verification decision
+                <form onSubmit={verify} className="rqVerificationForm">
+                  <div className="rqFormRow">
+                    <label htmlFor="verify-decision">Verification decision</label>
                     <select
+                      id="verify-decision"
                       aria-label="Verification decision"
                       required
                       value={decision}
@@ -546,6 +630,7 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
                         setDecision(e.target.value as VerificationStatus)
                       }
                       disabled={blocked}
+                      className="rqSelectInput"
                     >
                       <option value="">Choose a decision</option>
                       {["NEEDS_REVIEW", "VERIFIED", "FLAGGED_DUPLICATE", "DISMISSED"].map(
@@ -556,87 +641,108 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
                         ),
                       )}
                     </select>
-                  </label>
-                  <label>
-                    Review notes
+                  </div>
+                  <div className="rqFormRow flex-grow">
+                    <label htmlFor="verify-notes">Review notes</label>
                     <textarea
+                      id="verify-notes"
                       aria-label="Review notes"
                       required
                       minLength={3}
                       maxLength={1000}
                       rows={2}
+                      placeholder="Add coordinator review notes..."
                       value={reviewNotes}
                       onChange={(e) => setReviewNotes(e.target.value)}
                       disabled={blocked}
+                      className="rqTextareaInput"
                     />
-                  </label>
-                  <button disabled={blocked} type="submit">
+                  </div>
+                  <button
+                    disabled={blocked}
+                    type="submit"
+                    className="rqVerifySubmitBtn"
+                  >
                     Record verification
                   </button>
                 </form>
               ) : (
-                <p>Verification actions are read-only for simulated demo records.</p>
+                <p className="rqReadOnlyNotice">
+                  Verification review is read-only for simulated demo records.
+                </p>
               )}
             </div>
           </details>
         </section>
 
-        {/* Row 6: Lifecycle status actions for non-read-only records */}
+        {/* Row 6: Lifecycle status actions (Full Width Row, Never Squeezed!) */}
         {!readOnly && allowed.length > 0 && (
-          <details className="rqDetailCard rqDetailLifecycleDisclosure" open={incident.status !== "PENDING"}>
-            <summary>Other lifecycle actions</summary>
-            <form
-              className="rqDetailLifecycle"
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (allowed.includes(status as IncidentStatus)) {
-                  setConfirm({
-                    kind: "status",
-                    title: "Confirm incident status change",
-                    detail: `Change status to ${status.replaceAll("_", " ")}? The backend validates the transition.`,
-                  });
-                }
-              }}
-            >
-              <label>
-                New incident status
-                <select
-                  aria-label="New incident status"
-                  required
-                  disabled={blocked}
-                  value={allowed.includes(status as IncidentStatus) ? status : ""}
-                  onChange={(event) => setStatus(event.target.value as IncidentStatus)}
-                >
-                  <option value="">Choose a valid transition</option>
-                  {allowed.map((value) => (
-                    <option key={value} value={value}>
-                      {value.replaceAll("_", " ")}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button
-                type="submit"
-                disabled={blocked || !allowed.includes(status as IncidentStatus)}
+          <section className="rqDetailCard rqDetailLifecycleCard">
+            <header className="rqCardHeader">
+              <h2>Incident Lifecycle Transitions</h2>
+              <span className="rqDetailMicro">Current: {incident.status}</span>
+            </header>
+            <div className="rqLifecycleBody">
+              <form
+                className="rqDetailLifecycleForm"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  if (allowed.includes(status as IncidentStatus)) {
+                    setConfirm({
+                      kind: "status",
+                      title: "Confirm Status Transition",
+                      detail: `Advance incident status to ${status.replaceAll("_", " ")}? The server will validate the operational transition.`,
+                    });
+                  }
+                }}
               >
-                Confirm status change
-              </button>
-            </form>
-          </details>
+                <div className="rqLifecycleInputGroup">
+                  <label htmlFor="lifecycle-status-select" className="rqLifecycleLabel">
+                    New incident status
+                  </label>
+                  <select
+                    id="lifecycle-status-select"
+                    aria-label="New incident status"
+                    required
+                    disabled={blocked}
+                    value={allowed.includes(status as IncidentStatus) ? status : ""}
+                    onChange={(event) => setStatus(event.target.value as IncidentStatus)}
+                    className="rqSelectInput rqLifecycleSelect"
+                  >
+                    <option value="">Choose a valid transition</option>
+                    {allowed.map((value) => (
+                      <option key={value} value={value}>
+                        {value.replaceAll("_", " ")}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  type="submit"
+                  disabled={blocked || !allowed.includes(status as IncidentStatus)}
+                  className="rqLifecycleSubmitBtn"
+                >
+                  Confirm status change
+                </button>
+              </form>
+            </div>
+          </section>
         )}
       </div>
 
       {/* Return to incidents link */}
-      <Link href={listHref} className="rqDetailBack">
-        <ArrowLeft size={15} /> Back to incidents
-      </Link>
+      <footer className="rqDetailFooter">
+        <Link href={listHref} className="rqDetailBack">
+          <ArrowLeft size={15} /> Back to incidents
+        </Link>
+      </footer>
 
       {/* Confirmation modal */}
       <ConfirmationDialog
         open={!!confirm}
         title={confirm?.title || "Confirm action"}
         description={confirm?.detail || ""}
-        confirmLabel={confirm?.kind === "assignment" ? "Assign Team" : "Confirm change"}
+        confirmLabel={confirm?.kind === "assignment" ? "Confirm assignment" : "Confirm change"}
         busy={busy}
         error={model.actionError}
         onClose={() => setConfirm(null)}
