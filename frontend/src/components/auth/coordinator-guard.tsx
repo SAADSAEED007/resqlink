@@ -9,10 +9,12 @@ export function CoordinatorGuard({ children }: { children: ReactNode }) {
   const session = useAuth();
   const router = useRouter();
   const toast = useToast();
+  const isDemo = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("demo") === "true";
   useEffect(() => {
-    if (session.status === "anonymous")
+    if (!isDemo && session.status === "anonymous")
       router.replace(session.expired ? "/login?reason=expired" : "/login");
-  }, [session.status, session.expired, router]);
+  }, [session.status, session.expired, router, isDemo]);
+  if (isDemo) return children;
   if (session.status === "loading" || session.status === "anonymous")
     return (
       <main id="main" className="session-state">

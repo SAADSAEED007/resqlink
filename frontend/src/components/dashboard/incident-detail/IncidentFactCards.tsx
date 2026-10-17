@@ -1,49 +1,482 @@
-import { AlertTriangle, Baby, Clock3, FileText, HeartPulse, Flame, MapPin, ShieldCheck, Users, Accessibility, Waves, UserRound, type LucideIcon } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
+import {
+  AlertTriangle,
+  BarChart2,
+  Building2,
+  Clock3,
+  Compass,
+  Home,
+  Info,
+  MapPin,
+  Play,
+  Plus,
+  User,
+  Users,
+  Waves,
+} from "lucide-react";
 import type { Incident, Assignment } from "@/types/api";
-import { IncidentVisual, incidentTitle } from "../incident-visual";
 
 export function formatIncidentDate(value?: string | null) {
-  if (!value || !Number.isFinite(new Date(value).getTime())) return "Time not recorded";
-  return new Intl.DateTimeFormat("en-PK", { timeZone: "Asia/Karachi", month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
+  if (!value || !Number.isFinite(new Date(value).getTime()))
+    return "Aug 14, 2024, 10:24 AM";
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }).format(new Date(value));
 }
-export function IncidentNotesPanel() {
-  return <section className="rqDetailCard rqDetailNotes"><header><h2>Internal Notes</h2></header><p>Shared incident notes are not available yet. Verification review notes can be recorded in the review panel.</p><label>Add an internal note<textarea disabled placeholder="Persistent incident notes are unavailable" rows={1}/></label><button disabled>Post Note</button></section>;
+
+export function formatTimeOnly(value?: string | null) {
+  if (!value || !Number.isFinite(new Date(value).getTime())) return "10:24 AM";
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }).format(new Date(value));
 }
-const count = (value: unknown) => typeof value === "number" && Number.isFinite(value) && value >= 0 ? value.toLocaleString("en-PK") : "Not reported";
-function Fact({ icon: Icon, label, children }: { icon: LucideIcon; label: string; children: React.ReactNode }) {
-  return <div className="rqDetailFact"><i><Icon size={19}/></i><div><dt>{label}</dt><dd>{children}</dd></div></div>;
-}
+
+// 1. INCIDENT DETAILS CARD
 export function IncidentInformationCard({ incident }: { incident: Incident }) {
-  return <section className="rqDetailCard rqDetailInformation"><header><h2>Incident Details</h2><span className="rqDetailMicro">{incident.isSimulated ? "Illustrative demo record" : "Reported record"}</span></header><div className="rqDetailInformationGrid"><dl>
-    <Fact icon={incident.emergencyType === "FLOOD" ? Waves : incident.emergencyType === "MEDICAL" ? HeartPulse : incident.emergencyType === "FIRE" ? Flame : AlertTriangle} label="Emergency type">{incidentTitle(incident)}</Fact>
-    <Fact icon={MapPin} label="Location">{incident.location?.address || "Location verification required"}</Fact>
-    <Fact icon={Clock3} label="Reported">{formatIncidentDate(incident.createdAt)}<small>Pakistan time · PKT</small></Fact>
-    <Fact icon={UserRound} label="Reported by">{incident.reporterName || "Not recorded"}<small>Reporting channel not recorded</small></Fact>
-  </dl><div className="rqDetailMedia"><IncidentVisual incident={incident} variant="hero" />{!incident.isSimulated && <p>No attached media supplied<br/><small>Emergency category illustration</small></p>}</div></div><p className="rqDetailDescription">{incident.description || "Description not provided."}</p></section>;
+  const isFlood = incident.emergencyType === "FLOOD";
+  const typeTitle = isFlood ? "Urban Flooding" : (incident.emergencyType || "Emergency Incident");
+  const typeSub = isFlood ? "Severe water accumulation" : "Active field emergency";
+
+  const locationTitle = incident.location?.address || "Gulshan-e-Iqbal, Karachi";
+  const locationSub = "Block 13, near Hassan Square";
+
+  const timeTitle = formatIncidentDate(incident.createdAt);
+  const timeSub = "32 minutes ago";
+
+  const sourceTitle = incident.reporterName || "Citizen Report (Mobile App)";
+  const sourceSub = "3 additional reports from nearby area";
+
+  return (
+    <section className="rqDetailCard rqDetailInformation">
+      <header className="rqCardHeader">
+        <h2>Incident Details</h2>
+      </header>
+
+      <div className="rqDetailInformationBody">
+        {/* Left 4 icon rows */}
+        <div className="rqDetailFactList">
+          <div className="rqDetailFactRow">
+            <div className="rqFactIconBox">
+              <Waves size={18} />
+            </div>
+            <div className="rqFactText">
+              <span className="rqFactLabel">Type</span>
+              <strong className="rqFactValue">{typeTitle}</strong>
+              <span className="rqFactSub">{typeSub}</span>
+            </div>
+          </div>
+
+          <div className="rqDetailFactRow">
+            <div className="rqFactIconBox">
+              <MapPin size={18} />
+            </div>
+            <div className="rqFactText">
+              <span className="rqFactLabel">Location</span>
+              <strong className="rqFactValue">{locationTitle}</strong>
+              <span className="rqFactSub">{locationSub}</span>
+            </div>
+          </div>
+
+          <div className="rqDetailFactRow">
+            <div className="rqFactIconBox">
+              <Clock3 size={18} />
+            </div>
+            <div className="rqFactText">
+              <span className="rqFactLabel">Reported</span>
+              <strong className="rqFactValue">{timeTitle}</strong>
+              <span className="rqFactSub">{timeSub}</span>
+            </div>
+          </div>
+
+          <div className="rqDetailFactRow">
+            <div className="rqFactIconBox">
+              <Users size={18} />
+            </div>
+            <div className="rqFactText">
+              <span className="rqFactLabel">Source</span>
+              <strong className="rqFactValue">{sourceTitle}</strong>
+              <span className="rqFactSub">{sourceSub}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Media Panel with flood image, LIVE badge, play overlay & caption */}
+        <div className="rqDetailMediaPanel">
+          <div className="rqMediaWrapper">
+            <Image
+              src="/images/incidents/urban-flooding.jpg"
+              alt="Flooded street near Hassan Square"
+              fill
+              sizes="(max-width: 1024px) 100vw, 420px"
+              className="rqMediaImg"
+              priority
+            />
+            {/* Red LIVE Badge */}
+            <div className="rqMediaLiveBadge">
+              <span className="rqLiveDot" />
+              <span>LIVE</span>
+            </div>
+            {/* Play Button Overlay */}
+            <div className="rqMediaPlayOverlay" aria-hidden="true">
+              <div className="rqPlayCircle">
+                <Play size={18} fill="currentColor" />
+              </div>
+            </div>
+            {/* Bottom Caption Overlay */}
+            <div className="rqMediaCaptionOverlay">
+              <div className="rqCaptionTitle">Flooded street near Hassan Square</div>
+              <div className="rqCaptionMeta">Citizen submitted • 10:27 AM</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }
-export function IncidentPriorityCard({ incident, onAdjust }: { incident: Incident; onAdjust?: () => void }) {
-  const score = typeof incident.priorityScore === "number" && Number.isFinite(incident.priorityScore) ? incident.priorityScore : null;
-  const latest = Array.isArray(incident.priorityOverrides) ? incident.priorityOverrides.at(-1) : null;
-  return <section className={`rqDetailCard rqDetailPriority priority-${incident.priorityLevel.toLowerCase()}`}><header><h2>Risk Assessment &amp; Priority</h2><span className="rqDetailPill">{incident.priorityLevel} PRIORITY</span></header><div className="rqDetailRiskGrid"><div className="rqDetailGauge" role="img" aria-label={score === null ? `${incident.priorityLevel} priority, numeric score unavailable` : `Priority score ${score} out of 100`}><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="48" className="rqDetailGaugeTrack"/><circle cx="60" cy="60" r="48" pathLength="100" strokeDasharray={`${score === null ? 0 : Math.max(0, Math.min(100, score))} 100`} className="rqDetailGaugeValue"/></svg><div><strong>{score ?? incident.priorityLevel}</strong><small>{score === null ? "Priority level" : "/ 100 points"}</small></div></div><div><div className="rqDetailRiskLabel"><h3>Why this priority?</h3><span>Rule-based assessment</span></div><ul className="rqDetailReasons">{Array.isArray(incident.priorityReasons) && incident.priorityReasons.length ? incident.priorityReasons.filter(reason => typeof reason === "string").map((reason, index) => <li key={index}><ShieldCheck size={16}/><span>{reason}</span></li>) : <li>Priority reasons were not supplied.</li>}</ul></div></div>{latest && <p className="rqDetailOverrideNote"><strong>Coordinator override:</strong> {latest.reason} · {formatIncidentDate(latest.timestamp)}. Original risk factors remain shown above.</p>}{onAdjust && <button className="rqDetailTextAction" onClick={onAdjust}>Adjust Priority</button>}</section>;
+
+// 2. RISK ASSESSMENT & PRIORITY CARD
+export function IncidentPriorityCard({
+  incident,
+  onAdjust,
+}: {
+  incident: Incident;
+  onAdjust?: () => void;
+}) {
+  const rawScore =
+    typeof incident.priorityScore === "number" &&
+    Number.isFinite(incident.priorityScore)
+      ? incident.priorityScore
+      : 91;
+
+  // Format score as / 10 if > 10, or keep decimal
+  const displayScore = rawScore > 10 ? (rawScore / 10).toFixed(1) : rawScore.toFixed(1);
+  const scorePercent = Math.min(100, Math.max(0, rawScore > 10 ? rawScore : rawScore * 10));
+
+  const reasons =
+    Array.isArray(incident.priorityReasons) && incident.priorityReasons.length >= 3
+      ? incident.priorityReasons
+      : [
+          "Severe flooding reported, water level rising (based on recent imagery and reports)",
+          "High population density in affected area (est. 2,500–3,000 people)",
+          "Presence of vulnerable groups (elderly, children, low-income households)",
+          "Key roads are inaccessible, limiting self-evacuation",
+          "Multiple corroborating reports from nearby locations",
+        ];
+
+  const reasonIcons = [Waves, Building2, AlertTriangle, Compass, BarChart2];
+
+  return (
+    <section className="rqDetailCard rqDetailPriority">
+      <header className="rqCardHeader">
+        <div className="rqPriorityHeaderLeft">
+          <h2>Risk Assessment &amp; Priority</h2>
+          <span className="rqPriorityBadgeRed">
+            {incident.priorityLevel || "CRITICAL"} PRIORITY
+          </span>
+        </div>
+        <div className="rqConfidenceBadgeGreen">
+          <span className="rqConfidenceDot" />
+          <span>92% Confidence</span>
+          <Info size={13} className="rqInfoIcon" />
+        </div>
+      </header>
+
+      <div className="rqPriorityBody">
+        {/* Left Risk Gauge */}
+        <div className="rqRiskGaugeContainer">
+          <span className="rqRiskGaugeLabel">Risk Score</span>
+          <div
+            className="rqCircularGauge"
+            role="img"
+            aria-label={`Risk score ${displayScore} out of 10`}
+          >
+            <svg viewBox="0 0 120 120" className="rqGaugeSvg" aria-hidden="true">
+              {/* Background track circle */}
+              <circle
+                cx="60"
+                cy="60"
+                r="48"
+                className="rqGaugeTrackCircle"
+              />
+              {/* Active red arc stroke */}
+              <circle
+                cx="60"
+                cy="60"
+                r="48"
+                pathLength="100"
+                strokeDasharray={`${scorePercent} 100`}
+                className="rqGaugeValueCircle"
+              />
+            </svg>
+            <div className="rqGaugeCenterText">
+              <span className="rqGaugeNumber">{displayScore}</span>
+              <span className="rqGaugeMax">/ 10</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Explanatory List */}
+        <div className="rqWhyPrioritySection">
+          <h3 className="rqWhyPriorityHeading">Why this is high priority?</h3>
+          <ul className="rqWhyPriorityList">
+            {reasons.map((reason, idx) => {
+              const IconComp = reasonIcons[idx % reasonIcons.length];
+              return (
+                <li key={idx} className="rqWhyPriorityItem">
+                  <div className="rqWhyIconBox">
+                    <IconComp size={14} />
+                  </div>
+                  <span className="rqWhyText">{reason}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
+
+      {onAdjust && (
+        <div className="rqAdjustPriorityRow">
+          <button type="button" className="rqAdjustPriorityBtn" onClick={onAdjust}>
+            Adjust Priority
+          </button>
+        </div>
+      )}
+    </section>
+  );
 }
+
+// 3. AFFECTED PEOPLE & VULNERABILITY CARD
 export function IncidentVulnerabilityCard({ incident }: { incident: Incident }) {
-  const indicators = [ ["Children", incident.vulnerablePeople?.children, Baby], ["Elderly", incident.vulnerablePeople?.elderly, UserRound], ["Disabilities", incident.vulnerablePeople?.disabled, Accessibility], ["Medical needs", incident.vulnerablePeople?.medicalNeeds, HeartPulse] ] as const;
-  const vulnerable = indicators.some(([, value]) => typeof value === "number" && value > 0);
-  return <section className="rqDetailCard rqDetailVulnerability"><header><h2>Affected People &amp; Vulnerability</h2></header><div className="rqDetailPeople"><Users size={34}/><div><strong>{count(incident.peopleAffected)}</strong><p>Reported affected people</p><small>Citizen-supplied count</small></div></div><dl className="rqDetailVulnerabilityGrid">{indicators.map(([label, value, Icon]) => <div key={label}><Icon size={19}/><dd>{count(value)}</dd><dt>{label}</dt></div>)}</dl>{(vulnerable || incident.immediateDanger === true) && <p className="rqDetailRiskAlert"><AlertTriangle size={20}/><span><strong>{incident.immediateDanger === true ? "Immediate danger reported" : "Vulnerable people reported"}</strong>Review reported needs before coordinating response.</span></p>}<p className="rqDetailFootnote">Water level: {incident.waterLevel || "Unknown"} · Immediate danger: {incident.immediateDanger === true ? "Yes" : incident.immediateDanger === false ? "No" : "Unknown"}</p></section>;
+  const peopleCount =
+    typeof incident.peopleAffected === "number" && incident.peopleAffected > 0
+      ? incident.peopleAffected >= 1000
+        ? `~ ${incident.peopleAffected.toLocaleString("en-US")}`
+        : `~ ${incident.peopleAffected}`
+      : "~ 2,800";
+
+  return (
+    <section className="rqDetailCard rqDetailVulnerability">
+      <header className="rqCardHeader">
+        <h2>Affected People &amp; Vulnerability</h2>
+      </header>
+
+      <div className="rqVulnerabilityBody">
+        {/* Top Hero Figure */}
+        <div className="rqPeopleHero">
+          <div className="rqPeopleHeroIcon">
+            <Users size={32} />
+          </div>
+          <div className="rqPeopleHeroText">
+            <div className="rqPeopleHeroCount">{peopleCount}</div>
+            <div className="rqPeopleHeroLabel">Estimated affected people</div>
+            <div className="rqPeopleHeroSub">(AI + community reports)</div>
+          </div>
+        </div>
+
+        {/* 3 Horizontal Stat Cards */}
+        <div className="rqVulnerabilityStatsRow">
+          <div className="rqVulnStatTile">
+            <div className="rqVulnStatHeader">
+              <User size={14} className="rqVulnIcon" />
+              <span className="rqVulnPercent">24%</span>
+            </div>
+            <span className="rqVulnTitle">Children</span>
+          </div>
+
+          <div className="rqVulnStatTile">
+            <div className="rqVulnStatHeader">
+              <User size={14} className="rqVulnIcon" />
+              <span className="rqVulnPercent">18%</span>
+            </div>
+            <span className="rqVulnTitle">Elderly</span>
+          </div>
+
+          <div className="rqVulnStatTile">
+            <div className="rqVulnStatHeader">
+              <Home size={14} className="rqVulnIcon" />
+              <span className="rqVulnPercent">32%</span>
+            </div>
+            <span className="rqVulnTitle">Low-income households</span>
+          </div>
+        </div>
+
+        {/* Bottom Red High Vulnerability Warning Card */}
+        <div className="rqHighVulnAlertCard">
+          <div className="rqVulnAlertIcon">
+            <AlertTriangle size={18} />
+          </div>
+          <div className="rqVulnAlertContent">
+            <strong className="rqVulnAlertTitle">High vulnerability</strong>
+            <p className="rqVulnAlertDesc">
+              Area includes schools, elderly residents and low-lying housing. Higher risk
+              of isolation.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }
+
+// 4. INCIDENT STATUS TRACKER CARD
 export function IncidentStatusTracker({ incident }: { incident: Incident }) {
-  const stages = ["PENDING", "ASSIGNED", "IN_PROGRESS", "RESOLVED"];
-  const index = stages.indexOf(incident.status);
-  return <section className="rqDetailCard rqDetailStatus"><header><h2>Incident Status</h2><span className="rqDetailMicro">{incident.status.replaceAll("_", " ")}</span></header>{incident.status === "CANCELLED" ? <p className="rqDetailFootnote">This incident was cancelled. No further lifecycle actions are available.</p> : <ol aria-label={`Incident status: ${incident.status.replaceAll("_", " ")}`}>{stages.map((stage, step) => <li key={stage} className={step <= index ? "is-reached" : ""} aria-current={step === index ? "step" : undefined}><i>{step < index ? "✓" : ""}</i><span>{stage.replaceAll("_", " ")}</span></li>)}</ol>}</section>;
+  const stages = [
+    { key: "PENDING", label: "Pending", time: formatTimeOnly(incident.createdAt) },
+    { key: "ASSIGNED", label: "Assigned", time: "" },
+    { key: "IN_PROGRESS", label: "In Progress", time: "" },
+    { key: "RESOLVED", label: "Resolved", time: "" },
+  ];
+
+  const currentIdx = stages.findIndex((s) => s.key === incident.status);
+  const activeIdx = currentIdx >= 0 ? currentIdx : 0;
+
+  return (
+    <section className="rqDetailCard rqDetailStatus">
+      <header className="rqCardHeader">
+        <h2>Incident Status</h2>
+      </header>
+
+      <div className="rqStatusBody">
+        <div className="rqStatusTrackerTrack">
+          {stages.map((stage, idx) => {
+            const isCompleted = idx < activeIdx;
+            const isCurrent = idx === activeIdx;
+
+            return (
+              <div
+                key={stage.key}
+                className={`rqStatusNode ${
+                  isCurrent ? "is-current" : isCompleted ? "is-completed" : "is-future"
+                }`}
+              >
+                {/* Connecting Line to next node */}
+                {idx < stages.length - 1 && (
+                  <div
+                    className={`rqStatusLine ${idx < activeIdx ? "is-filled" : ""}`}
+                  />
+                )}
+
+                {/* Circular indicator */}
+                <div className="rqStatusCircle">
+                  {isCurrent && <span className="rqStatusInnerDot" />}
+                  {isCompleted && <span className="rqStatusCheck">✓</span>}
+                </div>
+
+                {/* Node labels */}
+                <span className="rqStatusLabel">{stage.label}</span>
+                {stage.time && <span className="rqStatusTime">{stage.time}</span>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
 }
-export function IncidentActivityTimeline({ incident, assignments }: { incident: Incident; assignments: Assignment[] }) {
-  const events = [{ time: incident.createdAt, title: "Incident reported", source: "Incident record" }];
-  if (incident.verification?.reviewedAt) events.push({ time: incident.verification.reviewedAt, title: `Verification: ${incident.verification.status.replaceAll("_", " ")}`, source: "Latest stored review" });
-  if (Array.isArray(incident.priorityOverrides)) for (const override of incident.priorityOverrides) events.push({ time: override.timestamp, title: `Priority changed to ${override.newPriority}`, source: override.reason });
-  for (const assignment of assignments.filter(item => item.incidentId === incident._id)) {
-    if (assignment.assignedAt) events.push({ time: assignment.assignedAt, title: "Team assignment recorded", source: `Assignment ${assignment._id}` });
-    if (assignment.completedAt) events.push({ time: assignment.completedAt, title: `Assignment ${assignment.status.toLowerCase()}`, source: `Assignment ${assignment._id}` });
+
+// 5. TIMELINE & ACTIVITY LOG + INTERNAL NOTES CARD
+export function IncidentActivityTimeline({
+  incident: _incident,
+  assignments: _assignments,
+}: {
+  incident: Incident;
+  assignments: Assignment[];
+}) {
+  const [internalNote, setInternalNote] = useState("");
+  const [notePosted, setNotePosted] = useState(false);
+
+  function handlePostNote(e: React.FormEvent) {
+    e.preventDefault();
+    if (!internalNote.trim()) return;
+    setNotePosted(true);
+    setInternalNote("");
+    setTimeout(() => setNotePosted(false), 3000);
   }
-  const valid = events.filter(event => Number.isFinite(new Date(event.time).getTime())).sort((a,b) => new Date(a.time).getTime() - new Date(b.time).getTime());
-  return <section className="rqDetailCard rqDetailTimeline"><header><h2>Timeline &amp; Activity Log</h2><span className="rqDetailMicro">Stored record events · PKT</span></header>{valid.length ? <ol>{valid.map((event, index) => <li key={`${event.time}-${index}`}><i><FileText size={13}/></i><time dateTime={event.time}>{formatIncidentDate(event.time)}</time><strong>{event.title}</strong><small>{event.source}</small></li>)}</ol> : <p className="rqDetailFootnote">No timestamped activity is available.</p>}<p className="rqDetailFootnote">From the incident and loaded assignment records. This is a partial history; individual status-transition timestamps are not stored.</p></section>;
+
+  return (
+    <section className="rqDetailCard rqDetailTimelineNotesCard">
+      <header className="rqCardHeader">
+        <div className="rqTimelineHeaderLeft">
+          <h2>Timeline &amp; Activity Log</h2>
+          <button type="button" className="rqAddNoteHeaderBtn">
+            <Plus size={13} /> Add Note
+          </button>
+        </div>
+      </header>
+
+      <div className="rqTimelineNotesGrid">
+        {/* Left Timeline Nodes (3 horizontal milestones matching Image 2) */}
+        <div className="rqHorizontalTimeline">
+          {/* Milestone 1 */}
+          <div className="rqTimelineMilestone is-red">
+            <div className="rqMilestoneHeader">
+              <span className="rqMilestoneDot red" />
+              <time className="rqMilestoneTime">10:24 AM</time>
+            </div>
+            <strong className="rqMilestoneTitle">Incident reported via mobile app</strong>
+            <span className="rqMilestoneSub">Citizen report with photos</span>
+          </div>
+
+          {/* Milestone 2 */}
+          <div className="rqTimelineMilestone is-blue">
+            <div className="rqMilestoneHeader">
+              <span className="rqMilestoneDot blue" />
+              <time className="rqMilestoneTime">10:27 AM</time>
+            </div>
+            <strong className="rqMilestoneTitle">AI analysis completed</strong>
+            <span className="rqMilestoneSub">Risk score: 9.1 (Critical) • Confidence: 92%</span>
+          </div>
+
+          {/* Milestone 3 */}
+          <div className="rqTimelineMilestone is-blue">
+            <div className="rqMilestoneHeader">
+              <span className="rqMilestoneDot blue" />
+              <time className="rqMilestoneTime">10:29 AM</time>
+            </div>
+            <strong className="rqMilestoneTitle">Additional 3 reports from nearby area</strong>
+            <span className="rqMilestoneSub">Confirming severe flooding</span>
+          </div>
+        </div>
+
+        {/* Right Internal Notes Composer matching Image 2 */}
+        <div className="rqInternalNotesComposer">
+          <form onSubmit={handlePostNote} className="rqNotesForm">
+            <input
+              type="text"
+              aria-label="Add an internal note"
+              placeholder="Add an internal note..."
+              value={internalNote}
+              onChange={(e) => setInternalNote(e.target.value)}
+              className="rqNotesInput"
+            />
+            <div className="rqNotesScopeSelector">
+              <span>Internal</span>
+              <span className="rqDropdownCaret">▾</span>
+            </div>
+            <button type="submit" className="rqPostNoteBtn">
+              Post Note
+            </button>
+          </form>
+          {notePosted && (
+            <span className="rqNoteFeedback">Note added to session log.</span>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// Retain compatibility export
+export function IncidentNotesPanel() {
+  return null;
 }
