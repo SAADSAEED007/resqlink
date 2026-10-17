@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState, type FormEvent } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Brand, PrototypeNotice } from "@/components/layout/public-layout";
+import { PrototypeNotice } from "@/components/layout/public-layout";
 import { Button, FormField, Input } from "@/components/ui";
 import { useAuth } from "@/components/auth/auth-provider";
 import { ApiError, errorMessage } from "@/lib/api/client";
@@ -62,35 +63,59 @@ export function LoginForm() {
   return (
     <div className="login-layout">
       <aside className="login-story">
-        <Brand inverse />
-        <div>
-          <span className="login-cross" aria-hidden="true">
-            +
-          </span>
+        <div className="login-brand-lockup">
+          <Image
+            src="/images/ResQLink Shield Brand Logo.png"
+            alt="ResQLink — People, Response, Safer Sindh"
+            width={242}
+            height={81}
+            priority
+          />
+        </div>
+        <div className="login-story-content">
+          <p className="login-kicker">COORDINATED RESPONSE / SINDH</p>
           <h2>
-            Clarity when
+            Decisions with
             <br />
-            it matters most.
+            clarity when
+            <br />
+            every minute matters.
           </h2>
           <p>
-            Bring urgent needs, available resources, and human decisions into
-            one shared picture.
+            ResQLink brings verified reports, available teams, and accountable
+            human decisions into one operational picture.
           </p>
+          <div className="login-trust-panel">
+            <span className="login-trust-mark" aria-hidden="true">+</span>
+            <div>
+              <strong>Human-led coordination</strong>
+              <span>Every response decision remains visible and reviewable.</span>
+            </div>
+          </div>
         </div>
-        <p className="login-story-footer">RESQLINK / COORDINATOR WORKSPACE</p>
+        <div className="login-story-footer">
+          <span className="login-footer-dot" aria-hidden="true" />
+          Secure coordinator workspace
+        </div>
       </aside>
       <div className="login-main">
-        <Link href="/" className="text-link back-link">
-          &larr; Back to public portal
+        <Link href="/" className="back-link">
+          <span aria-hidden="true">&larr;</span> Back to public portal
         </Link>
         <main id="main" className="login-form-wrap">
           <div className="mobile-brand">
-            <Brand />
+            <Image
+              src="/images/ResQLink Shield Brand Logo.png"
+              alt="ResQLink — People, Response, Safer Sindh"
+              width={198}
+              height={66}
+              priority
+            />
           </div>
-          <p className="section-label">COMMAND CENTER</p>
-          <h1>Coordinator Login</h1>
+          <p className="login-eyebrow"><span /> Command Center</p>
+          <h1>Welcome back.</h1>
           <p className="muted login-intro">
-            Sign in to your authorized coordinator account.
+            Sign in to review live reports and coordinate a considered response.
           </p>
           {session.expired && (
             <p role="status" className="inline-notice">
@@ -148,8 +173,8 @@ export function LoginForm() {
             </Button>
           </form>
           <p className="login-help">
-            Access is managed by your project administrator.
-            <br />A coordinator account requires the admin role.
+            Access is managed by your project administrator. Coordinator access
+            requires an authorized admin account.
           </p>
           {session.user?.role === "user" && (
             <Button
