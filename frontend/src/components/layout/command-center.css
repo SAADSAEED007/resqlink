@@ -1124,3 +1124,83 @@
 }
 
 .rqCommandAccount {margin-left:auto;}
+
+/* Reference-inspired presentation, scoped to the existing command workspace. */
+.rqCommand .sidebar { overflow-y: auto; gap: 12px; padding: 18px 14px; }
+.rqCommand .sidebar-nav { gap: 3px; margin-top: 4px; flex-shrink: 0; }
+.rqCommand .sidebar-nav > a, .rqCommand .sidebar-nav > button { gap: 10px; }
+.rqCommand .sidebar-nav svg { width: 21px; height: 21px; flex-shrink: 0; }
+.rqCommandNavNote { padding: 8px 12px; font-size: 10px; line-height: 1.6; }
+.rqCommand .public-return { margin-top: 8px; }
+.rqCommandPromo { position: relative; min-height: 218px; flex-shrink: 0; margin-top: auto; border: 1px solid var(--command-border); border-radius: 13px; overflow: hidden; background: #07182c; }
+.rqCommandPromo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, #07182c10, #07182c65 35%, #07182cf5 100%); }
+.rqCommandPromo > div { position: absolute; inset: auto 12px 15px; z-index: 1; color: #f8fafc; }
+.rqCommandPromo p { font-size: 19px; font-weight: 650; line-height: 1.25; letter-spacing: -.03em; }
+.rqCommandPromo span { display: block; width: 30px; height: 2px; background: #3b82f6; margin: 13px 0 10px; }
+.rqCommandPromo small { display: block; font-size: 9px; color: #afc2da; }
+.rqCommand .rqCommandMetric { height: 108px; border-left: 3px solid var(--metric-accent); background: linear-gradient(115deg, color-mix(in srgb, var(--metric-accent) 8%, var(--command-surface)), var(--command-surface) 75%); box-shadow: 0 5px 20px #020c1910; }
+.rqCommandMetric > div:first-child > div:first-child { width: 48px; height: 52px; border-radius: 12px; color: var(--metric-accent); }
+.rqCommandMetric svg { width: 27px; height: 27px; }
+.rqCommandMetric .rqMetricSparkline { position: absolute; right: 12px; bottom: 16px; opacity: .9; }
+.rqCommandMetric .rqMetricSparkline svg { width: 60px; height: 28px; }
+.rqMetricSparkline small { display: block; text-align: right; font-size: 8px; color: var(--command-muted); }
+.rqCommandMetric:has(.rqMetricSparkline) > div:first-child { padding-right: 48px; }
+@media (min-width: 1280px) and (max-width: 1500px) { .rqCommandMetric .rqMetricSparkline { display: none; } .rqCommandMetric:has(.rqMetricSparkline) > div:first-child { padding-right: 0; } }
+.rqCommandMetric p:first-child { text-transform: none; font-size: 12px; letter-spacing: 0; font-weight: 550; color: var(--command-ink); white-space: normal; }
+.rqCommandMetric span.text-2xl { font-size: 32px; line-height: 1.15; font-weight: 700; font-variant-numeric: tabular-nums; }
+.rqCommandMetric p:last-child { white-space: normal; }
+.rqCommandMap h2 { display: flex; align-items: center; gap: 9px; }
+.rqCommandMapMode { margin-left: auto; font-size: 10px; color: var(--command-blue); white-space: nowrap; }
+.rqCommand .rqCommandMapLegend { background: color-mix(in srgb, var(--command-surface) 94%, transparent); backdrop-filter: blur(8px); gap: 7px; }
+.rqCommand .rqCommandMapLegend i { width: 22px; height: 22px; display: block; background: none; }
+.rqMapSymbol { display: grid; place-items: center; width: 36px; height: 36px; margin: 2px; border-radius: 50%; color: white; background: var(--marker-color); border: 2px solid #e4f3ffb8; box-shadow: 0 3px 10px #020c1980; }
+.rqMapSymbol svg { width: 22px; height: 22px; }
+.rqMapSymbol.critical { box-shadow: 0 0 0 6px #ee354b25, 0 0 22px #ee354b70; }
+.rqMapSymbol.available, .rqMapSymbol.busy { border-radius: 12px; }
+.rqMapSymbol.is-selected, .rqMapMarker:focus-visible .rqMapSymbol { outline: 3px solid white; outline-offset: 4px; }
+.rqMapMarker:hover .rqMapSymbol { transform: scale(1.12); }
+.rqCommandMapLegend .rqMapSymbol { width: 20px; height: 20px; margin: 1px; border-width: 1px; box-shadow: none; }
+.rqCommandMapLegend .rqMapSymbol svg { width: 14px; height: 14px; }
+.rqCommand .leaflet-tooltip { background: var(--command-surface); border-color: var(--command-border); color: var(--command-ink); }
+.rqCommandIncident { border-left: 3px solid var(--command-border); padding: 10px; }
+.rqCommandIncident:has(.critical) { border-left-color: var(--command-red); }
+.rqCommandIncident:has(.high) { border-left-color: var(--command-amber); }
+.rqCommandIncident:has(.medium) { border-left-color: var(--command-blue); }
+.rqCommandIncident h3 { margin: 6px 0 4px; }
+.rqCommandQueue .rqIncidentVisual-card { width: 74px; height: 86px; }
+.rqCommandQueue .rqIncidentVisual.is-demo > span { white-space: normal; font-size: 8px; }
+.rqCommandIncidentMeta { margin-top: 7px; font-size: 10px; }
+.rqTeamRoster .rqTeamVisual { width: 44px; height: 44px; background: color-mix(in srgb, var(--command-green) 13%, var(--command-surface)); border-radius: 10px; }
+.rqTeamVisual svg { width: 26px; height: 26px; stroke-width: 1.7; }
+.rqTeamRoster button { border-left: 3px solid var(--command-green); padding: 8px; }
+.rqTeamRoster button[data-status="BUSY"] { border-left-color: var(--command-blue); }
+.rqTeamRoster button[data-status="OFFLINE"] { border-left-color: var(--command-muted); }
+.rqTeamRoster button > div:last-child { flex-direction: column; align-items: flex-end; gap: 5px; }
+.rqActivityRow p { white-space: normal; overflow-wrap: anywhere; }
+.rqActivityRow { align-items: flex-start; }
+.rqActivityRow > div:first-child { align-items: flex-start; gap: 8px; }
+.rqActivityRow > div:first-child > span { width: 48px; font-family: inherit; white-space: normal; }
+.rqActivityRow > div:first-child > div:first-of-type { background: color-mix(in srgb, var(--command-blue) 12%, var(--command-ground)); }
+.rqCommand[data-theme="dark"] .sidebar { background: linear-gradient(165deg, #10253d, #081a2d); }
+.rqCommand[data-theme="dark"] .sidebar-nav [aria-current] { color: white; background: linear-gradient(110deg, #2563eb, #195cbe); box-shadow: inset 0 1px 0 #ffffff26, 0 5px 18px #020c1930; }
+.rqCommand[data-theme="dark"] .rqCommandCard { background: linear-gradient(125deg, #10253d, #0c2035); border-color: #8aa9c52e; }
+.rqCommand[data-theme="dark"] .rqCommandIncident { background: #0c2035; }
+.rqCommand[data-theme="dark"] .rqCommandMode { background: #112a43; }
+.rqCommand[data-theme="dark"] .rqCommandMap .leaflet-container { background: #07304b; }
+/* A restrained navy tint to the existing gray cartography; geography is unchanged. */
+.rqCommand[data-theme="dark"] .rqCommandMap .leaflet-tile-pane { mix-blend-mode: luminosity; opacity: .85; }
+@media (min-width: 1280px) {
+  .rqCommandMap, .rqCommandQueue { height: 470px; }
+  .rqCommand .sidebar-nav > a, .rqCommand .sidebar-nav > button { min-height: 41px; padding: 8px 10px; }
+}
+@media (max-width: 1279px) { .rqCommandPromo { display: none; } .rqCommand .sidebar { overflow: visible; } }
+@media (max-width: 767px) {
+  .rqCommand .rqCommandMetric { height: 108px; }
+  .rqCommandQueue .rqIncidentVisual-card { width: 64px; height: 78px; }
+  .rqCommandMapLegend { font-size: 9px; padding: 8px; }
+  .rqCommandMapMode { font-size: 9px; }
+  .rqCommandMap > header { padding: 10px; gap: 8px; }
+  .rqCommandMap > header p { max-width: 145px; }
+  .rqCommandMap.is-expanded { inset: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .rqCommand *, .rqCommand *::before, .rqCommand *::after { animation: none !important; transition: none !important; } }

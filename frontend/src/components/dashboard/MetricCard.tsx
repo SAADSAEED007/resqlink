@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 interface SparklineProps {
   color: string;
@@ -107,7 +107,7 @@ export function MetricCard({
   }
 
   return (
-    <div className="rqCommandMetric bg-[var(--command-surface)] border border-[var(--command-border)] hover:border-[var(--command-blue)] transition-colors rounded-xl p-3.5 px-4 flex items-center justify-between gap-2 shadow-sm relative overflow-hidden group">
+    <div style={{ "--metric-accent": `var(--command-${label === "Available Teams" ? "green" : trendColor === "muted" ? "blue" : trendColor})` } as CSSProperties} className="rqCommandMetric bg-[var(--command-surface)] border border-[var(--command-border)] hover:border-[var(--command-blue)] transition-colors rounded-xl p-3.5 px-4 flex items-center justify-between gap-2 shadow-sm relative overflow-hidden group">
       <div className="flex items-center gap-3 min-w-0 flex-1">
         <div
           className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border border-white/5"
@@ -147,8 +147,9 @@ export function MetricCard({
       </div>
 
       {sparklinePoints && (
-        <div className="hidden sm:block shrink-0">
+        <div className="rqMetricSparkline hidden sm:block shrink-0" aria-label="Simulated trend">
           <Sparkline color={sparklineColor} points={sparklinePoints} />
+          <small>Simulated</small>
         </div>
       )}
     </div>
