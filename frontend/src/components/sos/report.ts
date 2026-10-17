@@ -118,22 +118,18 @@ export function validateLocation(draft: SOSDraft): DraftErrors {
 }
 export function validateDetails(draft: SOSDraft): DraftErrors {
   const errors: DraftErrors = {};
-  if (
-    cleanText(draft.reporterName).length < 2 ||
-    cleanText(draft.reporterName).length > 100 ||
-    unsafeText(draft.reporterName)
-  )
+  if (draft.reporterName.trim() && (cleanText(draft.reporterName).length < 2 || cleanText(draft.reporterName).length > 100 || unsafeText(draft.reporterName)))
     errors.reporterName =
       "Enter your name using 2 to 100 characters, without angle brackets.";
   if (!emergencyChoices.some((item) => item.value === draft.emergencyType))
     errors.emergencyType = "Choose the type of emergency.";
-  if (cleanText(draft.description).length < 5 || unsafeText(draft.description))
+  if (draft.description.trim() && (cleanText(draft.description).length < 1 || unsafeText(draft.description)))
     errors.description =
       "Describe what happened in at least 5 characters, without angle brackets.";
   if (unsafeText(draft.notes) || reportDescription(draft).length > 2000)
     errors.description =
       "Keep the combined report, location description, and notes within 2,000 characters and avoid angle brackets.";
-  if (!integer(draft.peopleAffected, 1))
+  if (draft.peopleAffected.trim() && !integer(draft.peopleAffected, 1))
     errors.peopleAffected =
       "Enter an estimate from 1 to 10,000. A positive number is required to record a report.";
   if (
@@ -163,14 +159,14 @@ export function toIncidentInput(draft: SOSDraft): CreateIncidentInput {
   ] as const)
     if (draft[key].trim()) vulnerablePeople[key] = Number(draft[key]);
   return {
-    reporterName: cleanText(draft.reporterName),
+    ...(draft.reporterName.trim() ? { reporterName: cleanText(draft.reporterName) } : {}),
     ...(draft.reporterPhone.trim()
       ? { reporterPhone: draft.reporterPhone.trim() }
       : {}),
     emergencyType: draft.emergencyType as EmergencyType,
-    description: reportDescription(draft),
+    ...(reportDescription(draft) ? { description: reportDescription(draft) } : {}),
     location: selectedLocation(draft),
-    peopleAffected: Number(draft.peopleAffected),
+    ...(draft.peopleAffected.trim() ? { peopleAffected: Number(draft.peopleAffected) } : {}),
     ...(Object.keys(vulnerablePeople).length ? { vulnerablePeople } : {}),
     waterLevel: draft.waterLevel,
     ...(draft.immediateDanger !== "unknown"

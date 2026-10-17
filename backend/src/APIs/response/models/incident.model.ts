@@ -50,13 +50,13 @@ const verificationSchema = new Schema(
 )
 const schema = new Schema(
     {
-        reporterName: { type: String, trim: true, required: true, maxlength: 100 },
+        reporterName: { type: String, trim: true, maxlength: 100 },
         reporterPhone: { type: String, trim: true, maxlength: 32 },
         emergencyType: { type: String, enum: EMERGENCY_TYPES, required: true },
-        description: { type: String, trim: true, required: true, maxlength: 2000 },
+        description: { type: String, trim: true, maxlength: 2000 },
         location: { type: locationSchema, default: null },
         locationVerificationRequired: { type: Boolean, required: true },
-        peopleAffected: { type: Number, min: 1, max: 10000, required: true, validate: Number.isInteger },
+        peopleAffected: { type: Number, min: 1, max: 10000, validate: Number.isInteger },
         vulnerablePeople: { type: vulnerabilitySchema, default: undefined },
         waterLevel: { type: String, enum: WATER_LEVELS },
         immediateDanger: { type: Boolean, default: undefined },

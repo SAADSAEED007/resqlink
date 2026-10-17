@@ -629,6 +629,23 @@
   outline: 3px solid var(--sos-blue);
   outline-offset: 4px;
 }
+.rqQuickStart { text-align: center; padding: 1rem 0; }
+.rqQuickStart h1, .rqQuickForm > h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); letter-spacing: -.045em; }
+.rqQuickStart > p, .rqQuickForm > p { color: var(--sos-muted); margin-top: .65rem; line-height: 1.6; }
+.rqQuickStart > strong { display: block; margin-top: .5rem; }
+.rqQuickForm { display: grid; gap: 1.25rem; }
+.rqQuickForm h2 { font-size: 1rem; margin-top: .5rem; }
+.rqQuickTypes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
+.rqQuickTypes button { min-height: 110px; border: 1px solid var(--sos-line); border-radius: .8rem; background: var(--sos-white); color: var(--sos-ink); display: grid; place-items: center; gap: .4rem; padding: .7rem; font-size: .75rem; font-weight: 650; position: relative; }
+.rqQuickTypes button svg { width: 25px; color: var(--sos-blue); }
+.rqQuickTypes button.selected { border: 2px solid var(--sos-red); background: #fff7f7; }
+.rqQuickTypes button.selected > svg:last-child { position: absolute; right: .5rem; top: .5rem; color: var(--sos-red); width: 18px; }
+.rqQuickDetails { border: 1px solid var(--sos-line); border-radius: .75rem; padding: .25rem 1rem; }
+.rqQuickDetails summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 650; font-size: .875rem; }
+.rqQuickDetails summary small { margin-left: .4rem; color: var(--sos-muted); font-weight: 400; }
+.rqQuickDetails > div { display: grid; gap: 1rem; padding: 1rem 0; }
+.rqQuickSend { width: 100%; font-size: 1rem; }
+@media (max-width: 599px) { .rqQuickTypes { grid-template-columns: repeat(2, minmax(0, 1fr)); } .rqQuickTypes button { min-height: 96px; } }
 @media (max-width: 1099px) {
   .rqSosLayout {
     gap: 2.5rem;

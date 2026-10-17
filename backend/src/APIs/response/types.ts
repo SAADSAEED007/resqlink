@@ -29,16 +29,16 @@ export interface Location {
 }
 export interface RiskInput {
     emergencyType: EmergencyType
-    peopleAffected: number
+    peopleAffected?: number
     location?: Location | null
     vulnerablePeople?: { elderly?: number; children?: number; disabled?: number; medicalNeeds?: number }
     waterLevel?: (typeof WATER_LEVELS)[number]
     immediateDanger?: boolean
 }
 export interface IncidentInput extends RiskInput {
-    reporterName: string
+    reporterName?: string
     reporterPhone?: string
-    description: string
+    description?: string
 }
 export interface TeamContact {
     phone?: string
