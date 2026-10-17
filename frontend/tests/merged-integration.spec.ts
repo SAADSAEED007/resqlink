@@ -139,6 +139,27 @@ async function openIncident(page: Page) {
   await expect(page.getByRole("dialog")).toBeVisible();
 }
 
+test("incident visuals keep demo imagery separate from live API records", async ({
+  page,
+}) => {
+  await auth(page);
+  await page.goto("/dashboard?demo=true");
+  await expect(
+    page.getByText("Demonstration Mode", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByAltText("Illustrative emergency image for this simulated report"),
+  ).toBeVisible();
+  await expect(page.getByText("Illustrative demo image").first()).toBeVisible();
+
+  await setup(page);
+  await openIncident(page);
+  await expect(
+    page.getByAltText("Illustrative emergency image for this simulated report"),
+  ).toHaveCount(0);
+  await expect(page.getByLabel(/category$/)).toBeVisible();
+});
+
 test("merged verification, recommendations, assignment and lifecycle clients use confirmed routes", async ({
   page,
 }) => {

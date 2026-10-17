@@ -317,6 +317,79 @@
   padding: 12px;
   background: var(--command-surface);
 }
+.rqCommandIncidentBody {
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+}
+.rqCommandIncidentContent {
+  min-width: 0;
+  flex: 1;
+}
+.rqIncidentVisual {
+  position: relative;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--command-border);
+  background: var(--command-soft);
+  color: var(--command-blue);
+}
+.rqIncidentVisual-card {
+  width: 62px;
+  height: 62px;
+  border-radius: 9px;
+}
+.rqIncidentVisual-hero {
+  width: 104px;
+  height: 104px;
+  border-radius: 12px;
+}
+.rqIncidentVisual > svg {
+  width: 25px;
+  height: 25px;
+  stroke-width: 1.8;
+}
+.rqIncidentVisual > span {
+  position: absolute;
+  inset: auto 4px 4px;
+  z-index: 1;
+  overflow: hidden;
+  color: currentColor;
+  font-size: 8px;
+  font-weight: 750;
+  line-height: 1.2;
+  text-align: center;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.rqIncidentVisual-card:not(.is-demo) > span {
+  display: none;
+}
+.rqIncidentVisual.is-demo {
+  color: white;
+  background: #0b1d33;
+}
+.rqIncidentVisual.is-demo::after {
+  position: absolute;
+  content: "";
+  inset: 0;
+  background: linear-gradient(180deg, transparent 35%, #06172bbd 100%);
+}
+.rqIncidentVisual.is-demo > span {
+  color: #fff;
+  font-size: 7px;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+.rqIncidentVisual-flood { color: #1672d6; background: #eaf4ff; }
+.rqIncidentVisual-medical { color: #c9364e; background: #fff0f2; }
+.rqIncidentVisual-fire { color: #b54a12; background: #fff5eb; }
+.rqIncidentVisual-stranded { color: #7353bf; background: #f4efff; }
+.rqIncidentVisual-supplies { color: #92700a; background: #fff9e4; }
+.rqIncidentVisual-other { color: #536b85; background: #eef2f7; }
 .rqCommandIncident:hover,
 .rqCommandIncident.is-selected {
   border-color: var(--command-blue);
@@ -382,6 +455,11 @@
 .rqCommandIncidentMeta {
   margin-top: 10px;
   flex-wrap: wrap;
+}
+.rqCommandIncidentMeta time {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 .rqCommandIncident small {
   display: block;
@@ -656,6 +734,47 @@
   align-items: center;
   justify-content: space-between;
 }
+.rqCommandDetailTags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+.rqCommandDetailStatus {
+  color: var(--command-muted);
+  font-size: 10px;
+  font-weight: 650;
+}
+.rqCommandDetailHero {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin: 18px 0 4px;
+}
+.rqCommandDetailHero > div:last-child {
+  min-width: 0;
+}
+.rqCommandDetailCategory,
+.rqCommandDetailLocation,
+.rqCommandDetailReporter {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.rqCommandDetailCategory {
+  color: var(--command-blue) !important;
+  font-size: 10px !important;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.rqCommandDetailLocation,
+.rqCommandDetailReporter {
+  margin-top: 6px;
+}
+.rqCommandDetailHero h2 {
+  margin: 6px 0 8px;
+}
 .rqCommandDetail button {
   min-height: 44px;
   padding: 8px 12px;
@@ -757,6 +876,12 @@
 .rqCommand[data-theme="dark"] .rqCommandIncident.is-selected {
   background: var(--command-soft);
 }
+.rqCommand[data-theme="dark"] .rqIncidentVisual-flood { color: #75baff; background: #123558; }
+.rqCommand[data-theme="dark"] .rqIncidentVisual-medical { color: #ff8395; background: #512735; }
+.rqCommand[data-theme="dark"] .rqIncidentVisual-fire { color: #ffc08b; background: #543521; }
+.rqCommand[data-theme="dark"] .rqIncidentVisual-stranded { color: #c4afff; background: #362a58; }
+.rqCommand[data-theme="dark"] .rqIncidentVisual-supplies { color: #f4d573; background: #4b401d; }
+.rqCommand[data-theme="dark"] .rqIncidentVisual-other { color: #c5d3e3; background: #293b50; }
 .rqCommand[data-theme="dark"] .rqCommandSeverity {
   background: #293b50;
   color: var(--command-muted);
@@ -782,6 +907,32 @@
   }
   .rqCommandHeading h1 {
     font-size: 20px;
+  }
+}
+@media (max-width: 480px) {
+  .rqCommandIncident {
+    padding: 10px;
+  }
+  .rqIncidentVisual-card {
+    width: 52px;
+    height: 52px;
+  }
+  .rqCommandIncident h3 {
+    margin-top: 7px;
+  }
+  .rqCommandIncidentDescription {
+    -webkit-line-clamp: 1 !important;
+    margin-bottom: 5px !important;
+  }
+  .rqCommandDetailHero {
+    gap: 12px;
+  }
+  .rqIncidentVisual-hero {
+    width: 74px;
+    height: 74px;
+  }
+  .rqCommandDetailHero .rqIncidentVisual-hero > span {
+    display: none;
   }
 }
 
