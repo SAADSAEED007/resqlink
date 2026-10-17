@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ArrowRight, Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { PrototypeNotice } from "@/components/layout/public-layout";
 import { Button, FormField, Input } from "@/components/ui";
 import { useAuth } from "@/components/auth/auth-provider";
@@ -85,17 +86,10 @@ export function LoginForm() {
             ResQLink brings verified reports, available teams, and accountable
             human decisions into one operational picture.
           </p>
-          <div className="login-trust-panel">
-            <span className="login-trust-mark" aria-hidden="true">+</span>
-            <div>
-              <strong>Human-led coordination</strong>
-              <span>Every response decision remains visible and reviewable.</span>
-            </div>
+          <div className="login-story-footer">
+            <span className="login-footer-dot" aria-hidden="true" />
+            Secure coordinator workspace
           </div>
-        </div>
-        <div className="login-story-footer">
-          <span className="login-footer-dot" aria-hidden="true" />
-          Secure coordinator workspace
         </div>
       </aside>
       <div className="login-main">
@@ -125,34 +119,46 @@ export function LoginForm() {
           <form onSubmit={submit} noValidate className="login-form">
             <FormField label="Email address" required error={fields.email}>
               {(props) => (
-                <Input
-                  {...props}
-                  name="email"
-                  type="email"
-                  autoComplete="username"
-                  inputMode="email"
-                  placeholder="you@organization.org"
-                  disabled={busy}
-                />
+                <div className="login-input-wrap">
+                  <Mail className="login-input-icon" size={18} aria-hidden="true" />
+                  <Input
+                    {...props}
+                    name="email"
+                    type="email"
+                    autoComplete="username"
+                    inputMode="email"
+                    placeholder="Enter your work email"
+                    disabled={busy}
+                    className="login-input"
+                  />
+                </div>
               )}
             </FormField>
             <FormField label="Password" required error={fields.password}>
               {(props) => (
-                <div className="password-field">
+                <div className="login-input-wrap password-field">
+                  <Lock className="login-input-icon" size={18} aria-hidden="true" />
                   <Input
                     {...props}
                     name="password"
                     type={visible ? "text" : "password"}
                     autoComplete="current-password"
+                    placeholder="Enter your password"
                     disabled={busy}
+                    className="login-input"
                   />
                   <button
                     type="button"
+                    className="password-toggle-btn"
                     aria-label={visible ? "Hide password" : "Show password"}
                     aria-pressed={visible}
                     onClick={() => setVisible(!visible)}
                   >
-                    {visible ? "Hide" : "Show"}
+                    {visible ? (
+                      <EyeOff size={18} aria-hidden="true" />
+                    ) : (
+                      <Eye size={18} aria-hidden="true" />
+                    )}
                   </button>
                 </div>
               )}
@@ -167,14 +173,15 @@ export function LoginForm() {
               size="lg"
               loading={busy}
               loadingLabel="Signing in"
-              className="w-full"
+              className="w-full login-submit-btn"
             >
-              Sign in <span aria-hidden="true">&#8599;</span>
+              <span>Sign in</span>
+              <ArrowRight size={18} aria-hidden="true" className="login-btn-arrow" />
             </Button>
           </form>
           <p className="login-help">
-            Access is managed by your project administrator. Coordinator access
-            requires an authorized admin account.
+            <Lock size={13} aria-hidden="true" className="inline-block shrink-0 opacity-75" />
+            <span>Authorized coordinators only. Access is managed by your administrator.</span>
           </p>
           {session.user?.role === "user" && (
             <Button
