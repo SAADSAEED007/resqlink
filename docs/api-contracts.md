@@ -76,15 +76,39 @@ Required: reporterName (2–100 chars), description (5–2000), emergencyType, p
 
 Location is optional or null. When present, both latitude [-90,90] and longitude [-180,180] are required finite numbers; optional address max 300. No coordinates are fabricated. Missing coordinates persist as null and set `locationVerificationRequired=true`; address-only coordinates are rejected. There is no location-edit endpoint in this scope: coordinate verification remains an operational manual task.
 
-Each vulnerability count is optional, integer 0–10000. Categories may overlap; they are not summed to infer unique people. Omitted counts remain unknown, not zero. Water level and immediate danger are optional; omissions lower confidence. Numeric/boolean string coercion follows the inherited Joi validation utility. Return 201 with the incident, generated score/reasons/confidence, PENDING status, assignedTeam=null, empty priorityOverrides, isSimulated=false, and timestamps. Seed records alone are explicitly marked isSimulated=true; public API-created records are not automatically labeled simulated.
+Each vulnerability count is optional, integer 0–10000. Categories may overlap; they are not summed to infer unique people. Omitted counts remain unknown, not zero. Water level and immediate danger are optional; omissions lower confidence. Numeric/boolean string coercion follows the inherited Joi validation utility.
+
+Lightweight duplicate and completeness verification runs on submission:
+- **Duplicate detection:** Checks recent active incidents (past 120 minutes) for identical emergency type within 0.5 km, matching contact phone, or matching address text.
+- **Completeness check:** Evaluates missing coordinates, missing contact phone, unknown/unverified water level, missing immediate danger, or incomplete vulnerability breakdowns.
+- **Safety guarantee:** Requests are **never** automatically rejected, deleted, or downgraded. False matches are not automatically merged.
+- **Verification object returned:**
+  ```json
+  "verification": {
+    "status": "NEEDS_REVIEW",
+    "requiresManualReview": true,
+    "isPotentialDuplicate": false,
+    "potentialDuplicateIncidents": [],
+    "missingFields": ["location", "waterLevel"],
+    "warnings": [
+      "Missing location coordinates: manual location verification required before team dispatch",
+      "Water level is unknown or unverified"
+    ],
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNotes": null
+  }
+  ```
+
+Return 201 with the incident, generated score/reasons/confidence, verification object, PENDING status, assignedTeam=null, empty priorityOverrides, isSimulated=false, and timestamps. Seed records alone are explicitly marked isSimulated=true; public API-created records are not automatically labeled simulated.
 
 ### GET /api/incidents (admin)
 
-Query: page, limit, optional status and priorityLevel, sort=`priority|oldest|newest`. Default priority sorts score descending, creation date ascending (oldest first on ties), then _id ascending. Oldest/newest sort creation date ascending/descending, then _id ascending. Filtering uses validated enum values only.
+Query: page, limit, optional status, priorityLevel, and verificationStatus (`NEEDS_REVIEW|VERIFIED|FLAGGED_DUPLICATE|DISMISSED`), sort=`priority|oldest|newest`. Default priority sorts score descending, creation date ascending (oldest first on ties), then _id ascending. Oldest/newest sort creation date ascending/descending, then _id ascending. Filtering uses validated enum values only.
 
 ### GET /api/incidents/:id (admin)
 
-Returns one complete incident including score reasons, location-verification flag, and priority override history.
+Returns one complete incident including score reasons, location-verification flag, complete verification details, and priority override history.
 
 ### PATCH /api/incidents/:id/status (admin)
 
@@ -103,6 +127,19 @@ Resolution completes the active assignment, sets completedAt, releases the team 
 Body `{ "priorityLevel": "CRITICAL", "reason": "Verified worsening conditions in this simulated report" }`. Reason is required, 5–1000 chars. Closed incidents return 409. New classification gets its band's minimum score (CRITICAL=75, HIGH=50, MEDIUM=25, LOW=0), so overrides affect queue ordering. Same-level overrides retain the current score.
 
 `priorityOverrides[]` records previousPriority, newPriority, previousScore, newScore, reason, timestamp, and the authenticated coordinatorId. Original priorityReasons/confidence remain intact and are not represented as higher-certainty evidence. UI must show the override audit as well as the original risk explanation. No client-supplied identity is trusted.
+
+### PATCH /api/incidents/:id/verification (admin)
+
+Body `{ "status": "VERIFIED", "notes": "Verified location via VHF radio; separate household from nearby report" }`.
+- `status`: required, valid enum `NEEDS_REVIEW | VERIFIED | FLAGGED_DUPLICATE | DISMISSED`.
+- `notes`: required, 3–1000 characters.
+
+Updates the incident's verification object with coordinator attribution:
+- Records `reviewedBy` (authenticated coordinator ID) and `reviewedAt` (timestamp).
+- Setting `status` to `VERIFIED` or `DISMISSED` marks `requiresManualReview: false`.
+- Setting `status` to `NEEDS_REVIEW` or `FLAGGED_DUPLICATE` marks `requiresManualReview: true`.
+- Dismissing a duplicate warning allows coordinators to accept a legitimate separate incident near an existing report without merging or deleting records.
+- Incident lifecycle status (`status`, `priorityLevel`, `assignedTeam`) is never altered or downgraded by verification updates. Uses transactions.
 
 ### GET /api/incidents/:id/recommendations (admin)
 

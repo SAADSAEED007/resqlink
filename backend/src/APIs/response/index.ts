@@ -10,7 +10,7 @@ import { EUserRoles } from '../../constant/users'
 import { CustomError } from '../../utils/errors'
 import * as schema from './validation'
 import * as service from './response.service'
-import { IncidentInput, TeamInput, IncidentStatus, Priority } from './types'
+import { IncidentInput, TeamInput, IncidentStatus, Priority, VerificationStatus } from './types'
 
 const coordinator: RequestHandler = (req, _res, next) => {
     const user = (req as IAuthenticateRequest).authenticatedUser
@@ -74,6 +74,20 @@ router.patch(
             200,
             'Incident priority updated',
             await service.overridePriority(req.params.id, input.priorityLevel, input.reason, String(user._id))
+        )
+    })
+)
+router.patch(
+    '/incidents/:id/verification',
+    asyncHandler(async (req, res) => {
+        const input = schema.validate<{ status: VerificationStatus; notes: string }>(schema.verificationUpdateSchema, req.body)
+        const user = (req as IAuthenticateRequest).authenticatedUser as IUserWithId
+        httpResponse(
+            res,
+            req,
+            200,
+            'Incident verification updated',
+            await service.updateVerification(req.params.id, input.status, input.notes, String(user._id))
         )
     })
 )
