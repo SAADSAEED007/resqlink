@@ -82,9 +82,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
     },
     {
       label: "Rescue Teams",
-      href: "/dashboard/teams",
+      href: "/dashboard/rescue-teams",
       icon: Users,
-      soon: true,
     },
     {
       label: "Assignments",
