@@ -1,6 +1,6 @@
 # ResQLink
 
-Intelligent Disaster Response & Rescue Coordination Platform for Code Connect Hackathon 2026. This repository establishes the foundation for a four-person team working toward a 36-hour MVP. Disaster-response features are not implemented yet.
+Intelligent Disaster Response & Rescue Coordination Platform for Code Connect Hackathon 2026. This repository establishes the foundation for a four-person team working toward a 36-hour MVP. Backend core provides incident intake, prototype priority scoring, rescue teams, transactional assignments, and approximate team recommendations. The frontend remains a minimal placeholder.
 
 ## Stack and structure
 
@@ -72,7 +72,7 @@ The root example is a reference. Next.js loads frontend/.env.local; dotenv-flow 
 
 | Variable | Location | Purpose |
 | --- | --- | --- |
-| NEXT_PUBLIC_API_URL | frontend | Public API base URL, initially http://localhost:4000/v1; available for future API clients |
+| NEXT_PUBLIC_API_URL | frontend | Public API base URL, initially http://localhost:4000/api; used by core API clients |
 | NODE_ENV | backend | development locally, production when hosted |
 | ENV | backend | development or production; controls inherited logging and error behavior |
 | PORT | backend | 4000 locally; hosting provider may supply it |
@@ -129,11 +129,13 @@ Open a GitHub Pull Request with base `dev`. The Tech Lead reviews and merges. Pr
 
 ## Deployment overview (nothing deployed)
 
-- Vercel: choose frontend as the project root, use the Next.js preset, and configure NEXT_PUBLIC_API_URL to the hosted backend URL plus /v1 before building. Public Next.js variables are embedded at build time; rebuild after changes.
-- Render or Railway: choose backend as the service root, install development dependencies for TypeScript compilation (`npm ci --include=dev`), build with `npm run build`, and start with `npm run serve`. Set ENV=production, NODE_ENV=production, SERVER_URL, FRONTEND_URL, DATABASE_URL, email key, and both token secrets. Use the provider's PORT.
+- Vercel: choose frontend as the project root, use the Next.js preset, and configure NEXT_PUBLIC_API_URL to the hosted backend URL plus /api before building. Public Next.js variables are embedded at build time; rebuild after changes.
+- Render or Railway: choose backend as the service root, install development dependencies for TypeScript compilation (`npm ci --include=dev`), build with `npm run build`, and start with `npm run serve`. Set ENV=production, NODE_ENV=production, SERVER_URL, FRONTEND_URL, DATABASE_URL, and both token secrets; email key is optional. Use the provider's PORT.
 - MongoDB Atlas: configure the database user and network access for the backend host. The backend also stores logs and rate-limit state in MongoDB. Local log files are ephemeral on hosting platforms.
 - Existing backend Docker assets are preserved for provenance but are not needed for this workflow. No Docker or CI/CD additions were made.
 
-Before public launch, review the inherited authentication, email sender, CORS, and health behavior with the team. Define ResQLink API contracts before implementing features.
+Before public launch, review the inherited authentication, email sender, CORS, and health behavior with the team. Use docs/api-contracts.md for implemented core APIs and frontend integration.
 
 Provider references: [Next.js CLI](https://nextjs.org/docs/app/api-reference/cli/create-next-app), [Vercel monorepo roots](https://vercel.com/docs/monorepos), [Render Express deployment](https://render.com/docs/deploy-node-express-app), [MongoDB setup](https://www.mongodb.com/docs/get-started/).
+
+Backend core API contracts, coordinator setup, seed safeguards, and frontend integration are documented in [docs/api-contracts.md](docs/api-contracts.md). Demo seed: set DEMO_MODE=true, NODE_ENV=development, and a separate DEMO_DATABASE_URL ending in _demo, then run npm run seed:demo from backend. Core coordinator operations require an existing admin account; no authorization bypass is provided.

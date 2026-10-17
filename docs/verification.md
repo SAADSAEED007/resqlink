@@ -1,4 +1,30 @@
-﻿# Initialization verification — 2026-10-17
+# Backend core verification — 2026-10-17
+
+Current backend core checks supersede the historical initialization results below.
+
+| Check | Actual result |
+| --- | --- |
+| Branch baseline | Foundation PR #1 merged into dev; feature/backend-core created from current dev. Previously requested optional-email fix included by cherry-pick. |
+| Dependencies | Existing installed npm dependency tree verified with npm ls --depth=0; no libraries added and backend lockfile unchanged. |
+| TypeScript build | npm run build passed after core, startup, and authentication integration changes. |
+| ESLint | npm run lint passed after fixing typed test assertions and new application code. |
+| Full tests | Jest --runInBand --detectOpenHandles --testTimeout=30000: 4 suites passed, 48 tests passed, no skipped tests in the opt-in database run. |
+| Real transaction/API tests | Dedicated random resqlink_core_test_<hex> Atlas database; admin cookie login, admin-only access, public SOS validation, ID errors, body limit, missing location, competing assignment claims, team release, recommendation ordering/filtering/capacity warnings, overrides, pagination. Test database cleaned up. |
+| Isolated tests | Scoring boundaries and missing data, invalid coordinates/counts, model validation, lifecycle policy, unavailable/incompatible/duplicate assignment rejection, successful orchestration, resolution/cancellation release, inconsistency rejection, audit actor, unsupported-transaction response. Existing authentication unit tests passed with only the logger isolated from external I/O. |
+| Startup | npm run start:dev on test port 4107 connected to configured MongoDB, initialized indexes/rate limiter, then listened. GET /v1/health returned 200; unauthenticated GET /api/incidents returned 401. Test server stopped. |
+| Seed safety | Missing DEMO_MODE rejected with exit 1 before connecting. Seed run twice in a dedicated temporary _demo database: 6 incidents, 5 teams, 1 active assignment; complete data snapshots unchanged on the second run. Temporary database cleaned up. |
+| Formatting | npm run format:check still fails on 9 unchanged upstream files listed in historical results. All modified/new TypeScript and modified package/test files were formatted. |
+| Frontend | No pages/components modified; only frontend/.env.example changed from /v1 to /api for integration. |
+| Secrets | Local backend/.env remains ignored and unchanged; only placeholder templates are eligible for staging. |
+
+Database integration tests are opt-in. Normal `npm test -- --runInBand` skips the integration suite unless TEST_DATABASE_URL is explicitly supplied and names an isolated `resqlink_core_test_<hex>` database. Tests refuse application database names and only clean their own validated test database. Real test runs derived a temporary database URI from local configuration without printing credentials; no real application records were inserted, changed, or deleted.
+
+Seeding requires DEMO_MODE=true, NODE_ENV=development, ENV not production, and a separate DEMO_DATABASE_URL ending in `_demo`. Use a short database name such as resqlink_demo; the first verification attempt used a name rejected by Atlas at index creation, then was corrected to a shorter temporary name and both runs passed. No actual application URI/credentials are committed.
+
+Remaining limitations: prototype scoring is unvalidated decision support; location verification is manual with no coordinate-edit endpoint in scope; capacity is advisory; coordinator provisioning uses existing users plus trusted admin-role promotion; cross-site cookie hosting needs review; existing dependency advisories and upstream formatting debt are unresolved. Transactions require Atlas or a replica set; no unsafe standalone fallback. No real dispatch or deployment occurred.
+
+---
+# Initialization verification — 2026-10-17
 
 Executed on Windows with Node.js 24.17.0 and npm 11.13.0. No deployment was performed.
 

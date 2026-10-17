@@ -70,7 +70,7 @@ export default {
                 const DOMAIN = health.getDomain()
                 response
                     .cookie('accessToken', isLoggedIn.accessToken, {
-                        path: '/v1',
+                        path: '/',
                         domain: DOMAIN,
                         sameSite: 'strict',
                         maxAge: 1000 * config.TOKENS.ACCESS.EXPIRY,
@@ -78,7 +78,7 @@ export default {
                         secure: !(config.ENV === EApplicationEnvironment.DEVELOPMENT)
                     })
                     .cookie('refreshToken', isLoggedIn.refreshToken, {
-                        path: '/v1',
+                        path: '/',
                         domain: DOMAIN,
                         sameSite: 'strict',
                         maxAge: 1000 * config.TOKENS.REFRESH.EXPIRY,
@@ -86,7 +86,10 @@ export default {
                         secure: !(config.ENV === EApplicationEnvironment.DEVELOPMENT)
                     })
 
-                httpResponse(response, request, 200, responseMessage.auth.LOGIN_SUCCESSFUL, isLoggedIn)
+                httpResponse(response, request, 200, responseMessage.auth.LOGIN_SUCCESSFUL, {
+                    ...isLoggedIn,
+                    user: { _id: isLoggedIn.user._id, name: isLoggedIn.user.name, email: isLoggedIn.user.email, role: isLoggedIn.user.role }
+                })
             }
         } catch (error) {
             if (error instanceof CustomError) {
@@ -110,7 +113,7 @@ export default {
             //Clearing cookies
             response
                 .clearCookie('accessToken', {
-                    path: '/v1',
+                    path: '/',
                     domain: DOMAIN,
                     sameSite: 'strict',
                     maxAge: 1000 * config.TOKENS.ACCESS.EXPIRY,
@@ -118,7 +121,7 @@ export default {
                     secure: !(config.ENV === EApplicationEnvironment.DEVELOPMENT)
                 })
                 .clearCookie('refreshToken', {
-                    path: '/v1',
+                    path: '/',
                     domain: DOMAIN,
                     sameSite: 'strict',
                     maxAge: 1000 * config.TOKENS.REFRESH.EXPIRY,

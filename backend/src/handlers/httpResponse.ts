@@ -17,7 +17,7 @@ export default (res: Response, req: Request, responseStatusCode: number, respons
         data: data
     }
 
-    logger.info(`Controller Response`, { meta: response })
+    logger.info(`Controller Response`, { meta: { statusCode: responseStatusCode, method: req.method, message: responseMessage } })
 
     //To check if the ENV is production
     if (config.ENV === EApplicationEnvironment.PRODUCTION) {
