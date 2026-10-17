@@ -70,6 +70,8 @@ export const incidentQuerySchema = Joi.object({
     status: Joi.string().valid(...INCIDENT_STATUSES),
     priorityLevel: Joi.string().valid(...PRIORITIES),
     verificationStatus: Joi.string().valid(...VERIFICATION_STATUSES),
+    emergencyType: Joi.string().valid(...EMERGENCY_TYPES),
+    updatedSince: Joi.date().iso(),
     sort: Joi.string().valid('priority', 'oldest', 'newest').default('priority')
 })
 export const teamQuerySchema = Joi.object({ ...paging, status: Joi.string().valid(...TEAM_STATUSES) })
