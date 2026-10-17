@@ -33,12 +33,12 @@ export interface VulnerabilityIndicators {
   medicalNeeds?: number;
 }
 export interface CreateIncidentInput {
-  reporterName: string;
+  reporterName?: string;
   reporterPhone?: string;
   emergencyType: EmergencyType;
-  description: string;
+  description?: string;
   location?: IncidentLocation | null;
-  peopleAffected: number;
+  peopleAffected?: number;
   vulnerablePeople?: VulnerabilityIndicators;
   waterLevel?: "NONE" | "LOW" | "MODERATE" | "HIGH" | "UNKNOWN";
   immediateDanger?: boolean;

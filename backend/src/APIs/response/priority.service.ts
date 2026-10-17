@@ -17,7 +17,7 @@ export function calculatePriority(input: RiskInput) {
     add((input.vulnerablePeople?.disabled ?? 0) > 0, 10, 'Disabled people reported')
     add((input.vulnerablePeople?.elderly ?? 0) > 0, 10, 'Elderly people reported')
     add((input.vulnerablePeople?.children ?? 0) > 0, 5, 'Children reported')
-    add(input.peopleAffected > 1, 5, 'Multiple affected people reported')
+    add((input.peopleAffected ?? 0) > 1, 5, 'Multiple affected people reported')
     const missing: string[] = []
     if (!input.location) missing.push('location; manual location verification required')
     if (input.immediateDanger === undefined) missing.push('immediate danger')

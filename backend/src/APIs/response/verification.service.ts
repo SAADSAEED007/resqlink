@@ -31,6 +31,16 @@ export function identifyIncompleteFields(input: IncidentInput) {
         warnings.push('No contact phone provided: callbacks and direct coordination unavailable')
     }
 
+    if (!input.description) {
+        missingFields.push('description')
+        warnings.push('No situation description provided: coordinator follow-up is recommended')
+    }
+
+    if (input.peopleAffected === undefined) {
+        missingFields.push('peopleAffected')
+        warnings.push('Affected people count is unknown')
+    }
+
     if (input.waterLevel === undefined || input.waterLevel === 'UNKNOWN') {
         missingFields.push('waterLevel')
         warnings.push('Water level is unknown or unverified')

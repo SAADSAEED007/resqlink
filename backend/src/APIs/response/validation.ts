@@ -15,16 +15,16 @@ const latitude = Joi.number().min(-90).max(90).required()
 const longitude = Joi.number().min(-180).max(180).required()
 export const locationSchema = Joi.object({ latitude, longitude, address: text(300) })
 export const incidentSchema = Joi.object({
-    reporterName: text(100).min(2).required(),
+    reporterName: text(100).min(2),
     reporterPhone: Joi.string()
         .trim()
         .pattern(/^[+\d ()-]{5,32}$/),
     emergencyType: Joi.string()
         .valid(...EMERGENCY_TYPES)
         .required(),
-    description: text(2000).min(5).required(),
+    description: text(2000).min(1),
     location: locationSchema.allow(null),
-    peopleAffected: Joi.number().integer().min(1).max(10000).required(),
+    peopleAffected: Joi.number().integer().min(1).max(10000),
     vulnerablePeople: Joi.object({ elderly: count, children: count, disabled: count, medicalNeeds: count }),
     waterLevel: Joi.string().valid(...WATER_LEVELS),
     immediateDanger: Joi.boolean()
