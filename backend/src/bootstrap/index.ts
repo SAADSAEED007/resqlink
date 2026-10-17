@@ -1,3 +1,4 @@
+import { ensureIndexes } from '../APIs/response/response.service'
 import { initRateLimiter } from '../config/rate-limiter'
 import logger from '../handlers/logger'
 import database from '../services/database'
@@ -9,6 +10,8 @@ export async function bootstrap(): Promise<void> {
         logger.info(`Database connection established`, {
             meta: { CONNECTION_NAME: connection.name }
         })
+
+        await ensureIndexes()
 
         // Initialize rate limiter
         initRateLimiter(connection)

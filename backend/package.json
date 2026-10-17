@@ -19,7 +19,8 @@
         "migrate:dev": "cross-env MIGRATE_MODE=development node scripts/migration.js",
         "migrate:prod": "cross-env MIGRATE_MODE=production node scripts/migration.js",
         "dockerize:dev": "docker build -t base-server:dev -f docker/development/Dockerfile .",
-        "updates:check": "ncu"
+        "updates:check": "ncu",
+        "seed:demo": "ts-node src/scripts/seed-demo.ts"
     },
     "author": "",
     "license": "ISC",

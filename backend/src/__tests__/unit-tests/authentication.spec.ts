@@ -1,3 +1,4 @@
+jest.mock('../../handlers/logger', () => ({ info: jest.fn(), error: jest.fn(), warn: jest.fn() }))
 import { accountConfirmationService, loginService, registrationService } from '../../APIs/user/authentication/authentication.service'
 import query from '../../APIs/user/_shared/repo/user.repository'
 import validate from '../../APIs/user/authentication/validation/validations'

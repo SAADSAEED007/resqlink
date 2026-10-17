@@ -1,4 +1,5 @@
-﻿import config from './config/config'
+import responseRouter from './APIs/response'
+import config from './config/config'
 import express, { Application } from 'express'
 import path from 'path'
 import router from './APIs'
@@ -20,11 +21,12 @@ app.use(
         credentials: true
     })
 )
-app.use(express.json())
+app.use(express.json({ limit: '32kb' }))
 app.use(express.static(path.join(__dirname, '../', 'public')))
 
 //Router
 // app.use('/v1', router)
+app.use('/api', responseRouter)
 router(app)
 
 //404 handler
