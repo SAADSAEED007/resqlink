@@ -93,6 +93,7 @@ export interface CreateTeamInput {
   status?: "AVAILABLE" | "OFFLINE";
   location: IncidentLocation;
   capacity: number;
+  contact?: { phone?: string; email?: string; leadName?: string };
 }
 export interface RescueTeam
   extends Omit<CreateTeamInput, "status">,
