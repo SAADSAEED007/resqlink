@@ -568,6 +568,52 @@ Returns a chronological timeline of recent operational actions (new incident rep
 }
 ```
 
+### GET /api/incidents/:id/activity
+
+Requires coordinator/admin authorization cookie. Path parameter:
+- `id`: valid 24-character hexadecimal incident ID.
+
+Query parameters:
+- `limit`: integer between 1 and 100 (default: 50).
+- `sort`: string enum `asc` | `desc` (default: `asc`).
+
+Returns the full chronological activity history for a specific incident, synthesizing:
+- `INCIDENT_REPORTED`: Incident creation.
+- `PRIORITY_OVERRIDE`: Manual priority adjustments with rationale and coordinator actor.
+- `VERIFICATION_REVIEWED`: Verification decisions with review notes and coordinator actor.
+- `TEAM_ASSIGNED`: Rescue team assignments.
+- `STATUS_CHANGED`: State progression transitions with coordinator actor.
+- `INCIDENT_RESOLVED`: Incident closure with notes and coordinator actor.
+- `ASSIGNMENT_COMPLETED`: Team mission completion and resource release.
+
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Incident activity retrieved",
+  "data": {
+    "incidentId": "6710a...",
+    "total": 3,
+    "items": [
+      {
+        "id": "inc-created-6710a...",
+        "type": "INCIDENT_REPORTED",
+        "title": "SOS Reported: FLOOD (4 affected)",
+        "timestamp": "2026-10-17T10:00:00.000Z",
+        "priority": "HIGH",
+        "status": "PENDING",
+        "metadata": {
+          "incidentId": "6710a...",
+          "reporterName": "Demo citizen",
+          "emergencyType": "FLOOD",
+          "peopleAffected": 4
+        }
+      }
+    ]
+  }
+}
+```
+
 ## Prototype scoring and uncertainty
 
 Points: immediate danger +30; HIGH water +20 or MODERATE water +10; medical emergency +20; reported medical needs +15; disability +10; elderly +10; children +5; more than one person +5. Presence of each group scores once, irrespective of count. Clamp 0–100. Classification: 75+ CRITICAL, 50–74 HIGH, 25–49 MEDIUM, 0–24 LOW. Weights are unvalidated prototype assumptions.

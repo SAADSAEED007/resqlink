@@ -85,17 +85,39 @@ export interface DashboardQuery {
 export interface ActivityQuery {
     limit?: number
     isSimulated?: boolean
+    incidentId?: string
+}
+
+export interface IncidentActivityQuery {
+    limit?: number
+    sort?: 'asc' | 'desc'
+}
+
+export interface ActivityActor {
+    id?: string
+    name?: string
+    role?: string
 }
 
 export interface ActivityItem {
     id: string
-    type: 'INCIDENT_REPORTED' | 'TEAM_ASSIGNED' | 'ASSIGNMENT_COMPLETED' | 'PRIORITY_OVERRIDE'
+    type:
+        | 'INCIDENT_REPORTED'
+        | 'TEAM_ASSIGNED'
+        | 'ASSIGNMENT_COMPLETED'
+        | 'PRIORITY_OVERRIDE'
+        | 'VERIFICATION_REVIEWED'
+        | 'STATUS_CHANGED'
+        | 'INCIDENT_RESOLVED'
+        | 'TEAM_RELEASED'
     title: string
     timestamp: Date
     priority?: Priority
     status?: string
+    actor?: ActivityActor
     metadata: Record<string, unknown>
 }
+
 
 export interface IncidentStats {
     total: number
