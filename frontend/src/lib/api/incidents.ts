@@ -9,6 +9,10 @@ import type {
   VerificationStatus,
 } from "@/types/api";
 export interface IncidentQuery {
+  unassigned?: boolean;
+  isSimulated?: boolean;
+  search?: string;
+  emergencyType?: import('@/types/api').EmergencyType;
   page?: number;
   limit?: number;
   status?: IncidentStatus;

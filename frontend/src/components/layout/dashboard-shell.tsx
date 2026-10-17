@@ -87,7 +87,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       label: "Assignments",
       href: "/dashboard/assignments",
       icon: ClipboardList,
-      soon: true,
+      soon: false,
     },
   ];
 

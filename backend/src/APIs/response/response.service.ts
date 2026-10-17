@@ -12,6 +12,9 @@ export interface Page {
     limit: number
 }
 export interface IncidentQuery extends Page {
+    unassigned?: boolean
+    isSimulated?: boolean
+    search?: string
     status?: IncidentStatus
     priorityLevel?: Priority
     emergencyType?: EmergencyType
@@ -59,6 +62,12 @@ export async function createIncident(input: IncidentInput) {
 export async function listIncidents(query: IncidentQuery) {
     const filter: FilterQuery<IncidentRecord> = {}
     if (query.status) filter.status = query.status
+    if (query.unassigned) { filter.status = 'PENDING'; filter.assignedTeam = null }
+    if (typeof query.isSimulated === 'boolean') filter.isSimulated = query.isSimulated
+    if (query.search) {
+        const escaped = query.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        filter.$or = [{ description: { $regex: escaped, $options: 'i' } }, { 'location.address': { $regex: escaped, $options: 'i' } }]
+    }
     if (query.priorityLevel) filter.priorityLevel = query.priorityLevel
     if (query.emergencyType) filter.emergencyType = query.emergencyType
     if (query.verificationStatus) filter['verification.status'] = query.verificationStatus
@@ -163,14 +172,19 @@ export async function listTeams(query: TeamQuery) {
     return { items, pagination: { ...queryPage(query), total, totalPages: Math.ceil(total / query.limit) } }
 }
 export interface AssignmentFilter {
+    completedAt?: { $gte?: Date; $lt?: Date }
     status?: string
     incidentId?: unknown
     teamId?: unknown
     isSimulated?: boolean
 }
 
-export async function listAssignments(query: Page & { status?: string; incidentId?: string; teamId?: string; isSimulated?: boolean }) {
+export async function listAssignments(query: Page & { status?: string; incidentId?: string; teamId?: string; isSimulated?: boolean; completedFrom?: Date; completedBefore?: Date; sort?: 'assigned' | 'completed' }) {
     const filter: AssignmentFilter = {}
+    if (query.completedFrom || query.completedBefore) filter.completedAt = {
+        ...(query.completedFrom ? { $gte: new Date(query.completedFrom) } : {}),
+        ...(query.completedBefore ? { $lt: new Date(query.completedBefore) } : {})
+    }
     if (query.status) filter.status = query.status
     if (query.incidentId) filter.incidentId = query.incidentId
     if (query.teamId) filter.teamId = query.teamId
@@ -178,7 +192,7 @@ export async function listAssignments(query: Page & { status?: string; incidentI
 
     const populateIncident = {
         path: 'incidentId',
-        select: '_id emergencyType priorityLevel status location reporterName peopleAffected createdAt'
+        select: '_id emergencyType priorityLevel status location peopleAffected createdAt'
     }
     const populateTeam = {
         path: 'teamId',
@@ -189,7 +203,7 @@ export async function listAssignments(query: Page & { status?: string; incidentI
         Assignment.find(filter)
             .populate(populateIncident)
             .populate(populateTeam)
-            .sort({ assignedAt: -1, _id: 1 })
+            .sort(query.sort === 'completed' ? { completedAt: -1, _id: 1 } : { assignedAt: -1, _id: 1 })
             .skip((query.page - 1) * query.limit)
             .limit(query.limit)
             .lean(),
@@ -201,7 +215,7 @@ export async function listAssignments(query: Page & { status?: string; incidentI
 export async function getAssignment(id: string) {
     const populateIncident = {
         path: 'incidentId',
-        select: '_id emergencyType priorityLevel status location reporterName peopleAffected createdAt'
+        select: '_id emergencyType priorityLevel status location peopleAffected createdAt'
     }
     const populateTeam = {
         path: 'teamId',

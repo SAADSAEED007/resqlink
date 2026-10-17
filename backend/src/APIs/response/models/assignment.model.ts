@@ -16,6 +16,7 @@ schema.index({ incidentId: 1 }, { unique: true, partialFilterExpression: { statu
 schema.index({ teamId: 1 }, { unique: true, partialFilterExpression: { status: 'ACTIVE' } })
 schema.index({ demoKey: 1 }, { unique: true, partialFilterExpression: { demoKey: { $type: 'string' } } })
 schema.index({ status: 1, assignedAt: -1 })
+schema.index({ isSimulated: 1, status: 1, completedAt: -1 })
 schema.index({ incidentId: 1, assignedAt: -1 })
 schema.index({ teamId: 1, assignedAt: -1 })
 export default model('Assignment', schema)
