@@ -1130,14 +1130,16 @@
 .rqCommand .sidebar-nav { gap: 3px; margin-top: 4px; flex-shrink: 0; }
 .rqCommand .sidebar-nav > a, .rqCommand .sidebar-nav > button { gap: 10px; }
 .rqCommand .sidebar-nav svg { width: 21px; height: 21px; flex-shrink: 0; }
-.rqCommandNavNote { padding: 8px 12px; font-size: 10px; line-height: 1.6; }
-.rqCommand .public-return { margin-top: 8px; }
-.rqCommandPromo { position: relative; min-height: 218px; flex-shrink: 0; margin-top: auto; border: 1px solid var(--command-border); border-radius: 13px; overflow: hidden; background: #07182c; }
+.rqCommandPromo { position: relative; min-height: 218px; flex-shrink: 0; margin-top: 18px; border: 1px solid var(--command-border); border-radius: 13px; overflow: hidden; background: #07182c; }
 .rqCommandPromo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, #07182c10, #07182c65 35%, #07182cf5 100%); }
 .rqCommandPromo > div { position: absolute; inset: auto 12px 15px; z-index: 1; color: #f8fafc; }
 .rqCommandPromo p { font-size: 19px; font-weight: 650; line-height: 1.25; letter-spacing: -.03em; }
 .rqCommandPromo span { display: block; width: 30px; height: 2px; background: #3b82f6; margin: 13px 0 10px; }
 .rqCommandPromo small { display: block; font-size: 9px; color: #afc2da; }
+.rqCommandProfileLoading { align-items: center; display: flex; gap: 10px; }
+.rqCommandProfileLoading > span:last-child { display: grid; gap: 5px; width: 86px; }
+.rqCommandProfileLoading i { background: var(--command-soft); border-radius: 999px; display: block; height: 8px; width: 100%; }
+.rqCommandProfileLoading i:last-child { width: 58%; }
 .rqCommand .rqCommandMetric { height: 108px; border-left: 3px solid var(--metric-accent); background: linear-gradient(115deg, color-mix(in srgb, var(--metric-accent) 8%, var(--command-surface)), var(--command-surface) 75%); box-shadow: 0 5px 20px #020c1910; }
 .rqCommandMetric > div:first-child > div:first-child { width: 48px; height: 52px; border-radius: 12px; color: var(--metric-accent); }
 .rqCommandMetric svg { width: 27px; height: 27px; }
@@ -1235,7 +1237,7 @@
   .rqCommandMap, .rqCommandQueue { height: 470px; }
   .rqCommand .sidebar-nav > a, .rqCommand .sidebar-nav > button { min-height: 41px; padding: 8px 10px; }
 }
-@media (max-width: 1279px) { .rqCommandPromo { display: none; } .rqCommand .sidebar { overflow: visible; } }
+@media (max-width: 1279px) { .rqCommand .sidebar { overflow-y: auto; } }
 @media (max-width: 767px) {
   .rqCommand .rqCommandMetric { height: 108px; }
   .rqCommandQueue .rqIncidentVisual-card { width: 64px; height: 78px; }
