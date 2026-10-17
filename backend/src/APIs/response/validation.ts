@@ -90,6 +90,9 @@ export const verificationUpdateSchema = Joi.object({
 const paging = { page: Joi.number().integer().min(1).max(100000).default(1), limit: Joi.number().integer().min(1).max(100).default(20) }
 export const incidentQuerySchema = Joi.object({
     ...paging,
+    unassigned: Joi.boolean(),
+    isSimulated: Joi.boolean(),
+    search: text(100),
     status: Joi.string().valid(...INCIDENT_STATUSES),
     priorityLevel: Joi.string().valid(...PRIORITIES),
     verificationStatus: Joi.string().valid(...VERIFICATION_STATUSES),
@@ -106,6 +109,9 @@ export const teamQuerySchema = Joi.object({
 })
 export const assignmentQuerySchema = Joi.object({
     ...paging,
+    completedFrom: Joi.date().iso(),
+    completedBefore: Joi.date().iso().when('completedFrom', { is: Joi.exist(), then: Joi.date().greater(Joi.ref('completedFrom')) }),
+    sort: Joi.string().valid('assigned', 'completed'),
     status: Joi.string().valid('ACTIVE', 'COMPLETED', 'CANCELLED'),
     incidentId: Joi.string().hex().length(24),
     teamId: Joi.string().hex().length(24),
