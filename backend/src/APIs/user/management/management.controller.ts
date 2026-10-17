@@ -9,7 +9,9 @@ export default {
     me: (request: Request, response: Response, next: NextFunction) => {
         try {
             const { authenticatedUser } = request as unknown as IMyUser
-            httpResponse(response, request, 201, responseMessage.SUCCESS, authenticatedUser)
+            response.set('Cache-Control', 'no-store')
+            const { _id, name, email, role } = authenticatedUser
+            httpResponse(response, request, 200, responseMessage.SUCCESS, { _id, name, email, role })
         } catch (error) {
             if (error instanceof CustomError) {
                 httpError(next, error, request, error.statusCode)
