@@ -76,6 +76,13 @@ export const incidentQuerySchema = Joi.object({
 })
 export const teamQuerySchema = Joi.object({ ...paging, status: Joi.string().valid(...TEAM_STATUSES) })
 export const assignmentQuerySchema = Joi.object({ ...paging, status: Joi.string().valid('ACTIVE', 'COMPLETED', 'CANCELLED') })
+export const dashboardQuerySchema = Joi.object({
+    isSimulated: Joi.boolean()
+})
+export const activityQuerySchema = Joi.object({
+    limit: Joi.number().integer().min(1).max(100).default(20),
+    isSimulated: Joi.boolean()
+})
 export function validate<T>(schema: Joi.Schema, input: unknown): T {
     const { payload, error } = validateSchema<T>(schema, input)
     if (error) throw new CustomError(error.details.map((detail) => detail.message).join('; '), 400)

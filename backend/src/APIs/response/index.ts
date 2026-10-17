@@ -10,7 +10,8 @@ import { EUserRoles } from '../../constant/users'
 import { CustomError } from '../../utils/errors'
 import * as schema from './validation'
 import * as service from './response.service'
-import { IncidentInput, TeamInput, IncidentStatus, Priority, VerificationStatus } from './types'
+import * as dashboardService from './dashboard.service'
+import { IncidentInput, TeamInput, IncidentStatus, Priority, VerificationStatus, DashboardQuery, ActivityQuery } from './types'
 
 const coordinator: RequestHandler = (req, _res, next) => {
     const user = (req as IAuthenticateRequest).authenticatedUser
@@ -35,6 +36,27 @@ router.use((_req, res, next) => {
     res.setHeader('Expires', '0')
     next()
 })
+router.get(
+    '/dashboard/summary',
+    asyncHandler(async (req, res) => {
+        const query = schema.validate<DashboardQuery>(schema.dashboardQuerySchema, req.query)
+        httpResponse(res, req, 200, 'Dashboard summary retrieved', await dashboardService.getDashboardSummary(query))
+    })
+)
+router.get(
+    '/dashboard/stats',
+    asyncHandler(async (req, res) => {
+        const query = schema.validate<DashboardQuery>(schema.dashboardQuerySchema, req.query)
+        httpResponse(res, req, 200, 'Dashboard summary retrieved', await dashboardService.getDashboardSummary(query))
+    })
+)
+router.get(
+    '/dashboard/activity',
+    asyncHandler(async (req, res) => {
+        const query = schema.validate<ActivityQuery>(schema.activityQuerySchema, req.query)
+        httpResponse(res, req, 200, 'Dashboard activity retrieved', await dashboardService.getDashboardActivity(query))
+    })
+)
 router.get(
     '/incidents',
     asyncHandler(async (req, res) => {

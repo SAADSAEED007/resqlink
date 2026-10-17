@@ -1,3 +1,6 @@
+Here is the complete, resolved document **ready to copy and paste directly into GitHub's conflict resolution editor** so you can click **"Mark as resolved"**:
+
+```markdown
 # ResQLink API contracts
 
 Base URL: `http://localhost:4000/api`. Existing boilerplate authentication and health routes remain under `/v1`; do not combine the prefixes. Responses are JSON. This is prototype decision support for a simulated flood scenario, not validated emergency policy or real dispatch infrastructure.
@@ -405,6 +408,166 @@ When coordinates are supplied, shelters within the radius are sorted nearest fir
 
 Resource status is automatically assigned (`ADEQUATE`, `LOW`, `CRITICAL`, `EXHAUSTED`) based on quantity relative to `minimumThreshold` if not explicitly supplied.
 
+## Dashboard analytics and activity (admin)
+
+### GET /api/dashboard/summary (alias: GET /api/dashboard/stats)
+
+Requires admin authorization cookie. Query: optional `isSimulated` boolean.
+Returns operational statistics and recent activity for the Command Center:
+
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Dashboard summary retrieved",
+  "data": {
+    "incidents": {
+      "total": 12,
+      "byStatus": {
+        "PENDING": 4,
+        "ASSIGNED": 3,
+        "IN_PROGRESS": 2,
+        "RESOLVED": 3,
+        "CANCELLED": 0
+      },
+      "byPriority": {
+        "CRITICAL": 3,
+        "HIGH": 4,
+        "MEDIUM": 3,
+        "LOW": 2
+      },
+      "byEmergencyType": {
+        "FLOOD": 7,
+        "MEDICAL": 3,
+        "FIRE": 1,
+        "STRANDED": 1,
+        "SUPPLIES": 0,
+        "OTHER": 0
+      },
+      "totalPeopleAffected": 38,
+      "requiringLocationVerification": 2
+    },
+    "teams": {
+      "total": 6,
+      "byStatus": {
+        "AVAILABLE": 3,
+        "BUSY": 2,
+        "OFFLINE": 1
+      },
+      "totalCapacity": 36,
+      "availableCapacity": 18,
+      "busyCapacity": 14
+    },
+    "assignments": {
+      "total": 5,
+      "byStatus": {
+        "ACTIVE": 2,
+        "COMPLETED": 3,
+        "CANCELLED": 0
+      }
+    },
+    "trends": {
+      "last24Hours": [
+        { "timestamp": "2026-10-17T03:00", "label": "03:00", "count": 2, "criticalCount": 1 }
+      ],
+      "last7Days": [
+        { "date": "2026-10-17", "label": "Sat (10-17)", "count": 5, "criticalCount": 2 }
+      ]
+    },
+    "recentActivity": [
+      {
+        "id": "asg-created-6710b...",
+        "type": "TEAM_ASSIGNED",
+        "title": "Team KHI-BOAT-01 assigned to FLOOD",
+        "timestamp": "2026-10-17T10:30:00.000Z",
+        "status": "ACTIVE",
+        "metadata": {
+          "assignmentId": "6710b...",
+          "incidentId": "6710a...",
+          "teamId": "67109...",
+          "notes": "Urgent deployment"
+        }
+      }
+    ]
+  }
+}
+```
+
+All counts default to 0 if no records exist; empty collections return safely without undefined errors.
+
+### GET /api/dashboard/activity
+
+Requires admin authorization cookie. Query parameters:
+- `limit`: integer between 1 and 100 (default: 20).
+- `isSimulated`: optional boolean filter.
+
+Returns a chronological timeline of recent operational actions (new incident reports, team assignments, assignment completions, and priority overrides) sorted by `timestamp` descending:
+
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Dashboard activity retrieved",
+  "data": {
+    "items": [
+      {
+        "id": "asg-completed-6710c...",
+        "type": "ASSIGNMENT_COMPLETED",
+        "title": "Assignment completed by Team KHI-BOAT-01",
+        "timestamp": "2026-10-17T11:00:00.000Z",
+        "status": "COMPLETED",
+        "metadata": {
+          "assignmentId": "6710c...",
+          "incidentId": "6710a...",
+          "teamId": "67109..."
+        }
+      },
+      {
+        "id": "ov-6710a...-1729162500000",
+        "type": "PRIORITY_OVERRIDE",
+        "title": "Priority override to CRITICAL: \"Rising floodwaters reported by ground crew\"",
+        "timestamp": "2026-10-17T10:45:00.000Z",
+        "priority": "CRITICAL",
+        "metadata": {
+          "incidentId": "6710a...",
+          "previousPriority": "HIGH",
+          "newPriority": "CRITICAL",
+          "reason": "Rising floodwaters reported by ground crew"
+        }
+      },
+      {
+        "id": "asg-created-6710c...",
+        "type": "TEAM_ASSIGNED",
+        "title": "Team KHI-BOAT-01 assigned to FLOOD",
+        "timestamp": "2026-10-17T10:30:00.000Z",
+        "status": "ACTIVE",
+        "metadata": {
+          "assignmentId": "6710c...",
+          "incidentId": "6710a...",
+          "teamId": "67109...",
+          "notes": ""
+        }
+      },
+      {
+        "id": "inc-created-6710a...",
+        "type": "INCIDENT_REPORTED",
+        "title": "SOS Reported: FLOOD (4 affected)",
+        "timestamp": "2026-10-17T10:00:00.000Z",
+        "priority": "HIGH",
+        "status": "PENDING",
+        "metadata": {
+          "incidentId": "6710a...",
+          "reporterName": "Demo citizen",
+          "emergencyType": "FLOOD",
+          "peopleAffected": 4
+        }
+      }
+    ],
+    "total": 4
+  }
+}
+```
+
 ## Prototype scoring and uncertainty
 
 Points: immediate danger +30; HIGH water +20 or MODERATE water +10; medical emergency +20; reported medical needs +15; disability +10; elderly +10; children +5; more than one person +5. Presence of each group scores once, irrespective of count. Clamp 0–100. Classification: 75+ CRITICAL, 50–74 HIGH, 25–49 MEDIUM, 0–24 LOW. Weights are unvalidated prototype assumptions.
@@ -415,8 +578,9 @@ Missing location always gives LOW confidence. Otherwise two or more missing/unce
 
 All seed names/descriptions are labeled SIMULATED and all three seeded model types have isSimulated=true. The seed requires DEMO_MODE=true, nonproduction environment, and a separate DEMO_DATABASE_URL whose database name ends `_demo`. Existing records are not reset; duplicate keys abort the transaction. Run `npm run seed:demo` from backend. To view seeded records, point the demo backend's DATABASE_URL to that same demo database. Never change a real-data backend to a demo database during active use.
 
-`npm test -- --runInBand` runs isolated tests; real MongoDB integration tests skip unless TEST*DATABASE_URL names `resqlink_core_test*<hex>`. Those tests create and clean only that test database. Never point TEST_DATABASE_URL at an application database. See verification.md for actual execution results.
+`npm test -- --runInBand` runs isolated tests; real MongoDB integration tests skip unless TEST_DATABASE_URL names `resqlink_core_test_<hex>`. Those tests create and clean only that test database. Never point TEST_DATABASE_URL at an application database. See verification.md for actual execution results.
 
 ## Frontend session contract
 
 `GET /v1/user/me` requires the access-token cookie and returns HTTP 200 with the existing success envelope and `data: { _id, name, email, role }`. It sends `Cache-Control: no-store`; confirmation/reset fields are excluded. `PUT /v1/logout` clears both cookies with matching path/domain/security options and a past expiry. The frontend uses these existing routes and verifies session cookies after login. See [frontend-foundation.md](frontend-foundation.md) for same-site deployment requirements.
+```

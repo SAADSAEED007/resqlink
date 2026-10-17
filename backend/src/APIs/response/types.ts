@@ -48,3 +48,73 @@ export interface TeamInput {
     location: Location
     capacity: number
 }
+export type TeamStatus = (typeof TEAM_STATUSES)[number]
+export type AssignmentStatus = 'ACTIVE' | 'COMPLETED' | 'CANCELLED'
+
+export interface DashboardQuery {
+    isSimulated?: boolean
+}
+
+export interface ActivityQuery {
+    limit?: number
+    isSimulated?: boolean
+}
+
+export interface ActivityItem {
+    id: string
+    type: 'INCIDENT_REPORTED' | 'TEAM_ASSIGNED' | 'ASSIGNMENT_COMPLETED' | 'PRIORITY_OVERRIDE'
+    title: string
+    timestamp: Date
+    priority?: Priority
+    status?: string
+    metadata: Record<string, unknown>
+}
+
+export interface IncidentStats {
+    total: number
+    byStatus: Record<IncidentStatus, number>
+    byPriority: Record<Priority, number>
+    byEmergencyType: Record<EmergencyType, number>
+    totalPeopleAffected: number
+    requiringLocationVerification: number
+}
+
+export interface TeamStats {
+    total: number
+    byStatus: Record<TeamStatus, number>
+    totalCapacity: number
+    availableCapacity: number
+    busyCapacity: number
+}
+
+export interface AssignmentStats {
+    total: number
+    byStatus: Record<AssignmentStatus, number>
+}
+
+export interface TrendPointHourly {
+    timestamp: string
+    label: string
+    count: number
+    criticalCount: number
+}
+
+export interface TrendPointDaily {
+    date: string
+    label: string
+    count: number
+    criticalCount: number
+}
+
+export interface DashboardTrends {
+    last24Hours: TrendPointHourly[]
+    last7Days: TrendPointDaily[]
+}
+
+export interface DashboardSummary {
+    incidents: IncidentStats
+    teams: TeamStats
+    assignments: AssignmentStats
+    trends: DashboardTrends
+    recentActivity: ActivityItem[]
+}
