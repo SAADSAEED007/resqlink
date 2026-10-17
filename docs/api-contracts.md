@@ -13,7 +13,7 @@ Set frontend `.env.local` to `NEXT_PUBLIC_API_URL=http://localhost:4000/api`, th
 ```ts
 const base = process.env.NEXT_PUBLIC_API_URL!;
 const response = await fetch(`${base}/incidents?status=PENDING&limit=20`, {
-  credentials: 'include',
+  credentials: "include",
 });
 const result = await response.json();
 if (!response.ok) throw new Error(result.message);
@@ -28,7 +28,11 @@ Success uses the existing utility:
 {
   "success": true,
   "statusCode": 201,
-  "request": { "method": "POST", "url": "/api/incidents", "ip": "client-ip-in-development" },
+  "request": {
+    "method": "POST",
+    "url": "/api/incidents",
+    "ip": "client-ip-in-development"
+  },
   "message": "Incident created successfully",
   "data": {}
 }
@@ -42,16 +46,16 @@ All list endpoints return `data: { items: [], pagination: { page, limit, total, 
 
 ## Enumerations
 
-| Field | Values |
-| --- | --- |
-| emergencyType | FLOOD, MEDICAL, FIRE, STRANDED, SUPPLIES, OTHER |
-| waterLevel | NONE, LOW, MODERATE, HIGH, UNKNOWN |
-| priorityLevel | CRITICAL, HIGH, MEDIUM, LOW |
-| confidenceLevel | HIGH, MEDIUM, LOW |
-| incident status | PENDING, ASSIGNED, IN_PROGRESS, RESOLVED, CANCELLED |
+| Field             | Values                                                            |
+| ----------------- | ----------------------------------------------------------------- |
+| emergencyType     | FLOOD, MEDICAL, FIRE, STRANDED, SUPPLIES, OTHER                   |
+| waterLevel        | NONE, LOW, MODERATE, HIGH, UNKNOWN                                |
+| priorityLevel     | CRITICAL, HIGH, MEDIUM, LOW                                       |
+| confidenceLevel   | HIGH, MEDIUM, LOW                                                 |
+| incident status   | PENDING, ASSIGNED, IN_PROGRESS, RESOLVED, CANCELLED               |
 | team capabilities | WATER_RESCUE, MEDICAL, EVACUATION, FIRE_RESPONSE, SUPPLY_DELIVERY |
-| team status | AVAILABLE, BUSY, OFFLINE |
-| assignment status | ACTIVE, COMPLETED, CANCELLED |
+| team status       | AVAILABLE, BUSY, OFFLINE                                          |
+| assignment status | ACTIVE, COMPLETED, CANCELLED                                      |
 
 MongoDB IDs are 24 hexadecimal characters. Invalid IDs return 400; valid IDs with no document return 404. Timestamps are ISO dates. Object references serialize as ID strings.
 
@@ -65,8 +69,17 @@ MongoDB IDs are 24 hexadecimal characters. Invalid IDs return 400; valid IDs wit
   "description": "SIMULATED household surrounded by rising water",
   "emergencyType": "FLOOD",
   "peopleAffected": 4,
-  "location": { "latitude": 24.86, "longitude": 67.01, "address": "SIMULATED Karachi location" },
-  "vulnerablePeople": { "elderly": 1, "children": 2, "disabled": 0, "medicalNeeds": 0 },
+  "location": {
+    "latitude": 24.86,
+    "longitude": 67.01,
+    "address": "SIMULATED Karachi location"
+  },
+  "vulnerablePeople": {
+    "elderly": 1,
+    "children": 2,
+    "disabled": 0,
+    "medicalNeeds": 0
+  },
   "waterLevel": "HIGH",
   "immediateDanger": true
 }
@@ -79,6 +92,7 @@ Location is optional or null. When present, both latitude [-90,90] and longitude
 Each vulnerability count is optional, integer 0–10000. Categories may overlap; they are not summed to infer unique people. Omitted counts remain unknown, not zero. Water level and immediate danger are optional; omissions lower confidence. Numeric/boolean string coercion follows the inherited Joi validation utility.
 
 Lightweight duplicate and completeness verification runs on submission:
+
 - **Duplicate detection:** Checks recent active incidents (past 120 minutes) for identical emergency type within 0.5 km, matching contact phone, or matching address text.
 - **Completeness check:** Evaluates missing coordinates, missing contact phone, unknown/unverified water level, missing immediate danger, or incomplete vulnerability breakdowns.
 - **Safety guarantee:** Requests are **never** automatically rejected, deleted, or downgraded. False matches are not automatically merged.
@@ -104,7 +118,7 @@ Return 201 with the incident, generated score/reasons/confidence, verification o
 
 ### GET /api/incidents (admin)
 
-Query: page, limit, optional status, priorityLevel, and verificationStatus (`NEEDS_REVIEW|VERIFIED|FLAGGED_DUPLICATE|DISMISSED`), sort=`priority|oldest|newest`. Default priority sorts score descending, creation date ascending (oldest first on ties), then _id ascending. Oldest/newest sort creation date ascending/descending, then _id ascending. Filtering uses validated enum values only.
+Query: page, limit, optional status, priorityLevel, and verificationStatus (`NEEDS_REVIEW|VERIFIED|FLAGGED_DUPLICATE|DISMISSED`), sort=`priority|oldest|newest`. Default priority sorts score descending, creation date ascending (oldest first on ties), then \_id ascending. Oldest/newest sort creation date ascending/descending, then \_id ascending. Filtering uses validated enum values only.
 
 ### GET /api/incidents/:id (admin)
 
@@ -131,10 +145,12 @@ Body `{ "priorityLevel": "CRITICAL", "reason": "Verified worsening conditions in
 ### PATCH /api/incidents/:id/verification (admin)
 
 Body `{ "status": "VERIFIED", "notes": "Verified location via VHF radio; separate household from nearby report" }`.
+
 - `status`: required, valid enum `NEEDS_REVIEW | VERIFIED | FLAGGED_DUPLICATE | DISMISSED`.
 - `notes`: required, 3–1000 characters.
 
 Updates the incident's verification object with coordinator attribution:
+
 - Records `reviewedBy` (authenticated coordinator ID) and `reviewedAt` (timestamp).
 - Setting `status` to `VERIFIED` or `DISMISSED` marks `requiresManualReview: false`.
 - Setting `status` to `NEEDS_REVIEW` or `FLAGGED_DUPLICATE` marks `requiresManualReview: true`.
@@ -177,7 +193,11 @@ Returns one rescue team, or 400/404.
 ### POST /api/assignments
 
 ```json
-{ "incidentId": "24_HEX_CHARACTERS", "teamId": "24_HEX_CHARACTERS", "notes": "Optional coordinator notes" }
+{
+  "incidentId": "24_HEX_CHARACTERS",
+  "teamId": "24_HEX_CHARACTERS",
+  "notes": "Optional coordinator notes"
+}
 ```
 
 notes optional, max 1000 chars. Confirms both documents exist, incident PENDING with no team, team AVAILABLE with no incident, matching simulated/real flag, suitable capability, and no active assignment for either side. Creates ACTIVE assignment and atomically sets incident ASSIGNED and team BUSY with reciprocal references. Returns 201 assignment with assignedAt, completedAt=null, notes, and isSimulated. This records a simulated coordination decision; it does not call real emergency services.
@@ -188,7 +208,111 @@ Transactions and unique partial ACTIVE indexes on incidentId and teamId prevent 
 
 ### GET /api/assignments
 
-Query page, limit, optional status (`ACTIVE|COMPLETED|CANCELLED`). Sort assignedAt descending, _id ascending. Returns assignment history with raw incident/team ID references. Fetch details through the incident/team endpoints; there is no implicit population.
+Query page, limit, optional status (`ACTIVE|COMPLETED|CANCELLED`). Sort assignedAt descending, \_id ascending. Returns assignment history with raw incident/team ID references. Fetch details through the incident/team endpoints; there is no implicit population.
+
+## Community risk zones (admin / proactive assessment)
+
+The `/api/community-risk-zones` endpoints enable disaster response coordinators to register, monitor, and assess vulnerable communities requiring proactive field assessment, even when no citizen SOS reports have been received (e.g. low-connectivity, flooded, or power-out areas). This module operates independently of citizen SOS dispatch and incident priority scoring.
+
+### Endpoints overview
+
+| Method  | Endpoint                                   | Description                                             | Auth Required           |
+| ------- | ------------------------------------------ | ------------------------------------------------------- | ----------------------- |
+| `POST`  | `/api/community-risk-zones`                | Register a new community risk zone                      | Yes (Admin/Coordinator) |
+| `GET`   | `/api/community-risk-zones`                | List and filter risk zones (severity, status, district) | Yes (Admin/Coordinator) |
+| `POST`  | `/api/community-risk-zones/seed`           | Seed realistic simulated Sindh risk zone demo fixtures  | Yes (Admin/Coordinator) |
+| `GET`   | `/api/community-risk-zones/:id`            | Retrieve details of a specific community risk zone      | Yes (Admin/Coordinator) |
+| `POST`  | `/api/community-risk-zones/:id/assessment` | Request proactive field assessment reconnaissance       | Yes (Admin/Coordinator) |
+| `PATCH` | `/api/community-risk-zones/:id/status`     | Update assessment status with audit trail notes         | Yes (Admin/Coordinator) |
+
+### Enumerations
+
+| Field                 | Values                                                                                               |
+| --------------------- | ---------------------------------------------------------------------------------------------------- |
+| hazardType            | `FLOOD_INUNDATION`, `FLASH_FLOOD`, `RIVER_BREACH`, `HEATWAVE`, `WATER_SHORTAGE`, `OTHER`             |
+| hazardSeverity        | `CRITICAL`, `HIGH`, `MODERATE`, `LOW`                                                                |
+| connectivityStatus    | `NO_CELL_COVERAGE`, `INTERMITTENT_SIGNAL`, `NORMAL_NETWORK`, `UNKNOWN`                               |
+| assessmentStatus      | `PENDING_ASSESSMENT`, `ASSESSMENT_DISPATCHED`, `ASSESSMENT_COMPLETED`, `MONITORING_ONLY`, `INACTIVE` |
+| priorityUrgency       | `CRITICAL`, `URGENT`, `ROUTINE`                                                                      |
+| informationConfidence | `HIGH`, `MEDIUM`, `LOW`                                                                              |
+
+### POST /api/community-risk-zones (admin)
+
+Registers a vulnerable community risk zone.
+
+```json
+{
+  "communityName": "Goth Haji Ismail",
+  "district": "Thatta",
+  "tehsil": "Mirpur Sakro",
+  "approximateLocation": {
+    "latitude": 24.55,
+    "longitude": 67.65,
+    "landmarkDescription": "Adjacent to main canal culvert, 4km past coastal dyke"
+  },
+  "hazardType": "FLOOD_INUNDATION",
+  "hazardSeverity": "CRITICAL",
+  "connectivityStatus": "NO_CELL_COVERAGE",
+  "accessObstacles": ["Submerged culvert", "Washed-out link road"],
+  "vulnerablePopulation": {
+    "estimatedTotalPopulation": 450,
+    "estimatedVulnerableCount": 120,
+    "vulnerabilityDetails": "High proportion of elderly and infants; 2 disabled individuals"
+  },
+  "informationConfidence": "MEDIUM",
+  "notes": "Reported via union council radio liaison"
+}
+```
+
+- **Approximate Location Handling:** When coordinates (`latitude`, `longitude`) are omitted or null, `isLocationEstimated` defaults to `true`. `informationConfidence` is capped at `MEDIUM` (if supplied as `HIGH`), and an explanatory confidence reason is automatically recorded.
+- **Connectivity Warnings:** Areas flagged with `NO_CELL_COVERAGE` automatically receive an audit note explaining that communications rely on delayed external liaisons.
+
+### GET /api/community-risk-zones (admin)
+
+Query parameters:
+
+- `hazardSeverity`: Filter by `CRITICAL | HIGH | MODERATE | LOW`
+- `assessmentStatus`: Filter by `PENDING_ASSESSMENT | ASSESSMENT_DISPATCHED | ASSESSMENT_COMPLETED | MONITORING_ONLY | INACTIVE`
+- `district`: Filter by district name (case-insensitive)
+- `connectivityStatus`: Filter by `NO_CELL_COVERAGE | INTERMITTENT_SIGNAL | NORMAL_NETWORK | UNKNOWN`
+- `sort`: `severity` (default: CRITICAL > HIGH > MODERATE > LOW, then newest first), `newest`, or `oldest`
+- `page` (default 1), `limit` (default 20, max 100)
+
+### POST /api/community-risk-zones/:id/assessment (admin)
+
+Coordinator submits a request for proactive field reconnaissance.
+
+```json
+{
+  "priorityUrgency": "CRITICAL",
+  "assignedOfficer": "Officer Tariq Baloch",
+  "assessmentNotes": "Dispatching 4x4 survey team to inspect rising canal levels and confirm community status"
+}
+```
+
+- Transitions `assessmentStatus` to `ASSESSMENT_DISPATCHED`.
+- Records `fieldAssessment` subdocument with coordinator ID and timestamp.
+- Appends entry to `statusHistory`.
+- No automatic emergency dispatch is triggered.
+
+### PATCH /api/community-risk-zones/:id/status (admin)
+
+Updates the assessment status with mandatory coordinator notes.
+
+```json
+{
+  "status": "ASSESSMENT_COMPLETED",
+  "notes": "Field survey complete; identified 30 families requiring relocation to higher ground"
+}
+```
+
+- Appends transition to `statusHistory` recording previous status, new status, coordinator ID, and timestamp.
+- Automatically marks `fieldAssessment.completedAt` when moving to `ASSESSMENT_COMPLETED`.
+- Rejects identical status updates with 409 Conflict.
+
+### POST /api/community-risk-zones/seed (admin)
+
+Seeds 5 realistic simulated Sindh demo fixtures (Thatta, Dadu, Sujawal, Khairpur, Kashmore) marked `isSimulated: true`. Idempotent (skips existing demo keys).
 
 ## Prototype scoring and uncertainty
 
@@ -200,7 +324,7 @@ Missing location always gives LOW confidence. Otherwise two or more missing/unce
 
 All seed names/descriptions are labeled SIMULATED and all three seeded model types have isSimulated=true. The seed requires DEMO_MODE=true, nonproduction environment, and a separate DEMO_DATABASE_URL whose database name ends `_demo`. Existing records are not reset; duplicate keys abort the transaction. Run `npm run seed:demo` from backend. To view seeded records, point the demo backend's DATABASE_URL to that same demo database. Never change a real-data backend to a demo database during active use.
 
-`npm test -- --runInBand` runs isolated tests; real MongoDB integration tests skip unless TEST_DATABASE_URL names `resqlink_core_test_<hex>`. Those tests create and clean only that test database. Never point TEST_DATABASE_URL at an application database. See verification.md for actual execution results.
+`npm test -- --runInBand` runs isolated tests; real MongoDB integration tests skip unless TEST*DATABASE_URL names `resqlink_core_test*<hex>`. Those tests create and clean only that test database. Never point TEST_DATABASE_URL at an application database. See verification.md for actual execution results.
 
 ## Frontend session contract
 
