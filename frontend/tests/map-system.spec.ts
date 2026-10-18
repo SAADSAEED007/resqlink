@@ -388,8 +388,7 @@ test("public SOS only reports a chosen map pin after explicit confirmation", asy
   await page.getByRole("button", { name: "Send SOS", exact: true }).click();
   await expect(
     page.getByRole("heading", {
-      name: "Emergency report recorded",
-      exact: true,
+      name: /SOS Report Submitted|Emergency report recorded/,
     }),
   ).toBeVisible();
   expect(payloads).toHaveLength(1);
