@@ -7,7 +7,7 @@ import { PriorityIncidentQueue } from "./PriorityIncidentQueue";
 import { RescueTeamAvailability } from "./RescueTeamAvailability";
 import { IncidentTrends } from "./IncidentTrends";
 import { RecentActivity } from "./RecentActivity";
-import { IncidentDetailModal } from "./IncidentDetailModal";
+import { IncidentQuickPreview } from "./IncidentQuickPreview";
 import { MOCK_TRENDS_24H } from "./mock-data";
 import {
   RefreshCw,
@@ -220,8 +220,8 @@ export function DashboardOverview() {
         </section>
       )}
 
-      {/* Interactive Detail Modal */}
-      <IncidentDetailModal
+      {/* Incident Quick Preview Drawer */}
+      <IncidentQuickPreview
         incident={selectedIncident}
         onClose={() => setSelectedIncident(null)}
       />

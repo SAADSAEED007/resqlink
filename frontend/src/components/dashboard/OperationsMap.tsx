@@ -96,16 +96,12 @@ export function OperationsMap({
                 : 200,
         });
         const text = document.createElement("div");
-        text.textContent = `${incident.priorityLevel}: ${incident.emergencyType}. Reported location.`;
+        text.textContent = `${incident.priorityLevel}: ${incident.emergencyType} · Click to preview`;
         marker.bindTooltip(text);
-        const popup = document.createElement("div");
-        popup.textContent = `${incident.emergencyType} · ${incident.priorityLevel} · Reported location`;
-        const link = document.createElement("a");
-        link.href = `/dashboard/incidents/${encodeURIComponent(incident._id)}`;
-        link.textContent = "View Incident Details";
-        popup.append(document.createElement("br"), link);
-        marker.bindPopup(popup);
-        marker.on("click", () => callbacks.current.onSelectIncident(incident));
+        marker.on("click", (e) => {
+          L.DomEvent.stopPropagation(e);
+          callbacks.current.onSelectIncident(incident);
+        });
         marker.addTo(layers.current!);
         incidentMarkers.current.set(incident._id, marker);
       });
@@ -165,7 +161,16 @@ export function OperationsMap({
   const selectedPoint = JSON.stringify(mapPosition(selectedIncident?.location));
   useEffect(() => {
     const point = JSON.parse(selectedPoint) as MapPosition | null;
-    if (ready && point) map.current?.setView(point, 12);
+    if (ready && point && map.current) {
+      try {
+        const bounds = map.current.getBounds();
+        if (!bounds.contains(point)) {
+          map.current.panTo(point, { animate: true });
+        }
+      } catch {
+        map.current.setView(point, 12);
+      }
+    }
   }, [map, ready, selectedPoint]);
   useEffect(() => {
     function escape(event: KeyboardEvent) {
