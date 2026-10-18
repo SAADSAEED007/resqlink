@@ -121,3 +121,78 @@ describe('assignment policy and geographic matching', () => {
         expect(distanceKm(full.location!, full.location!)).toBe(0)
     })
 })
+
+describe('minimal SOS and nullable field handling', () => {
+    it('accepts minimal SOS report with all optional fields omitted', () => {
+        const minimalInput = { emergencyType: 'FLOOD', location: { latitude: 24.86, longitude: 67.01 } }
+        const validated = validate<IncidentInput>(incidentSchema, minimalInput)
+        expect(validated.emergencyType).toBe('FLOOD')
+        expect(validated.description).toBeUndefined()
+        expect(validated.reporterName).toBeUndefined()
+        expect(validated.peopleAffected).toBeUndefined()
+
+        const priority = calculatePriority(validated)
+        expect(priority.priorityLevel).toBeDefined()
+        expect(priority.priorityReasons).toContain('No scored risk factors reported; this does not establish safety')
+
+        const doc = new Incident({
+            ...validated,
+            ...priority,
+            locationVerificationRequired: false,
+            verification: {
+                status: 'NEEDS_REVIEW',
+                requiresManualReview: false,
+                isPotentialDuplicate: false,
+                missingFields: ['reporterPhone', 'description', 'peopleAffected'],
+                warnings: []
+            }
+        })
+        expect(doc.validateSync()).toBeUndefined()
+    })
+
+    it('accepts explicit nulls for supported optional fields without error', () => {
+        const nullInput = {
+            emergencyType: 'FLOOD',
+            reporterName: null,
+            reporterPhone: null,
+            description: null,
+            location: null,
+            peopleAffected: null,
+            vulnerablePeople: null,
+            waterLevel: null,
+            immediateDanger: null
+        }
+        const validated = validate<IncidentInput>(incidentSchema, nullInput)
+        expect(validated.emergencyType).toBe('FLOOD')
+        expect(validated.reporterName).toBeNull()
+        expect(validated.description).toBeNull()
+        expect(validated.peopleAffected).toBeNull()
+
+        const priority = calculatePriority(validated)
+        expect(priority.priorityLevel).toBeDefined()
+        expect(priority.confidenceLevel).toBe('LOW')
+        expect(priority.priorityReasons.some((r) => r.includes('missing or uncertain'))).toBe(true)
+
+        const doc = new Incident({
+            ...validated,
+            ...priority,
+            locationVerificationRequired: true,
+            verification: {
+                status: 'NEEDS_REVIEW',
+                requiresManualReview: true,
+                isPotentialDuplicate: false,
+                missingFields: ['location', 'description', 'peopleAffected'],
+                warnings: []
+            }
+        })
+        expect(doc.validateSync()).toBeUndefined()
+    })
+
+    it('does not assume missing affected-person count is zero', () => {
+        const priorityWithNull = calculatePriority({ emergencyType: 'FLOOD', peopleAffected: null })
+        const priorityWithUndefined = calculatePriority({ emergencyType: 'FLOOD', peopleAffected: undefined })
+        expect(priorityWithNull.priorityScore).toBe(priorityWithUndefined.priorityScore)
+        expect(priorityWithNull.priorityReasons).toEqual(priorityWithUndefined.priorityReasons)
+    })
+})
+

@@ -338,10 +338,10 @@ export function IncidentVulnerabilityCard({ incident }: { incident: Incident }) 
       typeof vuln.medicalNeeds === "number" ||
       typeof vuln.disabled === "number");
 
-  const childrenCount = vuln?.children !== undefined ? `${vuln.children}` : "—";
-  const elderlyCount = vuln?.elderly !== undefined ? `${vuln.elderly}` : "—";
-  const medicalCount = vuln?.medicalNeeds !== undefined ? `${vuln.medicalNeeds}` : "—";
-  const disabledCount = vuln?.disabled !== undefined ? `${vuln.disabled}` : "—";
+  const childrenCount = typeof vuln?.children === "number" ? `${vuln.children}` : "—";
+  const elderlyCount = typeof vuln?.elderly === "number" ? `${vuln.elderly}` : "—";
+  const medicalCount = typeof vuln?.medicalNeeds === "number" ? `${vuln.medicalNeeds}` : "—";
+  const disabledCount = typeof vuln?.disabled === "number" ? `${vuln.disabled}` : "—";
 
   const hasHighWarning =
     incident.immediateDanger || incident.waterLevel === "HIGH";

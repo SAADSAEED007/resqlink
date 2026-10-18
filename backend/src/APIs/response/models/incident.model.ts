@@ -9,7 +9,7 @@ export const locationSchema = new Schema(
     },
     { _id: false }
 )
-const count = { type: Number, min: 0, max: 10000, validate: Number.isInteger }
+const count = { type: Number, min: 0, max: 10000, validate: (v: unknown) => v == null || Number.isInteger(v) }
 const vulnerabilitySchema = new Schema({ elderly: count, children: count, disabled: count, medicalNeeds: count }, { _id: false })
 const overrideSchema = new Schema(
     {
@@ -56,7 +56,7 @@ const schema = new Schema(
         description: { type: String, trim: true, maxlength: 2000 },
         location: { type: locationSchema, default: null },
         locationVerificationRequired: { type: Boolean, required: true },
-        peopleAffected: { type: Number, min: 1, max: 10000, validate: Number.isInteger },
+        peopleAffected: { type: Number, min: 1, max: 10000, validate: (v: unknown) => v == null || Number.isInteger(v) },
         vulnerablePeople: { type: vulnerabilitySchema, default: undefined },
         waterLevel: { type: String, enum: WATER_LEVELS },
         immediateDanger: { type: Boolean, default: undefined },
