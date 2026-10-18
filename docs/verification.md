@@ -42,7 +42,7 @@ Executed on Windows with Node.js 24.17.0 and npm 11.13.0. No deployment was perf
 | Backend formatting | npm run format:check failed on 9 unchanged upstream files: .prettierrc, .vscode/launch.json, commitlint.config.js, docs/APIs/BestPractices.md, docs/APIs/development.md, docs/DEPENDENCIES.md, eslint.config.mjs, nodemon.json, README.md |
 | Backend tests | npm test -- --runInBand failed before executing tests: inherited logger requires DATABASE_URL; 1 failed suite, 0 tests executed |
 | Backend startup | npm run start:dev attempted; ts-node reached logger initialization and crashed with 'You should provide db to log to.' No actual environment files/credentials supplied; successful database-backed startup is unverified |
-| Ignore rules | Actual env files, node_modules, .next, dist ignored; all three .env.example files eligible for tracking |
+| Ignore rules | Actual env files, node_modules, .next, dist ignored; the service-specific .env.example files are eligible for tracking |
 | Credential scan | No private-key, GitHub-token, OpenAI-key, or credential-bearing MongoDB URI patterns found in imported/project source outside generated dependencies |
 
 Installed primary versions: frontend Next.js 16.4.2, React/React DOM 19.3.0, Tailwind CSS 4.3.3, TypeScript 5.9.3, ESLint 9.39.5; backend Express 4.21.0, Mongoose 8.6.3, TypeScript 5.6.2, Jest 29.7.0, ESLint 9.11.1. Lockfiles record the full dependency trees.
@@ -55,4 +55,4 @@ Required next configuration: supply DATABASE_URL and EMAIL_SERVICE_API_KEY, gene
 
 Temporary verification servers were stopped. Review the setup PR into dev before starting team feature branches. GitHub branch protection is not configured by this initialization.
 
-Git diff --cached --check also reports inherited trailing whitespace in upstream backend documentation and a blank line in .prettierrc; these files were preserved rather than reformatted. Staged environment paths are only the three .env.example templates; generated artifacts and actual environment files are not staged.
+Git diff --cached --check also reports inherited trailing whitespace in upstream backend documentation and a blank line in .prettierrc; these files were preserved rather than reformatted. The tracked environment templates are service-specific; generated artifacts and actual environment files are not staged.

@@ -1,47 +1,55 @@
-# Architecture
+# ResQLink architecture
 
-ResQLink has independent frontend (Next.js) and backend (Express/TypeScript/Mongoose) npm applications. Backend core lives under `backend/src/APIs/response/`, alongside the inherited `APIs/user` structure. Existing async handlers, Joi validation utility, success-response utility, cookie authentication, Helmet, CORS, JSON parsing, MongoDB bootstrap, and rate limiting are reused. No frontend pages, new dependencies, Docker, CI, or microservices were added.
+ResQLink has two independently configured applications: a Next.js frontend and an Express/TypeScript backend. The frontend serves both the public SOS experience and the authenticated coordinator workspace; the backend owns validation, persistence, access control, and operational rules.
 
-## Data and request flow
+```mermaid
+flowchart LR
+  Public[Public SOS] --> Web[Next.js]
+  Coordinator[Coordinator] --> Web
+  Web -->|/api| Response[Response API]
+  Web -->|/v1| Auth[Authentication API]
+  Response --> DB[(MongoDB)]
+  Response --> Rules[Triage / verification / assignment rules]
+  Response --> Weather[WeatherAPI]
+  Response --> AI[Groq, optional]
+```
 
-`app.ts` mounts core routes once at `/api`; inherited user/health routes stay at `/v1`. The response router contains HTTP controller handlers and delegates state changes to response.service.ts. Models are grouped in models/; validation.ts owns Joi request/query schemas; priority.service.ts owns pure scoring, eligibility, status policy, and Haversine helpers; verification.service.ts owns completeness evaluation and duplicate detection heuristics; types.ts centralizes enums and input contracts. Request JSON is capped at 32kb. Unknown fields are rejected and human text is trimmed/limited with control/angle-bracket rejection.
+## Incident lifecycle
 
-Incident stores reported risk fields, optional coordinates, verification flag, score/explanations/confidence, complete verification details (status, requiresManualReview, isPotentialDuplicate, potentialDuplicateIncidents, missingFields, warnings, coordinator review audit), lifecycle state, team reference, override audit, and timestamps. Missing vulnerability/immediateDanger values remain unknown. RescueTeam stores capabilities, valid coordinates, capacity, availability and current incident. Assignment preserves lifecycle history. All models support isSimulated; seed records also have unique stable demoKey identifiers.
+```text
+Citizen submits SOS
+        ↓
+Validation, report reference, preliminary rules
+        ↓
+Coordinator review and verification
+        ↓
+Capability and straight-line-distance team recommendation
+        ↓
+Coordinator confirms assignment
+        ↓
+Assigned → In progress → Resolved (or cancelled)
+        ↓
+Active assignment is closed and team is released
+```
 
-## Consistency and decisions
+`POST /api/incidents` is the public SOS endpoint. It applies deterministic triage rules: a reported immediate threat can produce a preliminary critical suggestion; unclear or unanswered safety information remains explicitly uncertain. The service also records incomplete information and potential-duplicate signals for human review. These signals never automatically reject, merge, verify, or dispatch a report.
 
-Assignment claims, status changes, priority overrides, and verification updates run in MongoDB transactions. Incident and team documents are read/updated within one session, with optimistic document versions. Partial unique indexes prohibit multiple ACTIVE assignments for an incident or team. On contention MongoDB retries transactions; retried eligibility checks reject stale claims. Index initialization precedes transactional operations. Real concurrent requests are tested against an isolated Atlas database. Standalone MongoDB does not support the required lifecycle transactions; return 503 and use Atlas or a local replica set. There is intentionally no partial-write fallback. MongoDB indexes must exist before serving coordination traffic; bootstrap initializes them.
+All subsequent incident, team, assignment, community-risk, and weather operations require the existing authenticated coordinator/admin role. Status changes, priority overrides, and verification decisions retain audit information. Assignment and lifecycle writes use MongoDB transactions; therefore Atlas or another replica-set deployment is required for these operations.
 
-Status transitions are explicit. Assignment is the sole route to ASSIGNED. Resolution/cancellation atomically close assignments and free teams; inconsistent existing records are rejected for manual reconciliation. All database operations inside a transaction are sequential. Read lists use bounded pagination, validation, and deterministic sorting; counts are separate reads.
+## Coordination boundaries
 
-Verification is explainable, defensive, and non-destructive. SOS submissions are analyzed for duplicate emergency type and proximity within 0.5 km (or matching reporter phone/address) against recent active requests (120-minute window). Missing location or incomplete emergency details trigger explicit review flags and explanatory warnings. Crucially, incoming reports are **never** automatically rejected, downgraded, or merged; coordinators hold exclusive authority to verify, dismiss, or flag duplicates via `PATCH /api/incidents/:id/verification`. Priority overrides and verification audits preserve full accountability with authenticated coordinator IDs and timestamps. Recommendations filter capable available teams then sort approximate straight-line distance. Missing coordinates require manual selection; capacity shortfalls are warnings. Simulated teams/incidents cannot be mixed with unmarked records. No service automatically dispatches emergency responders.
+Recommendations require a suitable, available team and use approximate Haversine distance where coordinates are available. Capacity shortfalls or missing coordinates are surfaced for coordinator judgment. Recording an assignment is a platform record only: it does not deliver a mobile dispatch, estimate travel time, or prove that responders received an alert.
 
-## Proactive community risk zones
+The dashboard’s default Demo Mode stores fictional records and simulated actions in the browser. It is intentionally isolated from real backend data. Real Data Mode polls authenticated backend records and can persist coordinator changes.
 
-To support disaster response in areas with limited internet, collapsed cellular towers, or isolated vulnerable populations, a standalone `APIs/riskZones` module is mounted at `/api/community-risk-zones`. This module operates strictly as decision support, completely independent of citizen SOS dispatch, incident priority scoring, and rescue team assignments.
+## Weather and preparedness
 
-`CommunityRiskZone` records approximate locations (landmark descriptions with optional coordinates), hazard types and severities (`CRITICAL`, `HIGH`, `MODERATE`, `LOW`), connectivity status, access obstacles, vulnerable demographics, and information confidence. Missing coordinates enforce `isLocationEstimated=true` and prevent overconfident scoring. When cellular networks are down (`NO_CELL_COVERAGE`), explicit audit warnings document that community intelligence relies on delayed external or radio liaisons.
+The weather module exposes seven configured representative monitoring locations in Sindh. With `WEATHERAPI_KEY` configured, it retrieves forecast evidence and attaches provider timestamps and freshness information. Configurable precipitation thresholds create prototype review levels. Coordinators may record a preparedness decision against already retrieved evidence.
 
-Coordinators initiate field reconnaissance via `POST /api/community-risk-zones/:id/assessment`, transitioning the zone to `ASSESSMENT_DISPATCHED` and recording structured officer notes. Status changes preserve complete audit trails in `statusHistory`, and transitions to `ASSESSMENT_COMPLETED` record completion timestamps. All operations are strictly coordinator-authenticated (requiring the existing admin role). Fictional Sindh demo fixtures support realistic low-connectivity flood response scenarios without triggering real-world emergency dispatches.
+When `GROQ_API_KEY` is configured, the service can generate a preparedness summary grounded in the selected forecast and local records. Neither the forecast, thresholds, nor the AI summary is an official warning, flood prediction, sensor feed, or automated dispatch instruction.
 
-## Shelters and relief resources
+## Security and configuration
 
-Evacuation shelter management and structured relief inventory operations are isolated under `backend/src/APIs/shelters/` and mounted at `/api/shelters`. The module operates strictly as decision support, without altering the incident priority engine, rescue assignments, or citizen SOS intake.
+The API applies Helmet, CORS with explicit trusted origins, JSON body limits, cookies, rate limiting, and coordinator authorization. Backend configuration belongs in `backend/.env`; browser-visible URL configuration belongs in `frontend/.env.local`. Secrets must not be committed or placed in `NEXT_PUBLIC_*` variables.
 
-`Shelter` records shelter name, street address, coordinates (`latitude`, `longitude`), `totalCapacity`, `currentOccupancy`, computed `availableSpaces`, status (`OPEN`, `FULL`, `CLOSED`), contact information, and simulation flags. Overcapacity is structurally prevented: `currentOccupancy` cannot exceed `totalCapacity` nor drop below 0. Status transitions automatically reflect real-time capacity: when `availableSpaces === 0` and the shelter is not `CLOSED`, it switches to `FULL`; when capacity frees up, it returns to `OPEN`.
-
-`ReliefResource` tracks essential relief supplies (food, drinking water, medical supplies, blankets, hygiene kits) linked to specific shelters. Stock status (`ADEQUATE`, `LOW`, `CRITICAL`, `EXHAUSTED`) is assessed relative to minimum safety thresholds. Coordinators hold exclusive authority to create/update shelters and resource inventories (via HTTP-only cookie admin authentication). Public read endpoints support searching nearby facilities using geodesic straight-line distance (Haversine) within configurable radiuses. Demo fixtures are strictly marked simulated (`isSimulated: true`).
-
-## Authentication, privacy, and deployment
-
-Only SOS creation is public. All other core routes reuse accessToken-cookie authentication, then require the existing admin role. A trusted operator must provision/promote a coordinator account; there is no public role-management endpoint or demo bypass. Invalid/expired tokens now return 401. Existing login/logout cookies use Path=/ to cover both prefixes, and login no longer returns the password hash. No new authentication system is added. Core errors and the global error handler omit stack traces/driver details in every environment. Success logs record status/method/message, not citizen data. Original general/auth routes are inherited and need a separate security review before production use.
-
-Each application loads its own environment. Backend needs DATABASE_URL, independent ACCESS_TOKEN_SECRET/REFRESH_TOKEN_SECRET for login, SERVER_URL, FRONTEND_URL, ENV, and PORT. Resend is optional when EMAIL_SERVICE_API_KEY is unset; email-dependent onboarding cannot deliver confirmation messages. Core response APIs themselves send no email. Seed flags use a separate DEMO_DATABASE_URL; integration tests use TEST_DATABASE_URL and require an isolated name. Secrets remain in ignored files/settings.
-
-Vercel serves frontend; Render/Railway can run compiled backend, with Atlas providing replica-set transactions, data, rate-limit state, and inherited database logs. Frontend public API URL must use `/api`, while login targets `/v1/login`. Existing SameSite=Strict cookies need same-site deployment or a reviewed change for cross-site use. Use exact CORS origins and HTTPS. Do not expose administrative demo credentials publicly. Nothing is deployed by this work.
-
-## Provenance and limitations
-
-Base-Server-MERN was imported at 5afe3770ee791cc319a1a96a072bd17f9ff467cd; the existing user architecture and lockfile dependencies are retained. Optional-email configuration from feature/optional-email-config is included on this feature branch. No automatic merge into dev/main is performed.
-
-The inherited server previously listened before database bootstrap completed. Startup now initializes the database, rate limiter, and core indexes before listening. There is no live event stream, road routing, location-edit workflow, map provider, contact verification, automatic dispatch, or production incident retention policy. Unknown location is surfaced for operational verification. The existing dependency advisories and upstream formatting debt remain documented in verification.md.
+For endpoint details, see [API contracts](api-contracts.md). For a non-mutating evaluation path, see the [judge demo guide](demo-guide.md).
