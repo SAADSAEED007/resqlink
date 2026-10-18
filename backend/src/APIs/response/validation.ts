@@ -10,24 +10,25 @@ const text = (max: number) =>
         .max(max)
         // eslint-disable-next-line no-control-regex
         .pattern(/^[^<>\u0000-\u001f]*$/)
-const count = Joi.number().integer().min(0).max(10000)
+const count = Joi.number().integer().min(0).max(10000).allow(null)
 const latitude = Joi.number().min(-90).max(90).required()
 const longitude = Joi.number().min(-180).max(180).required()
 export const locationSchema = Joi.object({ latitude, longitude, address: text(300) })
 export const incidentSchema = Joi.object({
-    reporterName: text(100).min(2),
+    reporterName: text(100).min(2).allow(null, ''),
     reporterPhone: Joi.string()
         .trim()
-        .pattern(/^[+\d ()-]{5,32}$/),
+        .pattern(/^[+\d ()-]{5,32}$/)
+        .allow(null, ''),
     emergencyType: Joi.string()
         .valid(...EMERGENCY_TYPES)
         .required(),
-    description: text(2000).min(1),
+    description: text(2000).min(1).allow(null, ''),
     location: locationSchema.allow(null),
-    peopleAffected: Joi.number().integer().min(1).max(10000),
-    vulnerablePeople: Joi.object({ elderly: count, children: count, disabled: count, medicalNeeds: count }),
-    waterLevel: Joi.string().valid(...WATER_LEVELS),
-    immediateDanger: Joi.boolean()
+    peopleAffected: Joi.number().integer().min(1).max(10000).allow(null),
+    vulnerablePeople: Joi.object({ elderly: count, children: count, disabled: count, medicalNeeds: count }).allow(null),
+    waterLevel: Joi.string().valid(...WATER_LEVELS).allow(null),
+    immediateDanger: Joi.boolean().allow(null)
 })
 export const teamContactSchema = Joi.object({
     phone: Joi.string()

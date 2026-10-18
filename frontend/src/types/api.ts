@@ -27,21 +27,21 @@ export interface IncidentLocation {
   address?: string;
 }
 export interface VulnerabilityIndicators {
-  elderly?: number;
-  children?: number;
-  disabled?: number;
-  medicalNeeds?: number;
+  elderly?: number | null;
+  children?: number | null;
+  disabled?: number | null;
+  medicalNeeds?: number | null;
 }
 export interface CreateIncidentInput {
-  reporterName?: string;
-  reporterPhone?: string;
+  reporterName?: string | null;
+  reporterPhone?: string | null;
   emergencyType: EmergencyType;
-  description?: string;
+  description?: string | null;
   location?: IncidentLocation | null;
-  peopleAffected?: number;
-  vulnerablePeople?: VulnerabilityIndicators;
-  waterLevel?: "NONE" | "LOW" | "MODERATE" | "HIGH" | "UNKNOWN";
-  immediateDanger?: boolean;
+  peopleAffected?: number | null;
+  vulnerablePeople?: VulnerabilityIndicators | null;
+  waterLevel?: ("NONE" | "LOW" | "MODERATE" | "HIGH" | "UNKNOWN") | null;
+  immediateDanger?: boolean | null;
 }
 export type VerificationStatus =
   | "NEEDS_REVIEW"

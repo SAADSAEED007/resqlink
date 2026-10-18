@@ -179,7 +179,13 @@ export function useIncidentWorkspace(id: string) {
         if (!validId && !isSimulatedTarget) throw new ApiError("Invalid incident reference.", 400);
         const record = isSimulatedTarget ? demo : await incidents.get(id, controller.signal);
         if (!record) throw new ApiError("Incident not found.", 404);
-        if (!record._id || record._id !== id || !["CRITICAL", "HIGH", "MEDIUM", "LOW"].includes(record.priorityLevel) || typeof record.description !== "string" || !["PENDING", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CANCELLED"].includes(record.status))
+        if (
+          !record._id ||
+          record._id !== id ||
+          !["CRITICAL", "HIGH", "MEDIUM", "LOW"].includes(record.priorityLevel) ||
+          (record.description != null && typeof record.description !== "string") ||
+          !["PENDING", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CANCELLED"].includes(record.status)
+        )
           throw new ApiError("The incident response could not be read. Please retry.", 0, "protocol");
         if (controller.signal.aborted || run !== generation.current || lock.current) return;
         setIncident(record);

@@ -20,11 +20,12 @@ export function calculatePriority(input: RiskInput) {
     add((input.peopleAffected ?? 0) > 1, 5, 'Multiple affected people reported')
     const missing: string[] = []
     if (!input.location) missing.push('location; manual location verification required')
-    if (input.immediateDanger === undefined) missing.push('immediate danger')
-    if (input.waterLevel === undefined || input.waterLevel === 'UNKNOWN') missing.push('water level')
+    if (input.immediateDanger == null) missing.push('immediate danger')
+    if (input.waterLevel == null || input.waterLevel === 'UNKNOWN') missing.push('water level')
     if (
+        !input.vulnerablePeople ||
         ['elderly', 'children', 'disabled', 'medicalNeeds'].some(
-            (key) => input.vulnerablePeople?.[key as keyof NonNullable<RiskInput['vulnerablePeople']>] === undefined
+            (key) => input.vulnerablePeople?.[key as keyof NonNullable<RiskInput['vulnerablePeople']>] == null
         )
     )
         missing.push('vulnerability information')

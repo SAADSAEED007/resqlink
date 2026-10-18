@@ -29,16 +29,16 @@ export interface Location {
 }
 export interface RiskInput {
     emergencyType: EmergencyType
-    peopleAffected?: number
+    peopleAffected?: number | null
     location?: Location | null
-    vulnerablePeople?: { elderly?: number; children?: number; disabled?: number; medicalNeeds?: number }
-    waterLevel?: (typeof WATER_LEVELS)[number]
-    immediateDanger?: boolean
+    vulnerablePeople?: { elderly?: number | null; children?: number | null; disabled?: number | null; medicalNeeds?: number | null } | null
+    waterLevel?: (typeof WATER_LEVELS)[number] | null
+    immediateDanger?: boolean | null
 }
 export interface IncidentInput extends RiskInput {
-    reporterName?: string
-    reporterPhone?: string
-    description?: string
+    reporterName?: string | null
+    reporterPhone?: string | null
+    description?: string | null
 }
 export interface TeamContact {
     phone?: string
