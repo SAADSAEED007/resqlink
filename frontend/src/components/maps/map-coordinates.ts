@@ -38,6 +38,8 @@ export function geoJsonPosition(value: unknown): MapPosition | null {
 }
 export const SINDH_CENTER: MapPosition = [26.1, 68.5];
 export const SINDH_ZOOM = 7;
+export const KARACHI_CENTER: MapPosition = [24.8607, 67.0011];
+export const KARACHI_ZOOM = 11;
 export function outsideOperationalRegion(point: MapPoint) {
   // Approximate regional extent, not an administrative boundary or validity rule.
   return (

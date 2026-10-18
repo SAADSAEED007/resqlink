@@ -135,7 +135,7 @@ export function useMapBase(
               container.current.clientHeight
             )
               instance.invalidateSize({
-                pan: true,
+                pan: false,
                 animate: false,
                 debounceMoveend: true,
               });

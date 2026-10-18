@@ -198,3 +198,104 @@ test("visual comparison, responsive sizes, light mode and existing route navigat
   await page.getByRole("link", { name: "Overview", exact: true }).click(); await expect(page).toHaveURL(/\/dashboard$/);
   await page.getByRole("link", { name: "Incidents", exact: true }).click(); await expect(page.getByRole("heading", { name: "Incident Management", exact: true })).toBeVisible(); expect(errors).toEqual([]);
 });
+
+test("interactive Leaflet location picker opens, selects coordinates on map click, and confirms to form", async ({ page }) => {
+  const api = await setup(page);
+  await open(page);
+
+  await page.getByRole("button", { name: "Register Team", exact: true }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+
+  // Initially, button says "Select Location on Map"
+  const selectMapBtn = page.getByRole("button", { name: "Select Location on Map", exact: true });
+  await expect(selectMapBtn).toBeVisible();
+
+  // Open map picker
+  await selectMapBtn.click();
+  const pickerCanvas = page.locator(".rtMapPickerCanvas");
+  await expect(pickerCanvas).toBeVisible();
+
+  // Confirmation button is initially disabled if no location selected yet
+  const confirmBtn = page.getByRole("button", { name: "Confirm Base Location", exact: true });
+  await expect(confirmBtn).toBeDisabled();
+
+  // Click on the map canvas to place marker
+  await pickerCanvas.click({ position: { x: 200, y: 150 } });
+
+  // Readout displays selected coordinates
+  await expect(page.locator(".rtMapPickerReadout")).toContainText("Selected Base:");
+  await expect(confirmBtn).toBeEnabled();
+
+  // Confirm selection
+  await confirmBtn.click();
+
+  // Picker closes and confirmed location summary is displayed
+  await expect(pickerCanvas).not.toBeVisible();
+  await expect(page.locator(".rtConfirmedBadge")).toContainText("Base Location Confirmed");
+  await expect(page.locator(".rtSelectedLocationCard")).toBeVisible();
+
+  // Fill remaining required fields and submit
+  await page.getByLabel("Team name", { exact: true }).fill("Map Picked Rescue Squad");
+  await page.getByLabel("Unique team code", { exact: true }).fill("MP-SQUAD");
+  await page.getByLabel("Response capacity", { exact: true }).fill("8");
+  await page.getByRole("checkbox", { name: "Medical Response", exact: true }).check();
+  await page.getByLabel("Base / station address", { exact: true }).fill("Clifton Station Karachi");
+
+  await page.getByRole("dialog").getByRole("button", { name: "Register team", exact: true }).click();
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+
+  // Verify API received the coordinates selected on the map
+  expect(api.writes).toHaveLength(1);
+  expect(api.writes[0].path).toBe("/api/rescue-teams");
+  const payload = api.writes[0].body as { location?: { latitude: number; longitude: number; address: string } };
+  expect(typeof payload.location?.latitude).toBe("number");
+  expect(typeof payload.location?.longitude).toBe("number");
+  expect(payload.location?.address).toBe("Clifton Station Karachi");
+});
+
+test("cancelling map picker preserves previously confirmed coordinates", async ({ page }) => {
+  await setup(page);
+  await open(page);
+
+  await page.getByRole("button", { name: "Register Team", exact: true }).click();
+
+  // Fill initial coordinates manually or via map
+  await page.getByLabel("Latitude", { exact: true }).fill("24.86");
+  await page.getByLabel("Longitude", { exact: true }).fill("67.01");
+  await expect(page.locator(".rtConfirmedBadge")).toBeVisible();
+
+  // Open map picker
+  await page.getByRole("button", { name: "Change Location", exact: true }).click();
+  await expect(page.locator(".rtMapPickerCanvas")).toBeVisible();
+
+  // Cancel picker using map picker's cancel action
+  await page.locator(".rtMapPickerFooter").getByRole("button", { name: "Cancel" }).click();
+  await expect(page.locator(".rtMapPickerCanvas")).not.toBeVisible();
+
+  // Coordinates should still be preserved
+  await expect(page.getByLabel("Latitude", { exact: true })).toHaveValue("24.86");
+  await expect(page.getByLabel("Longitude", { exact: true })).toHaveValue("67.01");
+  await expect(page.locator(".rtConfirmedBadge")).toBeVisible();
+});
+
+test("editing an existing team opens map picker with existing coordinates", async ({ page }) => {
+  const api = await setup(page);
+  await open(page);
+
+  // Select first team which has valid coordinates
+  await page.locator(".rtDirectoryRow").filter({ hasText: api.first.name }).click();
+  await page.getByRole("button", { name: "Edit selected team", exact: true }).click();
+
+  // Modal displays existing confirmed base location
+  await expect(page.locator(".rtConfirmedBadge")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Change Location", exact: true })).toBeVisible();
+
+  // Click Change Location to open picker
+  await page.getByRole("button", { name: "Change Location", exact: true }).click();
+  await expect(page.locator(".rtMapPickerCanvas")).toBeVisible();
+
+  // Should have "Confirm Base Location" enabled since point already exists
+  const confirmBtn = page.getByRole("button", { name: "Confirm Base Location", exact: true });
+  await expect(confirmBtn).toBeEnabled();
+});
+
