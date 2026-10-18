@@ -153,6 +153,9 @@ export interface TrendPointHourly {
     label: string
     count: number
     criticalCount: number
+    highCount?: number
+    mediumCount?: number
+    lowCount?: number
 }
 
 export interface TrendPointDaily {
@@ -160,11 +163,15 @@ export interface TrendPointDaily {
     label: string
     count: number
     criticalCount: number
+    highCount?: number
+    mediumCount?: number
+    lowCount?: number
 }
 
 export interface DashboardTrends {
     last24Hours: TrendPointHourly[]
     last7Days: TrendPointDaily[]
+    last30Days?: TrendPointDaily[]
 }
 
 export interface DashboardSummary {

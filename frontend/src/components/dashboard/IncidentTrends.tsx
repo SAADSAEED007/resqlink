@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -17,20 +17,35 @@ import {
   MOCK_TRENDS_30D,
   type TrendDataPoint,
 } from "./mock-data";
+import { dashboard, type DashboardTrendPoint } from "@/lib/api/dashboard";
+import { errorMessage } from "@/lib/api/client";
 
 interface IncidentTrendsProps {
   loading?: boolean;
+  realData?: boolean;
+  refreshAt?: number | null;
 }
 
-export function IncidentTrends({ loading = false }: IncidentTrendsProps) {
+export function IncidentTrends({ loading = false, realData = false, refreshAt = null }: IncidentTrendsProps) {
   const [range, setRange] = useState<"24h" | "7d" | "30d">("24h");
+  const [realTrends, setRealTrends] = useState<{ last24Hours: DashboardTrendPoint[]; last7Days: DashboardTrendPoint[]; last30Days?: DashboardTrendPoint[] } | null>(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    if (!realData) return;
+    const controller = new AbortController();
+    void dashboard.summary(controller.signal).then((value) => { if (!controller.signal.aborted) { setRealTrends(value.trends); setError(""); } }).catch((failure) => { if (!controller.signal.aborted) setError(errorMessage(failure)); });
+    return () => controller.abort();
+  }, [realData, refreshAt]);
 
-  const data: TrendDataPoint[] =
-    range === "24h"
+  const demoData: TrendDataPoint[] = range === "24h"
       ? MOCK_TRENDS_24H
       : range === "7d"
         ? MOCK_TRENDS_7D
         : MOCK_TRENDS_30D;
+  const realPoints = range === "24h" ? realTrends?.last24Hours : range === "7d" ? realTrends?.last7Days : realTrends?.last30Days;
+  const data: TrendDataPoint[] = realData
+    ? (realPoints || []).map((point) => ({ time: point.label, critical: point.criticalCount, high: point.highCount || 0, medium: point.mediumCount || 0, low: point.lowCount || 0 }))
+    : demoData;
 
   if (loading) {
     return (
@@ -51,7 +66,7 @@ export function IncidentTrends({ loading = false }: IncidentTrendsProps) {
         <div className="flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-[var(--command-blue)]" />
           <h2 className="text-sm font-semibold text-[var(--command-ink)] tracking-tight">
-            Incident Trends <span className="rqCommandDemoLabel">Demo</span>
+            Incident Trends <span className="rqCommandDemoLabel">{realData ? "Real Data" : "Demo"}</span>
           </h2>
         </div>
 
@@ -73,6 +88,8 @@ export function IncidentTrends({ loading = false }: IncidentTrendsProps) {
         </div>
       </div>
 
+      {error ? <div className="flex-1 grid place-items-center p-5 text-center text-xs text-[var(--command-muted)]">Unable to load real incident trends. {error}</div> : realData && realTrends && !data.some((point) => point.critical + point.high + point.medium + point.low > 0) ? <div className="flex-1 grid place-items-center p-5 text-center"><div><strong className="text-sm text-[var(--command-ink)]">No incidents reported in this period</strong><p className="mt-1 text-xs text-[var(--command-muted)]">Try selecting a longer time range.</p></div></div> :
+      <>
       {/* Chart Canvas */}
       <div className="flex-1 p-2 pt-3 flex flex-col justify-between">
         <div className="w-full h-[175px]">
@@ -248,7 +265,7 @@ export function IncidentTrends({ loading = false }: IncidentTrendsProps) {
             <span>Low</span>
           </div>
         </div>
-      </div>
+      </div></>}
     </div>
   );
 }

@@ -95,7 +95,10 @@ export function calculateTrends(incidents: Array<{ createdAt?: Date | string; pr
             timestamp: isoBucket,
             label: hourLabel,
             count: 0,
-            criticalCount: 0
+            criticalCount: 0,
+            highCount: 0,
+            mediumCount: 0,
+            lowCount: 0
         })
     }
 
@@ -109,7 +112,10 @@ export function calculateTrends(incidents: Array<{ createdAt?: Date | string; pr
             date: dateStr,
             label,
             count: 0,
-            criticalCount: 0
+            criticalCount: 0,
+            highCount: 0,
+            mediumCount: 0,
+            lowCount: 0
         })
     }
 
@@ -118,14 +124,17 @@ export function calculateTrends(incidents: Array<{ createdAt?: Date | string; pr
         const d = new Date(inc.createdAt)
         const time = d.getTime()
         if (Number.isNaN(time)) continue
-        const isCritical = inc.priorityLevel === 'CRITICAL'
+        const priority = inc.priorityLevel
 
         if (time >= now - 24 * 60 * 60 * 1000 && time <= now) {
             const isoHour = d.toISOString().slice(0, 13) + ':00'
             const bucket = last24Hours.find((b) => b.timestamp === isoHour)
             if (bucket) {
                 bucket.count++
-                if (isCritical) bucket.criticalCount++
+                if (priority === 'CRITICAL') bucket.criticalCount++
+                if (priority === 'HIGH') bucket.highCount!++
+                if (priority === 'MEDIUM') bucket.mediumCount!++
+                if (priority === 'LOW') bucket.lowCount!++
             }
         }
 
@@ -133,11 +142,29 @@ export function calculateTrends(incidents: Array<{ createdAt?: Date | string; pr
         const dayBucket = last7Days.find((b) => b.date === isoDay)
         if (dayBucket) {
             dayBucket.count++
-            if (isCritical) dayBucket.criticalCount++
+            if (priority === 'CRITICAL') dayBucket.criticalCount++
+            if (priority === 'HIGH') dayBucket.highCount!++
+            if (priority === 'MEDIUM') dayBucket.mediumCount!++
+            if (priority === 'LOW') dayBucket.lowCount!++
         }
     }
 
-    return { last24Hours, last7Days }
+    const last30Days = Array.from({ length: 30 }, (_, index) => {
+        const bucketDate = new Date(now - (29 - index) * 24 * 60 * 60 * 1000)
+        return { date: bucketDate.toISOString().slice(0, 10), label: bucketDate.toISOString().slice(5, 10), count: 0, criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0 }
+    })
+    for (const inc of incidents) {
+        if (!inc.createdAt) continue
+        const date = new Date(inc.createdAt).toISOString().slice(0, 10)
+        const bucket = last30Days.find((item) => item.date === date)
+        if (!bucket) continue
+        bucket.count++
+        if (inc.priorityLevel === 'CRITICAL') bucket.criticalCount++
+        if (inc.priorityLevel === 'HIGH') bucket.highCount++
+        if (inc.priorityLevel === 'MEDIUM') bucket.mediumCount++
+        if (inc.priorityLevel === 'LOW') bucket.lowCount++
+    }
+    return { last24Hours, last7Days, last30Days }
 }
 
 export function buildActivityTimeline(
@@ -367,7 +394,7 @@ export async function getDashboardSummary(query?: DashboardQuery): Promise<Dashb
         Assignment.countDocuments(assignmentFilter),
         Incident.find({
             ...incidentFilter,
-            createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+            createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), $lte: new Date() }
         })
             .select('createdAt priorityLevel')
             .lean(),
