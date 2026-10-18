@@ -78,7 +78,7 @@ export function evidence(zone: ICommunityRiskZone, weather: Forecast | null) {
     if (weather)
         facts.push({
             id: 'weather:forecast',
-            text: `Open-Meteo forecast precipitation: ${weather.next24Hours.precipitationMm} mm over the next 24 hourly periods; maximum hourly precipitation probability: ${weather.next24Hours.maxProbabilityPercent}%. Source freshness: ${weather.freshness}. Retrieved at ${weather.retrievedAt}.`
+            text: `${weather.provider} forecast precipitation: ${weather.next24Hours.precipitationMm} mm over the next 24 hourly periods (${weather.next24Hours.start} to ${weather.next24Hours.end}); maximum hourly precipitation probability: ${weather.next24Hours.maxProbabilityPercent}%. Source freshness: ${weather.freshness}. Retrieved at ${weather.retrievedAt}.`
         })
     return facts
 }

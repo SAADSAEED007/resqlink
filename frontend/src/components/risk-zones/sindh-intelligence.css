@@ -1204,3 +1204,50 @@
     min-width: 0;
   }
 }
+.siPreparedness {
+  margin-top: 16px;
+  min-width: 0;
+}
+.siPreparednessButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0;
+}
+.siPreparednessButtons > * {
+  white-space: normal;
+  text-align: left;
+}
+.siPreparednessForm {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0;
+}
+.siPreparednessForm label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.siPreparednessForm select,
+.siPreparednessForm textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--command-border);
+  border-radius: 6px;
+  background: var(--command-surface);
+  color: var(--command-ink);
+  font: inherit;
+}
+.siPreparednessForm textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+.siPreparedness .siReason {
+  overflow-wrap: anywhere;
+}
+.siWorkspace .siAi .siAiStatus {
+  min-height: 0;
+  padding: 12px 0;
+}

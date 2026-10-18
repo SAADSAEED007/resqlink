@@ -15,18 +15,26 @@ import {
   type AssessmentStatus,
 } from "@/types/risk-zones";
 import { emptyZone, zoneInput, text, type ZoneDraft } from "./zone-form";
-export function CommunityAssessments() {
+export function CommunityAssessments({
+  initialDistrict = "",
+}: {
+  initialDistrict?: string;
+}) {
   const [query, setQuery] = useState<RiskZoneQuery>({
     page: 1,
     limit: 20,
     sort: "newest",
+    ...(initialDistrict ? { district: initialDistrict } : {}),
   });
-  const [district, setDistrict] = useState("");
+  const [district, setDistrict] = useState(initialDistrict);
   const [data, setData] = useState<RiskZonePage | null>(null),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
     [attempt, setAttempt] = useState(0);
-  const [draft, setDraft] = useState<ZoneDraft>({ ...emptyZone }),
+  const [draft, setDraft] = useState<ZoneDraft>({
+      ...emptyZone,
+      district: initialDistrict,
+    }),
     [showCreate, setShowCreate] = useState(false),
     [selected, setSelected] = useState<RiskZone | null>(null);
   const [busy, setBusy] = useState(false),

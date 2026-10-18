@@ -45,7 +45,7 @@ export async function districtAnalysis(id: string) {
         { id: 'weather:attention', text: `Weather attention: ${input.attention.level}. ${input.attention.reasons.join(' ')}` },
         {
             id: 'weather:forecast',
-            text: `Open-Meteo next 24-hour precipitation: ${input.weather.next24Hours.precipitationMm} mm; maximum hourly precipitation probability: ${input.weather.next24Hours.maxProbabilityPercent}%. Retrieved at ${input.weather.retrievedAt}.`
+            text: `${input.weather.provider} next 24-hour precipitation: ${input.weather.next24Hours.precipitationMm} mm (${input.weather.next24Hours.start} to ${input.weather.next24Hours.end}); maximum hourly precipitation probability: ${input.weather.next24Hours.maxProbabilityPercent}%. Retrieved at ${input.weather.retrievedAt}.`
         }
     ]
     let missing = ['River levels, drainage inspections and district-wide exposure are not supplied by this weather forecast.']

@@ -6,8 +6,11 @@ import { forecast } from '../APIs/riskZones/weather.service'
 // Run on Render with: node dist/scripts/diagnose-weather.js
 // Uses the production ingestion path without database, login, or AI dependencies.
 async function diagnose() {
+    const requested = process.argv[2]
+    const selected = requested ? districts.filter((district) => district.id === requested) : districts
+    if (!selected.length) throw new Error('Unknown configured district')
     await Promise.all(
-        districts.map(async (district) => {
+        selected.map(async (district) => {
             try {
                 const weather = await forecast(district.latitude, district.longitude)
                 console.log(

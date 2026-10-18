@@ -34,12 +34,16 @@ function fixture() {
 }
 const originalFetch = global.fetch,
     originalKey = process.env.GROQ_API_KEY
+const originalProvider = process.env.WEATHER_PROVIDER
 beforeEach(() => {
+    process.env.WEATHER_PROVIDER = 'open-meteo'
     clearWeatherCache()
     clearAnalysisCache()
     delete process.env.GROQ_API_KEY
 })
 afterEach(() => {
+    if (originalProvider) process.env.WEATHER_PROVIDER = originalProvider
+    else delete process.env.WEATHER_PROVIDER
     global.fetch = originalFetch
     if (originalKey) process.env.GROQ_API_KEY = originalKey
     else delete process.env.GROQ_API_KEY

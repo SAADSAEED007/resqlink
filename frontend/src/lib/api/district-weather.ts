@@ -4,6 +4,8 @@ import type {
   MonitoringOverview,
   CommunityAnalysis,
   NearbyShelter,
+  PreparednessDecision,
+  PreparednessAction,
 } from "@/types/risk-zones";
 const root = "/weather/districts";
 function checked(record: MonitoredDistrict) {
@@ -33,6 +35,24 @@ function checked(record: MonitoredDistrict) {
   return record;
 }
 export const districtWeather = {
+  decisions: (id: string, signal?: AbortSignal) =>
+    request<PreparednessDecision[]>(
+      `${root}/${encodeURIComponent(id)}/decisions`,
+      { signal },
+    ),
+  recordDecision: (
+    id: string,
+    body: {
+      clientRequestId: string;
+      action: PreparednessAction;
+      notes: string;
+      weatherRetrievedAt: string | null;
+    },
+  ) =>
+    request<PreparednessDecision>(
+      `${root}/${encodeURIComponent(id)}/decisions`,
+      { method: "POST", body },
+    ),
   registry: (signal?: AbortSignal) =>
     request<{
       items: MonitoredDistrict[];

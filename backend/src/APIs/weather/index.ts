@@ -9,6 +9,8 @@ import { CustomError } from '../../utils/errors'
 import { riskZoneErrorHandler } from '../riskZones'
 import { district, districts, DATASET_VERSION } from './districts'
 import { districtWeather, overview, districtAnalysis } from './monitoring.service'
+import { decisionInput, DecisionInput, listDecisions, recordDecision } from './preparedness.service'
+import { validate } from '../riskZones/validation'
 const router = Router()
 const coordinator: RequestHandler = (req, _res, next) => {
     const user = (req as IAuthenticateRequest).authenticatedUser
@@ -50,6 +52,29 @@ router.get(
 )
 const requests = new Map<string, number[]>(),
     running = new Set<string>()
+router.get(
+    '/districts/:districtId/decisions',
+    asyncHandler(async (req, res) => {
+        httpResponse(res, req, 200, 'Recorded preparedness decisions', await listDecisions(req.params.districtId))
+    })
+)
+router.post(
+    '/districts/:districtId/decisions',
+    asyncHandler(async (req, res) => {
+        const input = validate<DecisionInput>(decisionInput, req.body)
+        const user = (req as IAuthenticateRequest).authenticatedUser as IUserWithId
+        const value = await recordDecision(req.params.districtId, input, String(user._id))
+        const { requestHash, ...data } = value.toObject()
+        void requestHash
+        httpResponse(
+            res,
+            req,
+            201,
+            'Coordinator decision recorded. No incident, team dispatch or field assessment was created by this decision.',
+            data
+        )
+    })
+)
 router.post(
     '/districts/:districtId/ai-analysis',
     asyncHandler(async (req, res) => {

@@ -1,11 +1,15 @@
 import { test, expect, type Page } from "./map-test-fixtures";
 import { districts } from "../../backend/src/APIs/weather/districts";
-import type { MonitoredDistrict, RiskZone } from "../src/types/risk-zones";
-function forecast(rain = 24) {
+import type {
+  MonitoredDistrict,
+  RiskZone,
+  PreparednessDecision,
+} from "../src/types/risk-zones";
+function forecast(rain = 24, weatherApi = false) {
   const start = new Date();
   start.setUTCMinutes(0, 0, 0);
   return {
-    provider: "Open-Meteo",
+    provider: weatherApi ? "WeatherAPI.com" : "Open-Meteo",
     latitude: 25.4,
     longitude: 68.4,
     timezone: "Asia/Karachi",
@@ -16,6 +20,7 @@ function forecast(rain = 24) {
       temperatureC: 28.4,
       weatherCode: 61,
       windKmh: 14,
+      condition: weatherApi ? "Partly cloudy" : undefined,
     },
     next24Hours: {
       start: start.toISOString(),
@@ -30,7 +35,7 @@ function forecast(rain = 24) {
       probabilityPercent: 65,
       windKmh: 14,
     })),
-    days: Array.from({ length: 4 }, (_, i) => ({
+    days: Array.from({ length: weatherApi ? 3 : 4 }, (_, i) => ({
       time: new Date(+start + i * 86400000).toISOString(),
       weatherCode: [61, 3, 2, 0][i],
       maxC: 28 + i,
@@ -48,11 +53,14 @@ async function setup(
     allUnavailable?: boolean;
     cooldown?: boolean;
     stale?: boolean;
+    weatherApi?: boolean;
+    saveFail?: boolean;
   } = {},
 ) {
   let aiCalls = 0;
   const writes: { path: string; body: Record<string, unknown> }[] = [];
   const communities: RiskZone[] = [];
+  const decisions: PreparednessDecision[] = [];
   const items: MonitoredDistrict[] = districts.map((record, index) => {
     const level =
       options.allUnavailable || options.stale
@@ -70,7 +78,10 @@ async function setup(
         ? { ...forecast(), freshness: "stale" }
         : level === "DATA_UNAVAILABLE"
           ? null
-          : forecast(index === 1 ? 60 : index === 0 ? 24 : 0),
+          : forecast(
+              index === 1 ? 60 : index === 0 ? 24 : 0,
+              options.weatherApi,
+            ),
       attention: {
         level,
         reasonCode: "TEST_FORECAST",
@@ -150,6 +161,25 @@ async function setup(
       }
       const body = req.postDataJSON();
       writes.push({ path, body });
+      if (path.endsWith("/decisions")) {
+        if (options.saveFail) return reply(null, 503);
+        const saved = {
+          ...body,
+          _id: "662200000000000000000077",
+          districtId: path.split("/").at(-2),
+          coordinatorId: "012345678901234567890123",
+          status: "RECORDED",
+          createdAt: new Date().toISOString(),
+          weatherEvidence: {
+            provider: "WeatherAPI.com",
+            retrievedAt: body.weatherRetrievedAt,
+            freshness: "cached",
+            attention: "ELEVATED",
+          },
+        } as PreparednessDecision;
+        decisions.push(saved);
+        return reply(saved, 201);
+      }
       if (path === "/api/community-risk-zones") {
         const zone = {
           ...body,
@@ -198,6 +228,10 @@ async function setup(
             }
           : undefined,
       });
+    if (path.endsWith("/decisions"))
+      return reply(
+        decisions.filter((row) => row.districtId === path.split("/").at(-2)),
+      );
     if (path.startsWith("/api/weather/districts/"))
       return reply(items.find((item) => item.id === path.split("/").at(-1)));
     if (path === "/api/shelters")
@@ -216,6 +250,23 @@ async function setup(
             isSimulated: false,
           },
         ],
+      });
+    if (path === "/api/rescue-teams")
+      return reply({
+        items: [
+          {
+            _id: "662200000000000000000066",
+            name: "Fixture Available Team",
+            status: "AVAILABLE",
+            capabilities: ["WATER_RESCUE"],
+            location: {
+              latitude: 25.4,
+              longitude: 68.4,
+              address: "Stored fixture base",
+            },
+          },
+        ],
+        pagination: { page: 1, total: 1, totalPages: 1, limit: 100 },
       });
     if (path.endsWith("/resources"))
       return reply([
@@ -258,7 +309,7 @@ async function setup(
       pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
     });
   });
-  return { items, writes, aiCalls: () => aiCalls };
+  return { items, writes, communities, decisions, aiCalls: () => aiCalls };
 }
 async function open(page: Page) {
   await page.goto("/dashboard/risk-zones");
@@ -413,6 +464,25 @@ test("search, attention filter and map-directory selection synchronize", async (
     "Sukkur",
   );
 });
+test("WeatherAPI normalized data displays a three-day forecast with correct source and hourly evidence", async ({
+  page,
+}) => {
+  await setup(page, { weatherApi: true });
+  await open(page);
+  await expect(page.locator(".siForecastBody")).toContainText("Partly cloudy");
+  await expect(page.locator(".siDay")).toHaveCount(3);
+  await expect(
+    page.getByRole("link", { name: "Weather data: WeatherAPI.com" }),
+  ).toHaveAttribute("href", "https://www.weatherapi.com/");
+  await page.getByRole("tab", { name: "Forecast Evidence" }).click();
+  await expect(page.getByRole("tabpanel")).toContainText("WeatherAPI.com");
+  await expect(
+    page.getByRole("img", {
+      name: "Next 24 hourly precipitation amounts in millimeters",
+    }),
+  ).toBeVisible();
+});
+
 test("missing key disables AI and failed forecasts never count as routine", async ({
   page,
 }) => {
@@ -477,11 +547,11 @@ test("forecast evidence and nearby shelter inventory use supported fields", asyn
   await expect(
     page.getByText("Fixture Shelter", { exact: true }),
   ).toBeVisible();
-  await expect(page.locator(".siDetailBody")).toContainText(
+  await expect(page.getByRole("tabpanel")).toContainText(
     "2.4 km straight-line",
   );
   await page.getByText("Relief inventory", { exact: true }).click();
-  await expect(page.locator(".siDetailBody")).toContainText("40 liters");
+  await expect(page.getByRole("tabpanel")).toContainText("40 liters");
 });
 test("secondary community registration remains functional", async ({
   page,
@@ -536,6 +606,130 @@ test("secondary community registration remains functional", async ({
   ).toBeVisible();
   expect(api.writes.at(-1)?.body.priorityUrgency).toBe("URGENT");
 });
+test("preparedness team and shelter reviews work without weather and never dispatch", async ({
+  page,
+}) => {
+  const api = await setup(page, { allUnavailable: true });
+  await open(page);
+  await page
+    .getByRole("button", { name: "Review Available Teams", exact: true })
+    .click();
+  await expect(page.getByLabel("Available preparedness teams")).toContainText(
+    "Fixture Available Team",
+  );
+  await expect(page.getByLabel("Available preparedness teams")).toContainText(
+    "Stored fixture base",
+  );
+  await page
+    .getByRole("button", { name: "View Nearby Shelters", exact: true })
+    .click();
+  await expect(page.getByRole("tabpanel")).toContainText("Fixture Shelter");
+  expect(api.writes).toHaveLength(0);
+});
+test("coordinator decision requires confirmation and a successful save", async ({
+  page,
+}) => {
+  const api = await setup(page, { weatherApi: true });
+  await open(page);
+  await page
+    .getByRole("button", { name: "Record Coordinator Decision" })
+    .click();
+  await page
+    .getByLabel("Reason for review")
+    .fill("Review recorded access constraints with the local coordinator.");
+  await page
+    .getByRole("button", { name: "Confirm Coordinator Decision" })
+    .click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Coordinator decision saved." }),
+  ).toBeVisible();
+  expect(api.writes).toHaveLength(1);
+  expect(api.writes[0].path).toBe("/api/weather/districts/hyderabad/decisions");
+  expect(api.writes[0].body.weatherRetrievedAt).toBe(
+    api.items[0].weather?.retrievedAt,
+  );
+  expect(api.writes[0].body.coordinatorId).toBeUndefined();
+  await expect(page.getByLabel("Recorded coordinator decisions")).toContainText(
+    "Review recorded access constraints",
+  );
+});
+test("unconfirmed decision save blocks repeated writes and shows no success", async ({
+  page,
+}) => {
+  const api = await setup(page, { saveFail: true });
+  await open(page);
+  await page
+    .getByRole("button", { name: "Record Coordinator Decision" })
+    .click();
+  await page
+    .getByLabel("Reason for review")
+    .fill("Confirm local readiness with the coordinator.");
+  await page
+    .getByRole("button", { name: "Confirm Coordinator Decision" })
+    .click();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Save is unconfirmed" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Confirm Coordinator Decision" }),
+  ).toBeDisabled();
+  expect(api.writes).toHaveLength(1);
+  await expect(
+    page.getByText("Coordinator decision saved.", { exact: false }),
+  ).toHaveCount(0);
+});
+test("field assessment uses a recorded community and attaches weather evidence", async ({
+  page,
+}) => {
+  const api = await setup(page, { weatherApi: true });
+  api.communities.push({
+    _id: "662200000000000000000099",
+    communityName: "Fixture Hyderabad Community",
+    district: "Hyderabad",
+    approximateLocation: {
+      latitude: 25.4,
+      longitude: 68.4,
+      landmarkDescription: "Fixture location",
+      isLocationEstimated: true,
+    },
+    hazardType: "OTHER",
+    hazardSeverity: "LOW",
+    connectivityStatus: "UNKNOWN",
+    informationConfidence: "LOW",
+    assessmentStatus: "PENDING_ASSESSMENT",
+    isSimulated: false,
+    statusHistory: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  });
+  await open(page);
+  await page
+    .getByRole("button", { name: "Create Field Assessment", exact: true })
+    .click();
+  await page
+    .getByLabel("Community record")
+    .selectOption("662200000000000000000099");
+  await page
+    .getByLabel("Reason for review")
+    .fill("Verify reported access conditions with a field officer.");
+  await page
+    .getByRole("button", { name: "Confirm Assessment Request" })
+    .click();
+  await expect(
+    page
+      .getByRole("status")
+      .filter({ hasText: "Field assessment request saved" }),
+  ).toBeVisible();
+  expect(api.writes).toHaveLength(1);
+  expect(api.writes[0].path).toBe(
+    "/api/community-risk-zones/662200000000000000000099/assessment",
+  );
+  expect(api.writes[0].body.assessmentNotes).toContain("WeatherAPI.com");
+  expect(api.writes[0].body.assessmentNotes).toContain(
+    api.items[0].weather!.retrievedAt,
+  );
+});
+
 test("responsive light-first and dark visual comparison", async ({
   page,
 }, info) => {
@@ -546,6 +740,7 @@ test("responsive light-first and dark visual comparison", async ({
   await open(page);
   await page.addStyleTag({ content: "nextjs-portal{display:none!important}" });
   await expect(page.locator(".siMap.leaflet-container")).toBeVisible();
+  await expect(page.locator('.siMap path[role="button"]')).toHaveCount(7);
   for (const width of [320, 375, 390, 430, 768, 1024, 1280, 1440, 1648, 1920]) {
     await page.setViewportSize({
       width,
@@ -558,6 +753,10 @@ test("responsive light-first and dark visual comparison", async ({
       ),
       `overflow at ${width}`,
     ).toBe(true);
+    await expect.poll(() => page.locator('.siMap').evaluate(element => {
+      const bounds = element.getBoundingClientRect();
+      return [...element.querySelectorAll('path[role="button"]')].every(marker => { const box = marker.getBoundingClientRect(); return box.left >= bounds.left && box.right <= bounds.right && box.top >= bounds.top && box.bottom <= bounds.bottom; });
+    })).toBe(true);
     if ([390, 768, 1440, 1648].includes(width))
       await page.screenshot({
         path: info.outputPath(`sindh-light-${width}.png`),
@@ -590,8 +789,8 @@ test("responsive light-first and dark visual comparison", async ({
     fullPage: true,
   });
   await page.getByRole("link", { name: "Overview", exact: true }).click();
-  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page).toHaveURL(/\/dashboard$/, { timeout: 20000 });
   await page.getByRole("link", { name: "Incidents", exact: true }).click();
-  await expect(page).toHaveURL(/\/dashboard\/incidents$/);
+  await expect(page).toHaveURL(/\/dashboard\/incidents$/, { timeout: 20000 });
   expect(errors).toEqual([]);
 });

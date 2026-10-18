@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useDistrictMonitoring } from "./use-district-monitoring";
 import { CommunityAssessments } from "./CommunityAssessments";
+import { PreparednessActions } from "./PreparednessActions";
 import { DistrictDetails, type DistrictTab } from "./DistrictDetails";
 import {
   DistrictAiPanel,
@@ -130,7 +131,7 @@ export function RiskZonesWorkspace() {
       </div>
       {communitiesOpened && (
         <section hidden={mode !== "communities"}>
-          <CommunityAssessments />
+          <CommunityAssessments initialDistrict={selected?.name || ""} />
         </section>
       )}
       {mode === "districts" && (
@@ -201,6 +202,13 @@ export function RiskZonesWorkspace() {
                 : "No successful forecast update"}
             </span>
           </div>
+          {model.overview?.provider?.configured === false && (
+            <p className="siError" role="status">
+              WeatherAPI is not configured on the backend. A coordinator must
+              configure WEATHERAPI_KEY privately in Render. Local assessments
+              and resources remain available.
+            </p>
+          )}
           {model.overview?.provider?.state === "COOLDOWN" && (
             <p className="siError" role="status">
               {model.overview.provider.reason === "RATE_LIMITED"
@@ -293,6 +301,9 @@ export function RiskZonesWorkspace() {
                           {item.monitoringLocation}
                         </small>
                         <span className="siRowStats">
+                          {item.weather?.current.condition
+                            ? `${item.weather.current.condition} · `
+                            : ""}
                           {item.weather
                             ? `${item.weather.next24Hours.precipitationMm} mm / 24h · ${item.weather.next24Hours.maxProbabilityPercent}% max probability`
                             : model.refreshing
@@ -350,6 +361,17 @@ export function RiskZonesWorkspace() {
                     setMode("communities");
                   }}
                 />
+                {selected && (
+                  <PreparednessActions
+                    key={selected.id}
+                    district={selected}
+                    onShelters={() => setTab("Nearby Resources")}
+                    onCommunities={() => {
+                      setCommunitiesOpened(true);
+                      setMode("communities");
+                    }}
+                  />
+                )}
               </div>
             </div>
             <div className="siRightColumn">
