@@ -19,7 +19,17 @@ export function attention(weather: Forecast | null) {
     let level: AttentionLevel = 'DATA_UNAVAILABLE'
     let reasonCode = 'FORECAST_UNAVAILABLE'
     let reason = 'A fresh forecast is unavailable; no monitoring level can be assigned.'
-    if (weather && weather.freshness !== 'stale') {
+    const missingEvidence = !weather
+        ? ['Forecast unavailable.']
+        : [
+              ...(weather.freshness === 'stale' ? ['Forecast is stale.'] : []),
+              ...(!Number.isFinite(weather.next24Hours.precipitationMm) || weather.next24Hours.precipitationMm < 0
+                  ? ['Valid forecast precipitation is missing.']
+                  : []),
+              ...(!Number.isFinite(weather.current.windKmh) || weather.current.windKmh < 0 ? ['Valid wind evidence is missing.'] : []),
+              ...(weather.next24Hours.hourlyPeriods !== 24 ? ['Complete 24-hour forecast coverage is missing.'] : [])
+          ]
+    if (weather && !missingEvidence.length) {
         const rain = weather.next24Hours.precipitationMm
         if (rain >= rules.urgentRainMm) {
             level = 'URGENT_REVIEW'
@@ -39,10 +49,22 @@ export function attention(weather: Forecast | null) {
         level,
         reasonCode,
         reasons: [reason],
+        missingEvidence,
+        observationTime: weather?.current.time || null,
+        retrievedAt: weather?.retrievedAt || null,
+        limitations: [
+            'Rainfall-only prototype thresholds; wind and local vulnerability require separate human review.',
+            'Not an official flood warning or district-wide hazard prediction.',
+            ...(weather?.limitations || [])
+        ],
         inputs: weather
             ? {
                   precipitationMm: weather.next24Hours.precipitationMm,
                   maxProbabilityPercent: weather.next24Hours.maxProbabilityPercent,
+                  currentWindKmh: weather.current.windKmh,
+                  maxWindKmh: weather.next24Hours.maxWindKmh ?? null,
+                  maxGustKmh: weather.next24Hours.maxGustKmh ?? null,
+                  peakHourlyPrecipitationMm: weather.next24Hours.peakHourlyPrecipitationMm ?? null,
                   forecastStart: weather.next24Hours.start,
                   forecastEnd: weather.next24Hours.end
               }

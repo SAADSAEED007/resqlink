@@ -45,11 +45,15 @@ const response = (body: unknown, status = 200, retryAfter?: string) =>
         headers: new Headers(retryAfter ? { 'Retry-After': retryAfter } : {}),
         json: () => Promise.resolve(body)
     } as Response)
+const originalProvider = process.env.WEATHER_PROVIDER
 beforeEach(() => {
+    process.env.WEATHER_PROVIDER = 'open-meteo'
     clearWeatherCache()
     delete process.env.GROQ_API_KEY
 })
 afterEach(() => {
+    if (originalProvider) process.env.WEATHER_PROVIDER = originalProvider
+    else delete process.env.WEATHER_PROVIDER
     clearWeatherCache()
     global.fetch = originalFetch
     jest.restoreAllMocks()

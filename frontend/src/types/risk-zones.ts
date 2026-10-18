@@ -99,6 +99,12 @@ export interface CommunityWeather {
     temperatureC: number;
     weatherCode: number;
     windKmh: number;
+    condition?: string;
+    providerConditionCode?: number;
+    feelsLikeC?: number;
+    humidityPercent?: number;
+    gustKmh?: number;
+    precipitationMm?: number;
   };
   next24Hours: {
     start: string;
@@ -106,6 +112,9 @@ export interface CommunityWeather {
     precipitationMm: number;
     maxProbabilityPercent: number;
     hourlyPeriods: number;
+    maxWindKmh?: number;
+    maxGustKmh?: number;
+    peakHourlyPrecipitationMm?: number;
   };
   hourly?: {
     time: string;
@@ -121,6 +130,7 @@ export interface CommunityWeather {
     precipitationMm: number;
     probabilityPercent: number;
   }[];
+  limitations?: string[];
 }
 export type AttentionLevel =
   | "ROUTINE"
@@ -142,6 +152,8 @@ export interface MonitoredDistrict {
     level: AttentionLevel;
     reasonCode: string;
     reasons: string[];
+    missingEvidence?: string[];
+    limitations?: string[];
     policy: {
       version: string;
       elevatedRainMm: number;
@@ -156,6 +168,8 @@ export interface MonitoredDistrict {
 }
 export interface MonitoringOverview {
   provider?: {
+    provider?: string;
+    configured?: boolean;
     state: "READY" | "COOLDOWN";
     reason: "RATE_LIMITED" | "UNAVAILABLE" | null;
     retryAt: string | null;
@@ -185,6 +199,27 @@ export interface CommunityAnalysis {
   evidenceFingerprint: string;
   sessionOnly: boolean;
   disclaimer: string;
+  evidence?: { id: string; text: string }[];
+}
+export type PreparednessAction =
+  | "CONTINUE_MONITORING"
+  | "REQUEST_FIELD_ASSESSMENT"
+  | "REVIEW_RESOURCES"
+  | "ESCALATE_REVIEW";
+export interface PreparednessDecision {
+  _id: string;
+  districtId: string;
+  coordinatorId: string;
+  action: PreparednessAction;
+  notes: string;
+  status: "RECORDED";
+  createdAt: string;
+  weatherEvidence: {
+    provider: string | null;
+    retrievedAt: string | null;
+    attention: AttentionLevel;
+    freshness: string;
+  };
 }
 export interface NearbyShelter {
   _id: string;

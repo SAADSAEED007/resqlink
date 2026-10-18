@@ -17,6 +17,8 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
+  Line,
+  ComposedChart,
 } from "recharts";
 import type {
   MonitoredDistrict,
@@ -159,12 +161,17 @@ export function DistrictDetails({
 function ForecastEvidence({ district }: { district: MonitoredDistrict }) {
   const weather = district.weather,
     rows = weather?.hourly
-      ?.filter((row) => Date.parse(row.time) > Date.parse(weather.current.time))
+      ?.filter(
+        (row) =>
+          Date.parse(row.time) >= Date.parse(weather.next24Hours.start) &&
+          Date.parse(row.time) < Date.parse(weather.next24Hours.end),
+      )
       .slice(0, 24);
   return weather ? (
     <>
       <p className="siMuted">
-        Open-Meteo · {date(weather.retrievedAt)} · {human(weather.freshness)}
+        {weather.provider} · {date(weather.retrievedAt)} ·{" "}
+        {human(weather.freshness)}
       </p>
       <div
         className="siChart"
@@ -173,7 +180,7 @@ function ForecastEvidence({ district }: { district: MonitoredDistrict }) {
       >
         {rows?.length ? (
           <ResponsiveContainer width="100%" height={160}>
-            <AreaChart data={rows}>
+            <ComposedChart data={rows}>
               <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="var(--command-border)"
@@ -189,7 +196,20 @@ function ForecastEvidence({ district }: { district: MonitoredDistrict }) {
                 minTickGap={24}
                 tick={{ fontSize: 10 }}
               />
-              <YAxis unit="mm" width={42} tick={{ fontSize: 10 }} />
+              <YAxis
+                yAxisId="rain"
+                unit="mm"
+                width={42}
+                tick={{ fontSize: 10 }}
+              />
+              <YAxis
+                yAxisId="probability"
+                orientation="right"
+                domain={[0, 100]}
+                unit="%"
+                width={40}
+                tick={{ fontSize: 10 }}
+              />
               <Tooltip
                 labelFormatter={(value) => date(String(value))}
                 contentStyle={{
@@ -199,18 +219,68 @@ function ForecastEvidence({ district }: { district: MonitoredDistrict }) {
                 }}
               />
               <Area
+                isAnimationActive={false}
+                yAxisId="rain"
                 dataKey="precipitationMm"
                 name="Precipitation (mm)"
                 stroke="#1688f8"
                 fill="#1688f833"
               />
-            </AreaChart>
+              <Line
+                isAnimationActive={false}
+                yAxisId="probability"
+                dataKey="probabilityPercent"
+                name="Rain chance (%)"
+                stroke="#d69212"
+                dot={false}
+              />
+            </ComposedChart>
           </ResponsiveContainer>
         ) : (
           <p>Loading hourly details…</p>
         )}
       </div>
+      <p className="siFootnote">
+        Blue area: rainfall in mm. Amber line: rain probability in percent.
+      </p>
+      {rows?.length ? (
+        <div
+          className="siChart"
+          role="img"
+          aria-label="Hourly wind forecast in kilometers per hour"
+        >
+          <ResponsiveContainer width="100%" height={140}>
+            <AreaChart data={rows}>
+              <XAxis
+                dataKey="time"
+                tickFormatter={(value) =>
+                  new Date(value).toLocaleTimeString("en-PK", {
+                    hour: "2-digit",
+                    timeZone: "Asia/Karachi",
+                  })
+                }
+                minTickGap={32}
+                tick={{ fontSize: 10 }}
+              />
+              <YAxis unit="km/h" width={50} tick={{ fontSize: 10 }} />
+              <Tooltip labelFormatter={(value) => date(String(value))} />
+              <Area
+                isAnimationActive={false}
+                dataKey="windKmh"
+                name="Wind (km/h)"
+                stroke="#21866c"
+                fill="#21866c22"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      ) : null}
       <div className="siFacts">
+        <div>
+          <span>
+            Current wind<b>{weather.current.windKmh} km/h</b>
+          </span>
+        </div>
         <div>
           <span>
             Precipitation total
@@ -225,7 +295,15 @@ function ForecastEvidence({ district }: { district: MonitoredDistrict }) {
         </div>
         <div>
           <span>
-            Current wind<b>{weather.current.windKmh} km/h</b>
+            Forecast maximum wind
+            <b>
+              {weather.next24Hours.maxWindKmh !== undefined
+                ? `${weather.next24Hours.maxWindKmh} km/h`
+                : "Not supplied"}
+            </b>
+            {weather.next24Hours.maxGustKmh !== undefined && (
+              <small>Gust {weather.next24Hours.maxGustKmh} km/h</small>
+            )}
           </span>
         </div>
         <div>
@@ -245,7 +323,8 @@ function ForecastEvidence({ district }: { district: MonitoredDistrict }) {
         <p>
           Window: {date(weather.next24Hours.start)} to{" "}
           {date(weather.next24Hours.end)}. Totals use 24 hourly precipitation
-          periods ending after the forecast current time.
+          periods within this source interval; they are not today&apos;s
+          calendar-day total.
         </p>
       </details>
       <a

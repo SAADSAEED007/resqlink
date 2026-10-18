@@ -78,8 +78,28 @@ export function DistrictAiPanel({
         <p className="siMuted">
           {district?.name || "Select a district"} ° Evidence-led preparedness
         </p>
+        {!analysis && (
+          <div className="siReason">
+            <h3>Weather Evidence Summary</h3>
+            <p>
+              {district?.weather
+                ? `${district.weather.provider}: ${district.weather.next24Hours.precipitationMm} mm forecast precipitation. Observation ${date(district.weather.current.time)}; fetched ${date(district.weather.retrievedAt)} (${human(district.weather.freshness)}).`
+                : "Current weather evidence is unavailable. Assessments and resources can still be reviewed."}
+            </p>
+            <h3>Why this attention level</h3>
+            <p>
+              {district?.attention?.reasons.join(" ") ||
+                "No classification is available."}
+            </p>
+            <p className="siFootnote">
+              Deterministic rule explanation. Community findings require review
+              in Local Assessments. Confirm shelter readiness, review actual
+              available teams and record your decision below.
+            </p>
+          </div>
+        )}
         {!district?.aiConfigured ? (
-          <div className="siEmptyCompact">
+          <div className="siEmptyCompact siAiStatus">
             <BrainCircuit size={26} />
             <h3>AI analysis is not configured.</h3>
             <p>
@@ -88,7 +108,7 @@ export function DistrictAiPanel({
             </p>
           </div>
         ) : !analysis ? (
-          <div className="siEmptyCompact">
+          <div className="siEmptyCompact siAiStatus">
             <Lightbulb size={25} />
             <p>
               Generate a summary from the actual forecast and matching local
@@ -147,6 +167,11 @@ export function DistrictAiPanel({
             )}
             <details>
               <summary>Sources &amp; limitations</summary>
+              {analysis.value.evidence?.map((fact) => (
+                <p key={fact.id}>
+                  <strong>{fact.id}</strong>: {fact.text}
+                </p>
+              ))}
               <p>
                 {analysis.value.model} · {date(analysis.value.generatedAt)} ·
                 Session-only result
@@ -204,6 +229,9 @@ export function DistrictForecastPanel({
         {weather ? (
           <>
             <p className="siMuted">
+              {weather.current.condition
+                ? `${weather.current.condition} · `
+                : ""}
               {weather.current.temperatureC}°C · Wind {weather.current.windKmh}{" "}
               km/h · Observation {date(weather.current.time)} (Asia/Karachi)
             </p>
@@ -231,12 +259,22 @@ export function DistrictForecastPanel({
             </p>
             <a
               className="siSource"
-              href="https://open-meteo.com/"
+              href={
+                weather.provider === "WeatherAPI.com"
+                  ? "https://www.weatherapi.com/"
+                  : "https://open-meteo.com/"
+              }
               target="_blank"
               rel="noreferrer"
             >
-              Weather data: Open-Meteo · CC BY 4.0
+              Weather data: {weather.provider}
+              {weather.provider === "Open-Meteo" ? " · CC BY 4.0" : ""}
             </a>
+            {weather.limitations?.map((text) => (
+              <p className="siFootnote" key={text}>
+                {text}
+              </p>
+            ))}
           </>
         ) : (
           <div className="siEmptyCompact">

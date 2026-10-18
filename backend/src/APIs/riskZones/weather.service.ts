@@ -1,5 +1,7 @@
 import Joi from 'joi'
 import { CustomError } from '../../utils/errors'
+import { NormalizedWeatherForecast, WeatherProviderError, WeatherPayloadError } from '../weather/providers/weather-provider'
+import { WeatherAPIProvider } from '../weather/providers/weatherapi.provider'
 
 const numeric = Joi.number().required()
 const array = Joi.array().items(numeric).min(1).required()
@@ -97,7 +99,7 @@ export function normalizeWeather(input: unknown, now = Date.now()) {
         attribution: 'Weather data by Open-Meteo (CC BY 4.0)'
     }
 }
-export type Forecast = ReturnType<typeof normalizeWeather>
+export type Forecast = NormalizedWeatherForecast
 export const WEATHER_CACHE_TTL_MS = 20 * 60000
 export const WEATHER_STALE_MAX_AGE_MS = 60 * 60000
 const MAX_CACHE = 500
@@ -121,6 +123,11 @@ let lastAttempt = 0
 let cooldownUntil = 0
 let failures = 0
 let rateLimited = false
+let configurationFailure = false
+const weatherApi = new WeatherAPIProvider()
+function useWeatherApi() {
+    return process.env.WEATHER_PROVIDER !== 'open-meteo'
+}
 
 function logWeather(event: string, details: Record<string, unknown>) {
     // Render must receive these bounded provider-transition events on stdout.
@@ -128,11 +135,13 @@ function logWeather(event: string, details: Record<string, unknown>) {
     console.warn(event, details)
 }
 function keyFor(point: Point) {
-    return `${point.latitude.toFixed(3)},${point.longitude.toFixed(3)}`
+    return `${useWeatherApi() ? 'weatherapi:3' : 'open-meteo:4'}:${point.latitude.toFixed(3)},${point.longitude.toFixed(3)}`
 }
 export function weatherProviderStatus() {
     const cooling = Date.now() < cooldownUntil
     return {
+        provider: useWeatherApi() ? weatherApi.name : 'Open-Meteo',
+        configured: !useWeatherApi() || !!process.env.WEATHERAPI_KEY?.trim(),
         state: cooling ? ('COOLDOWN' as const) : ('READY' as const),
         reason: cooling ? (rateLimited ? ('RATE_LIMITED' as const) : ('UNAVAILABLE' as const)) : null,
         retryAt: cooling ? new Date(cooldownUntil).toISOString() : null,
@@ -176,6 +185,7 @@ export function clearWeatherCache() {
     cooldownUntil = 0
     failures = 0
     rateLimited = false
+    configurationFailure = false
 }
 export async function forecast(lat: unknown, lon: unknown): Promise<Forecast> {
     const point = coordinates(lat, lon),
@@ -183,10 +193,15 @@ export async function forecast(lat: unknown, lon: unknown): Promise<Forecast> {
     const old = getCachedForecast(lat, lon)
     // All callers, including browser refresh and AI/context endpoints, obey TTL.
     if (old && old.freshness !== 'stale') return old
+    if (useWeatherApi() && !process.env.WEATHERAPI_KEY?.trim()) {
+        if (old) return old
+        throw new CustomError('WEATHERAPI_KEY is not configured on the backend', 503)
+    }
     const existing = pending.get(key)
     if (existing) return existing.promise
     if (Date.now() < cooldownUntil || Date.now() < (invalidUntil.get(key) || 0)) {
         if (old) return old
+        if (configurationFailure) throw new CustomError('WeatherAPI credentials or subscription require backend review', 503)
         throw unavailable()
     }
     if (pending.size >= MAX_CACHE) {
@@ -241,7 +256,7 @@ function providerRows(body: unknown, length: number): unknown[] {
 }
 async function flush() {
     if (running || !queue.size) return
-    const jobs = [...queue.values()].slice(0, 50)
+    const jobs = [...queue.values()].slice(0, useWeatherApi() ? 1 : 50)
     for (const job of jobs) queue.delete(job.key)
     if (Date.now() < cooldownUntil) {
         jobs.forEach((job) => finish(job))
@@ -251,9 +266,22 @@ async function flush() {
     running = true
     const epoch = generation
     controller = new AbortController()
-    const timeout = setTimeout(() => controller?.abort(), 8000)
+    const timeout = setTimeout(() => controller?.abort(), useWeatherApi() ? 12000 : 8000)
     lastAttempt = Date.now()
     try {
+        if (useWeatherApi()) {
+            const value = await weatherApi.getForecast(jobs[0].point, controller.signal)
+            if (epoch !== generation) return
+            if (failures) logWeather('weather.provider_recovered', { provider: weatherApi.name })
+            failures = 0
+            cooldownUntil = 0
+            rateLimited = false
+            configurationFailure = false
+            if (cache.size >= MAX_CACHE && !cache.has(jobs[0].key)) cache.delete(cache.keys().next().value as string)
+            cache.set(jobs[0].key, value)
+            finish(jobs[0], value)
+            return
+        }
         const query = new URLSearchParams({
             latitude: jobs.map((job) => job.point.latitude.toFixed(3)).join(','),
             longitude: jobs.map((job) => job.point.longitude.toFixed(3)).join(','),
@@ -299,9 +327,28 @@ async function flush() {
         })
     } catch (error) {
         if (epoch === generation) {
-            openCircuit(null)
+            if (error instanceof WeatherPayloadError) {
+                if (invalidUntil.size >= MAX_CACHE) invalidUntil.delete(invalidUntil.keys().next().value as string)
+                invalidUntil.set(jobs[0].key, Date.now() + 60000)
+                logWeather('weather.payload_invalid', { provider: weatherApi.name })
+                finish(jobs[0], undefined, new CustomError(error.message, 502))
+                return
+            }
+            const providerError = error instanceof WeatherProviderError ? error : null
+            configurationFailure = !!providerError?.configuration
+            openCircuit(providerError?.status ?? null, providerError?.retryAfter)
             logWeather('weather.provider_request_failed', { error: error instanceof Error ? error.name : 'UnknownError', locations: jobs.length })
-            jobs.forEach((job) => finish(job, undefined, error instanceof CustomError ? error : unavailable()))
+            jobs.forEach((job) =>
+                finish(
+                    job,
+                    undefined,
+                    configurationFailure
+                        ? new CustomError('WeatherAPI credentials or subscription require backend review', 503)
+                        : error instanceof CustomError
+                          ? error
+                          : unavailable()
+                )
+            )
         }
     } finally {
         clearTimeout(timeout)

@@ -43,6 +43,8 @@ export function SindhMonitoringMap({
         item.attention?.level,
         item.weather?.next24Hours.precipitationMm,
         item.weather?.retrievedAt,
+        item.weather?.current.temperatureC,
+        item.weather?.provider,
       ]),
   );
   useEffect(() => {
@@ -71,6 +73,8 @@ export function SindhMonitoringMap({
         AttentionLevel | undefined,
         number | undefined,
         string | undefined,
+        number | undefined,
+        string | undefined,
       ][];
       for (const [
         id,
@@ -80,10 +84,17 @@ export function SindhMonitoringMap({
         status,
         rain,
         retrievedAt,
+        temperatureC,
+        provider,
       ] of records) {
         const level = status || "DATA_UNAVAILABLE";
         const content = document.createElement("div");
-        content.textContent = `${name} · ${attentionLabels[level]} · ${rain === undefined ? "Forecast unavailable" : `${rain} mm / next 24h`} · ${retrievedAt ? new Date(retrievedAt).toLocaleString() : "Not retrieved"}. Representative town point.`;
+        content.textContent = `${name} · ${attentionLabels[level]} · ${typeof temperatureC !== "number" ? "Temperature unavailable" : `${temperatureC}°C`} · ${typeof rain !== "number" ? "Forecast unavailable" : `${rain} mm / next 24h`} · ${provider || "No weather source"} · ${retrievedAt ? new Date(retrievedAt).toLocaleString("en-PK", { timeZone: "Asia/Karachi" }) : "Not retrieved"} (Asia/Karachi). Representative town point.`;
+        const review = document.createElement("button");
+        review.type = "button";
+        review.textContent = "Review District";
+        review.addEventListener("click", () => select.current(id));
+        content.append(document.createElement("br"), review);
         const marker = L.circleMarker([latitude, longitude], {
           radius: focused.current === id ? 13 : 9,
           color: "#fff",

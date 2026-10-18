@@ -134,7 +134,11 @@ export function useMapBase(
               container.current?.clientWidth &&
               container.current.clientHeight
             )
-              instance.invalidateSize({ pan: false });
+              instance.invalidateSize({
+                pan: true,
+                animate: false,
+                debounceMoveend: true,
+              });
           });
         });
         observer.observe(container.current);
