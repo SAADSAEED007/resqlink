@@ -884,14 +884,6 @@ select {
 }
 .password-field button {
   position: absolute;
-  top: 1px;
-  right: 1px;
-  height: calc(100% - 2px);
-  min-width: 4rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #376aa8;
-  border-radius: 0.625rem;
 }
 .login-form .button {
   min-height: 3.35rem;
@@ -1006,8 +998,11 @@ select {
   right: 0.5rem;
   z-index: 2;
   display: flex;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.25rem !important;
+  min-width: 2.25rem;
+  height: 2.25rem !important;
+  min-height: 2.25rem;
+  padding: 0;
   align-items: center;
   justify-content: center;
   border: 0;
