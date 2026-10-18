@@ -42,6 +42,7 @@ export interface CreateIncidentInput {
   vulnerablePeople?: VulnerabilityIndicators | null;
   waterLevel?: ("NONE" | "LOW" | "MODERATE" | "HIGH" | "UNKNOWN") | null;
   immediateDanger?: boolean | null;
+  safetyAnswer?: "YES" | "NO" | "UNSURE" | "UNANSWERED";
 }
 export type VerificationStatus =
   | "NEEDS_REVIEW"
@@ -73,6 +74,16 @@ export interface Incident extends CreateIncidentInput, RecordFields {
   priorityScore: number;
   priorityLevel: PriorityLevel;
   priorityReasons: string[];
+  triage?: {
+    safetyAnswer: "YES" | "NO" | "UNSURE" | "UNANSWERED";
+    status: "NEEDS_ASSESSMENT" | "PRELIMINARY" | "COORDINATOR_REVIEWED";
+    suggestedPriority: PriorityLevel | null;
+    immediateDangerReported: boolean | null;
+    reasons: { code: string; message: string }[];
+    ruleVersion: string;
+    reviewedAt?: string | null;
+    reviewedBy?: string | null;
+  };
   confidenceLevel: ConfidenceLevel;
   status: IncidentStatus;
   assignedTeam: string | null;

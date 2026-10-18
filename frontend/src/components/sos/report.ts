@@ -25,6 +25,8 @@ export interface SOSDraft {
   notes: string;
   peopleAffected: string;
   immediateDanger: "unknown" | "yes" | "no";
+  safetyAnswer: "YES" | "NO" | "UNSURE" | "UNANSWERED";
+  safetyEmergencyType: EmergencyType | "";
   waterLevel: "UNKNOWN" | "NONE" | "LOW" | "MODERATE" | "HIGH";
   elderly: string;
   children: string;
@@ -44,6 +46,8 @@ export const emptyDraft: SOSDraft = {
   notes: "",
   peopleAffected: "",
   immediateDanger: "unknown",
+  safetyAnswer: "UNANSWERED",
+  safetyEmergencyType: "",
   waterLevel: "UNKNOWN",
   elderly: "",
   children: "",
@@ -169,9 +173,8 @@ export function toIncidentInput(draft: SOSDraft): CreateIncidentInput {
     ...(draft.peopleAffected.trim() ? { peopleAffected: Number(draft.peopleAffected) } : {}),
     ...(Object.keys(vulnerablePeople).length ? { vulnerablePeople } : {}),
     waterLevel: draft.waterLevel,
-    ...(draft.immediateDanger !== "unknown"
-      ? { immediateDanger: draft.immediateDanger === "yes" }
-      : {}),
+    safetyAnswer: draft.safetyEmergencyType === draft.emergencyType ? draft.safetyAnswer : draft.immediateDanger === "yes" ? "YES" : draft.immediateDanger === "no" ? "NO" : "UNANSWERED",
+    ...((draft.safetyEmergencyType === draft.emergencyType && draft.safetyAnswer === "YES") || draft.immediateDanger === "yes" ? { immediateDanger: true } : (draft.safetyEmergencyType === draft.emergencyType && draft.safetyAnswer === "NO") || draft.immediateDanger === "no" ? { immediateDanger: false } : {}),
   };
 }
 export function locationSummary(draft: SOSDraft) {

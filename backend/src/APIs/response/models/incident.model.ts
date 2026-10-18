@@ -48,6 +48,16 @@ const verificationSchema = new Schema(
     },
     { _id: false }
 )
+const triageSchema = new Schema({
+    safetyAnswer: { type: String, enum: ['YES', 'NO', 'UNSURE', 'UNANSWERED'], required: true },
+    status: { type: String, enum: ['NEEDS_ASSESSMENT', 'PRELIMINARY', 'COORDINATOR_REVIEWED'], required: true },
+    suggestedPriority: { type: String, enum: PRIORITIES, default: null },
+    immediateDangerReported: { type: Boolean, default: null },
+    reasons: [{ _id: false, code: { type: String, required: true }, message: { type: String, required: true } }],
+    ruleVersion: { type: String, required: true },
+    reviewedAt: { type: Date, default: null },
+    reviewedBy: { type: Schema.Types.ObjectId, ref: 'User', default: null }
+}, { _id: false })
 const schema = new Schema(
     {
         reporterName: { type: String, trim: true, maxlength: 100 },
@@ -60,6 +70,7 @@ const schema = new Schema(
         vulnerablePeople: { type: vulnerabilitySchema, default: undefined },
         waterLevel: { type: String, enum: WATER_LEVELS },
         immediateDanger: { type: Boolean, default: undefined },
+        triage: { type: triageSchema, default: undefined },
         priorityScore: { type: Number, min: 0, max: 100, required: true },
         priorityLevel: { type: String, enum: PRIORITIES, required: true },
         priorityReasons: { type: [String], required: true },

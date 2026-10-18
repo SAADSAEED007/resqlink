@@ -28,7 +28,8 @@ export const incidentSchema = Joi.object({
     peopleAffected: Joi.number().integer().min(1).max(10000).allow(null),
     vulnerablePeople: Joi.object({ elderly: count, children: count, disabled: count, medicalNeeds: count }).allow(null),
     waterLevel: Joi.string().valid(...WATER_LEVELS).allow(null),
-    immediateDanger: Joi.boolean().allow(null)
+    immediateDanger: Joi.boolean().allow(null),
+    safetyAnswer: Joi.string().valid('YES', 'NO', 'UNSURE', 'UNANSWERED').default('UNANSWERED')
 })
 export const teamContactSchema = Joi.object({
     phone: Joi.string()

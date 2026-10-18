@@ -237,6 +237,15 @@ export function IncidentPriorityCard({
         )}
       </header>
 
+      {incident.triage && (
+        <section className="rqTriageAssessment" aria-label="Emergency Triage Assessment">
+          <div><strong>Emergency Triage Assessment</strong><span>{incident.triage.status === "NEEDS_ASSESSMENT" ? "Needs Triage · Severity Unconfirmed" : incident.triage.status === "COORDINATOR_REVIEWED" ? "Coordinator Reviewed" : "Preliminary · Human Review Pending"}</span></div>
+          <p>Safety response: <b>{incident.triage.safetyAnswer === "YES" ? "Yes — possible immediate danger" : incident.triage.safetyAnswer === "NO" ? "No known immediate danger" : incident.triage.safetyAnswer === "UNSURE" ? "Not sure" : "Skipped"}</b></p>
+          {incident.triage.suggestedPriority && <p>System suggestion: <b>{incident.triage.suggestedPriority} · Unverified Reporter Signal</b></p>}
+          {incident.triage.reasons.map((reason) => <p key={reason.code}>{reason.message}</p>)}
+        </section>
+      )}
+
       <div className="rqPriorityBody">
         {/* Left Risk Gauge */}
         <div className="rqRiskGaugeContainer">

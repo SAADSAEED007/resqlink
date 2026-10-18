@@ -11,6 +11,8 @@ export type Capability = (typeof CAPABILITIES)[number]
 export type Priority = (typeof PRIORITIES)[number]
 export type IncidentStatus = (typeof INCIDENT_STATUSES)[number]
 export type VerificationStatus = (typeof VERIFICATION_STATUSES)[number]
+export type SosSafetyAnswer = 'YES' | 'NO' | 'UNSURE' | 'UNANSWERED'
+export type TriageStatus = 'NEEDS_ASSESSMENT' | 'PRELIMINARY' | 'COORDINATOR_REVIEWED'
 export interface VerificationDetails {
     status: VerificationStatus
     requiresManualReview: boolean
@@ -39,6 +41,7 @@ export interface IncidentInput extends RiskInput {
     reporterName?: string | null
     reporterPhone?: string | null
     description?: string | null
+    safetyAnswer?: SosSafetyAnswer
 }
 export interface TeamContact {
     phone?: string
