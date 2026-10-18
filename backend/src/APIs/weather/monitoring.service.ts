@@ -4,12 +4,12 @@ import { forecast } from '../riskZones/weather.service'
 import { CustomError } from '../../utils/errors'
 import { evidence, generateAnalysis } from '../riskZones/intelligence.service'
 import CommunityRiskZone from '../riskZones/models/community-risk-zone.model'
-export async function districtWeather(id: string) {
+export async function districtWeather(id: string, refresh = false) {
     const record = district(id)
     let weather: Awaited<ReturnType<typeof forecast>> | null = null
     let error = ''
     try {
-        weather = await forecast(record.latitude, record.longitude)
+        weather = await forecast(record.latitude, record.longitude, refresh)
     } catch (e) {
         error = e instanceof CustomError ? e.message : 'Weather unavailable'
     }
@@ -23,13 +23,13 @@ export async function districtWeather(id: string) {
         model: process.env.GROQ_MODEL || 'openai/gpt-oss-20b'
     }
 }
-export async function overview() {
+export async function overview(refresh = false) {
     const output = new Array<Awaited<ReturnType<typeof districtWeather>>>(districts.length)
     let cursor = 0
     async function worker() {
         while (cursor < districts.length) {
             const index = cursor++
-            output[index] = await districtWeather(districts[index].id)
+            output[index] = await districtWeather(districts[index].id, refresh)
         }
     }
     await Promise.all(Array.from({ length: 3 }, () => worker()))

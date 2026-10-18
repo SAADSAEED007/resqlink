@@ -203,6 +203,10 @@ export function DistrictForecastPanel({
         </p>
         {weather ? (
           <>
+            <p className="siMuted">
+              {weather.current.temperatureC}°C · Wind {weather.current.windKmh}{" "}
+              km/h · Observation {date(weather.current.time)} (Asia/Karachi)
+            </p>
             <div className="siDays">
               {weather.days.slice(0, 4).map((day) => (
                 <div className="siDay" key={day.time}>
@@ -222,7 +226,8 @@ export function DistrictForecastPanel({
               ))}
             </div>
             <p className="siFootnote">
-              {human(weather.freshness)} forecast · {date(weather.retrievedAt)}
+              {human(weather.freshness)} forecast · {date(weather.retrievedAt)}{" "}
+              · Asia/Karachi
             </p>
             <a
               className="siSource"

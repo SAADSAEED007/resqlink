@@ -76,6 +76,33 @@ describe('verified monitoring registry', () => {
     })
 })
 describe('forecast normalization and cache', () => {
+    test('explicit refresh bypasses successful cache and coalesces concurrent refreshes', async () => {
+        const fetcher = jest.fn(() => response(fixture()))
+        global.fetch = fetcher
+        await forecast(25.4, 68.4)
+        await Promise.all([forecast(25.4, 68.4, true), forecast(25.4, 68.4, true)])
+        expect(fetcher).toHaveBeenCalledTimes(2)
+    })
+    test('transient upstream failure retries once and recovers', async () => {
+        const fetcher = jest
+            .fn()
+            .mockImplementationOnce(() => response({}, 503))
+            .mockImplementationOnce(() => response(fixture()))
+        global.fetch = fetcher
+        expect((await forecast(25.4, 68.4)).current.temperatureC).toBe(29)
+        expect(fetcher).toHaveBeenCalledTimes(2)
+    })
+    test('429 honors Retry-After across locations and forced refresh', async () => {
+        const fetcher = jest.fn().mockResolvedValue({ ok: false, status: 429, headers: new Headers({ 'Retry-After': '120' }) })
+        global.fetch = fetcher
+        await expect(forecast(25.4, 68.4)).rejects.toThrow('rate limited')
+        await expect(forecast(26, 68, true)).rejects.toThrow('rate limited')
+        expect(fetcher).toHaveBeenCalledTimes(1)
+        const now = Date.now()
+        jest.spyOn(Date, 'now').mockReturnValue(now + 121000)
+        fetcher.mockImplementation(() => response(fixture()))
+        await expect(forecast(26, 68, true)).resolves.toHaveProperty('provider', 'Open-Meteo')
+    })
     test('aggregates only next 24 hourly periods and preserves mm versus probability', () => {
         const raw = fixture()
         raw.hourly.precipitation[0] = 9999

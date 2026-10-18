@@ -44,11 +44,14 @@ export const districtWeather = {
       value.items.forEach(checked);
       return value;
     }),
-  overview: (signal?: AbortSignal) =>
-    request<MonitoringOverview>(`${root}/overview`, {
-      signal,
-      timeoutMs: 35000,
-    }).then((value) => {
+  overview: (signal?: AbortSignal, refresh = false) =>
+    request<MonitoringOverview>(
+      `${root}/overview${refresh ? "?refresh=true" : ""}`,
+      {
+        signal,
+        timeoutMs: 35000,
+      },
+    ).then((value) => {
       if (!Array.isArray(value?.items))
         throw new ApiError("Invalid district overview", 0, "protocol");
       value.items.forEach(checked);

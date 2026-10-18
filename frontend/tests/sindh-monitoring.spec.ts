@@ -259,6 +259,29 @@ async function open(page: Page) {
   await expect(page.locator(".siDistrictRow")).toHaveCount(7);
 }
 
+test("refresh bypasses the backend weather cache and completes", async ({
+  page,
+}) => {
+  await setup(page);
+  await page.goto("/dashboard/risk-zones");
+  const refresh = page.getByRole("button", {
+    name: "Refresh Weather",
+    exact: true,
+  });
+  await expect(refresh).toBeEnabled();
+  const request = page.waitForRequest((req) => {
+    const url = new URL(req.url());
+    return (
+      url.pathname === "/api/weather/districts/overview" &&
+      url.searchParams.get("refresh") === "true"
+    );
+  });
+  await refresh.click();
+  await request;
+  await expect(refresh).toBeEnabled();
+  await expect(page.getByText(/Last forecast update/)).toBeVisible();
+});
+
 test("automatic monitoring works with zero communities and honest partial coverage", async ({
   page,
 }) => {
