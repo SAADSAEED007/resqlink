@@ -45,8 +45,16 @@ const metrics = [
   },
 ];
 export function AssignmentWorkspace() {
-  const { isDemoMode } = useDashboard();
+  const { isDemoMode, teams: registeredTeams } = useDashboard();
   const model = useAssignmentWorkspace(isDemoMode);
+  const mapTeams = Array.from(
+    new Map(
+      [
+        ...registeredTeams.filter((team) => !team.isSimulated),
+        ...model.mapTeams,
+      ].map((team) => [team._id, team]),
+    ).values(),
+  );
   return (
     <div className="awWorkspace">
       <header className="awHeading">
@@ -120,7 +128,8 @@ export function AssignmentWorkspace() {
             <div className="awRight">
               <AssignmentCoverageMap
                 incident={model.detail?.incident}
-                teams={model.mapTeams}
+                teams={mapTeams}
+                eligibleTeamIds={model.eligible.map((item) => item.team._id)}
                 selectedTeam={model.selectedTeam}
                 selectTeam={model.setSelectedTeam}
               />

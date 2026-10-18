@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "./map-test-fixtures";
 import { districts } from "../../backend/src/APIs/weather/districts";
 import type { MonitoredDistrict, RiskZone } from "../src/types/risk-zones";
 function forecast(rain = 24) {

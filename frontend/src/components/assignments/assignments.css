@@ -549,6 +549,7 @@
   font-size: 11px;
   pointer-events: none;
 }
+.awMapNotice a { pointer-events: auto; color: var(--command-blue); text-decoration: underline; }
 .awMapLegend {
   position: absolute;
   bottom: 24px;

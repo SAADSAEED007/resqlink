@@ -5,19 +5,14 @@ import type { Map as LeafletMap } from "leaflet";
 import { ExternalLink, MapPin, Minus, Plus } from "lucide-react";
 import type { Incident, RescueTeam, IncidentLocation } from "@/types/api";
 import { getIncidentMarkerIcon, getRescueTeamMarkerIcon } from "../map-marker";
+import { validCoordinates } from "@/components/maps/map-coordinates";
+import { useMapTiles } from "@/components/maps/use-map-base";
+import { MapFeedback } from "@/components/maps/MapFeedback";
 
 export function validLocation(
   location?: IncidentLocation | null,
 ): location is IncidentLocation {
-  return (
-    !!location &&
-    typeof location.latitude === "number" &&
-    typeof location.longitude === "number" &&
-    Number.isFinite(location.latitude) &&
-    Number.isFinite(location.longitude) &&
-    Math.abs(location.latitude) <= 90 &&
-    Math.abs(location.longitude) <= 180
-  );
+  return validCoordinates(location);
 }
 
 export function IncidentLocationMap({
@@ -30,12 +25,13 @@ export function IncidentLocationMap({
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<LeafletMap | null>(null);
   const [failed, setFailed] = useState(false);
+  const [generation, setGeneration] = useState(0);
+  const [attempt, setAttempt] = useState(0);
+  const tiles = useMapTiles(map, generation > 0, generation);
 
   const rawLocation = validLocation(incident.location)
     ? incident.location
-    : incident.isSimulated || incident._id === "INC-2024-0814-001"
-      ? { latitude: 24.9207, longitude: 67.0982, address: "Gulshan-e-Iqbal, Karachi" }
-      : null;
+    : null;
 
   const latitude = rawLocation?.latitude;
   const longitude = rawLocation?.longitude;
@@ -70,24 +66,11 @@ export function IncidentLocationMap({
           zoom: 13,
           zoomControl: false,
           scrollWheelZoom: false,
-          attributionControl: false,
+          attributionControl: true,
         });
         map.current = instance;
 
-        // Dark cartographic tiles for Command Center aesthetic
-        L.tileLayer(
-          "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-          { maxZoom: 16 },
-        )
-          .on("tileerror", () => {
-            if (active) setFailed(true);
-          })
-          .addTo(instance);
-
-        L.tileLayer(
-          "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
-          { maxZoom: 16 },
-        ).addTo(instance);
+        setGeneration((value) => value + 1);
 
         // Visual-only subtle focus halo around the selected incident (non-geographic impact claim)
         const priorityColor =
@@ -112,7 +95,7 @@ export function IncidentLocationMap({
         // Center Incident Marker with custom icon
         const popup = document.createElement("div");
         popup.className = "rqMapPopupContent";
-        popup.innerHTML = `<strong>${incident.location?.address || "Reported incident location"}</strong><p>${incident.priorityLevel || "CRITICAL"} Priority Incident. Focus halo is decorative.</p>`;
+        popup.textContent = `${incident.location?.address || "Reported incident location"}. ${incident.priorityLevel} Priority Incident. Focus halo is decorative.`;
 
         L.marker([latitude, longitude], {
           icon: getIncidentMarkerIcon(L, incident.priorityLevel || "CRITICAL"),
@@ -137,7 +120,13 @@ export function IncidentLocationMap({
       map.current?.remove();
       map.current = null;
     };
-  }, [latitude, longitude, incident.priorityLevel, incident.location?.address]);
+  }, [
+    latitude,
+    longitude,
+    incident.priorityLevel,
+    incident.location?.address,
+    attempt,
+  ]);
 
   // Team positions layer
   useEffect(() => {
@@ -175,7 +164,7 @@ export function IncidentLocationMap({
       active = false;
       cleanup?.();
     };
-  }, [positionsKey]);
+  }, [positionsKey, generation]);
 
   return (
     <section className="rqDetailCard rqDetailLocation">
@@ -197,10 +186,19 @@ export function IncidentLocationMap({
         <div className="rqDetailMapCanvas">
           <div
             ref={container}
-            className="rqDetailMap"
+            className="rqDetailMap rqOperationalMap"
             aria-label="Incident location map"
           />
 
+          <MapFeedback
+            status={failed ? "error" : tiles.status}
+            retry={() => {
+              if (failed) {
+                setFailed(false);
+                setAttempt((value) => value + 1);
+              } else tiles.retry();
+            }}
+          />
           {/* Top Right Zoom Controls */}
           <div className="rqDetailMapZoom">
             <button
@@ -235,7 +233,10 @@ export function IncidentLocationMap({
         <div className="rqDetailMapMissing">
           <MapPin size={36} />
           <h2>Location verification required</h2>
-          <p>{incident.location?.address || "No valid coordinates reported for this incident."}</p>
+          <p>
+            {incident.location?.address ||
+              "No valid coordinates reported for this incident."}
+          </p>
         </div>
       )}
 

@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "./map-test-fixtures";
 
 async function fixture(
   page: Page,
@@ -234,7 +234,7 @@ test("missing location has no fabricated marker or recommendation", async ({
   await fixture(page, { noLocation: true });
   await open(page);
   await page.locator(".awQueueRow").click();
-  await expect(page.locator(".awMapNotice")).toContainText("requires review");
+  await expect(page.locator(".awMapNotice")).toContainText("requires verification");
   await expect(
     page.getByRole("button", { name: "Assign Rescue Team", exact: true }),
   ).toBeDisabled();

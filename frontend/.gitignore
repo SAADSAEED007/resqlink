@@ -47,3 +47,4 @@ next-env.d.ts
 
 # Dedicated risk-intelligence browser artifacts
 /test-results-sindh/
+/test-results-maps*/
