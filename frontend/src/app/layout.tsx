@@ -5,6 +5,7 @@ import { AuthProvider } from "@/components/auth/auth-provider";
 import { ToastProvider } from "@/components/feedback/toast";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
+import "@/components/maps/maps.css";
 const geist = Geist({
   subsets: ["latin"],
   variable: "--font-geist",

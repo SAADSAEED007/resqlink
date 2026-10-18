@@ -1,4 +1,4 @@
-import { Schema, model, InferSchemaType } from 'mongoose'
+import { Schema, model, InferSchemaType, Types } from 'mongoose'
 import { EMERGENCY_TYPES, WATER_LEVELS, PRIORITIES, CONFIDENCES, INCIDENT_STATUSES, VERIFICATION_STATUSES } from '../types'
 
 export const locationSchema = new Schema(
@@ -9,7 +9,7 @@ export const locationSchema = new Schema(
     },
     { _id: false }
 )
-const count = { type: Number, min: 0, max: 10000, validate: Number.isInteger }
+const count = { type: Number, min: 0, max: 10000, validate: (v: unknown) => v == null || Number.isInteger(v) }
 const vulnerabilitySchema = new Schema({ elderly: count, children: count, disabled: count, medicalNeeds: count }, { _id: false })
 const overrideSchema = new Schema(
     {
@@ -48,18 +48,29 @@ const verificationSchema = new Schema(
     },
     { _id: false }
 )
+const triageSchema = new Schema({
+    safetyAnswer: { type: String, enum: ['YES', 'NO', 'UNSURE', 'UNANSWERED'], required: true },
+    status: { type: String, enum: ['NEEDS_ASSESSMENT', 'PRELIMINARY', 'COORDINATOR_REVIEWED'], required: true },
+    suggestedPriority: { type: String, enum: PRIORITIES, default: null },
+    immediateDangerReported: { type: Boolean, default: null },
+    reasons: [{ _id: false, code: { type: String, required: true }, message: { type: String, required: true } }],
+    ruleVersion: { type: String, required: true },
+    reviewedAt: { type: Date, default: null },
+    reviewedBy: { type: Schema.Types.ObjectId, ref: 'User', default: null }
+}, { _id: false })
 const schema = new Schema(
     {
-        reporterName: { type: String, trim: true, required: true, maxlength: 100 },
+        reporterName: { type: String, trim: true, maxlength: 100 },
         reporterPhone: { type: String, trim: true, maxlength: 32 },
         emergencyType: { type: String, enum: EMERGENCY_TYPES, required: true },
-        description: { type: String, trim: true, required: true, maxlength: 2000 },
+        description: { type: String, trim: true, maxlength: 2000 },
         location: { type: locationSchema, default: null },
         locationVerificationRequired: { type: Boolean, required: true },
-        peopleAffected: { type: Number, min: 1, max: 10000, required: true, validate: Number.isInteger },
+        peopleAffected: { type: Number, min: 1, max: 10000, validate: (v: unknown) => v == null || Number.isInteger(v) },
         vulnerablePeople: { type: vulnerabilitySchema, default: undefined },
         waterLevel: { type: String, enum: WATER_LEVELS },
         immediateDanger: { type: Boolean, default: undefined },
+        triage: { type: triageSchema, default: undefined },
         priorityScore: { type: Number, min: 0, max: 100, required: true },
         priorityLevel: { type: String, enum: PRIORITIES, required: true },
         priorityReasons: { type: [String], required: true },
@@ -70,15 +81,19 @@ const schema = new Schema(
         verification: { type: verificationSchema, required: true },
         statusHistory: { type: [statusHistorySchema], default: [] },
         isSimulated: { type: Boolean, default: false, required: true },
+        reportReference: { type: String, trim: true, match: /^RESQ-\d{6,}$/ },
 
         demoKey: { type: String }
     },
     { timestamps: true, optimisticConcurrency: true }
 )
+schema.index({ reportReference: 1 }, { unique: true, partialFilterExpression: { reportReference: { $type: 'string' } } })
 schema.index({ demoKey: 1 }, { unique: true, partialFilterExpression: { demoKey: { $type: 'string' } } })
 schema.index({ status: 1, priorityScore: -1, createdAt: 1, _id: 1 })
 schema.index({ 'verification.status': 1, createdAt: -1 })
 schema.index({ updatedAt: -1 })
 schema.index({ emergencyType: 1, status: 1, priorityScore: -1 })
-export type IncidentRecord = InferSchemaType<typeof schema>
+export type IncidentRecord = InferSchemaType<typeof schema> & {
+    _id: Types.ObjectId
+}
 export default model('Incident', schema)

@@ -27,21 +27,22 @@ export interface IncidentLocation {
   address?: string;
 }
 export interface VulnerabilityIndicators {
-  elderly?: number;
-  children?: number;
-  disabled?: number;
-  medicalNeeds?: number;
+  elderly?: number | null;
+  children?: number | null;
+  disabled?: number | null;
+  medicalNeeds?: number | null;
 }
 export interface CreateIncidentInput {
-  reporterName: string;
-  reporterPhone?: string;
+  reporterName?: string | null;
+  reporterPhone?: string | null;
   emergencyType: EmergencyType;
-  description: string;
+  description?: string | null;
   location?: IncidentLocation | null;
-  peopleAffected: number;
-  vulnerablePeople?: VulnerabilityIndicators;
-  waterLevel?: "NONE" | "LOW" | "MODERATE" | "HIGH" | "UNKNOWN";
-  immediateDanger?: boolean;
+  peopleAffected?: number | null;
+  vulnerablePeople?: VulnerabilityIndicators | null;
+  waterLevel?: ("NONE" | "LOW" | "MODERATE" | "HIGH" | "UNKNOWN") | null;
+  immediateDanger?: boolean | null;
+  safetyAnswer?: "YES" | "NO" | "UNSURE" | "UNANSWERED";
 }
 export type VerificationStatus =
   | "NEEDS_REVIEW"
@@ -67,12 +68,24 @@ interface RecordFields {
   demoKey?: string;
 }
 export interface Incident extends CreateIncidentInput, RecordFields {
+  reportReference?: string;
   location: IncidentLocation | null;
   locationVerificationRequired: boolean;
   verification?: VerificationDetails;
   priorityScore: number;
   priorityLevel: PriorityLevel;
   priorityReasons: string[];
+  statusHistory?: { previousStatus: IncidentStatus; newStatus: IncidentStatus; timestamp: string; changedBy?: string | null }[];
+  triage?: {
+    safetyAnswer: "YES" | "NO" | "UNSURE" | "UNANSWERED";
+    status: "NEEDS_ASSESSMENT" | "PRELIMINARY" | "COORDINATOR_REVIEWED";
+    suggestedPriority: PriorityLevel | null;
+    immediateDangerReported: boolean | null;
+    reasons: { code: string; message: string }[];
+    ruleVersion: string;
+    reviewedAt?: string | null;
+    reviewedBy?: string | null;
+  };
   confidenceLevel: ConfidenceLevel;
   status: IncidentStatus;
   assignedTeam: string | null;

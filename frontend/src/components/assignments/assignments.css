@@ -1,0 +1,801 @@
+.awWorkspace {
+  color: var(--command-ink);
+  max-width: 1840px;
+  margin: auto;
+  font-size: 13px;
+}
+.awWorkspace button,
+.awWorkspace a,
+.awWorkspace input,
+.awWorkspace select,
+.awWorkspace textarea {
+  font: inherit;
+}
+.awWorkspace button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.awWorkspace :focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: 3px;
+}
+.awHeading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.awHeadingIcon {
+  background: #dbeafe;
+  color: #1671ef;
+  border-radius: 12px;
+  padding: 12px;
+  display: grid;
+  place-items: center;
+}
+.awHeading h1 {
+  font-size: clamp(22px, 2vw, 30px);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  margin: 0 0 7px;
+}
+.awHeading p {
+  color: var(--command-muted);
+  margin: 0;
+}
+.awHeadingActions {
+  margin-left: auto;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.awHeadingActions > button:first-child {
+  padding: 12px;
+  border: 1px solid var(--command-border);
+  border-radius: 8px;
+}
+.awWorkspace .awPrimary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 46px;
+  background: #0874f9;
+  color: white;
+  border: 1px solid #1685ff;
+  border-radius: 8px;
+  padding: 10px 17px;
+  font-weight: 650;
+  cursor: pointer;
+  box-shadow: 0 4px 12px #0874f91a;
+}
+.awMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.awMetric {
+  --accent: #ec3d50;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  border: 1px solid var(--command-border);
+  border-left: 4px solid var(--accent);
+  border-radius: 10px;
+  padding: 17px;
+  background: linear-gradient(
+    115deg,
+    color-mix(in srgb, var(--accent) 7%, var(--command-surface)),
+    var(--command-surface)
+  );
+  min-height: 108px;
+}
+.awMetric.blue {
+  --accent: #1685ff;
+}
+.awMetric.amber {
+  --accent: #dfa323;
+}
+.awMetric.green {
+  --accent: #04b984;
+}
+.awMetric > span {
+  padding: 14px;
+  border-radius: 10px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  display: flex;
+}
+.awMetric h2 {
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.3;
+  margin: 0;
+}
+.awMetric strong {
+  font-size: 32px;
+  line-height: 1.4;
+}
+.awMetric p {
+  font-size: 11px;
+  color: var(--command-muted);
+  margin: 0;
+}
+.awGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.96fr) minmax(0, 1.12fr);
+  grid-template-rows: auto 1fr;
+  gap: 14px;
+  align-items: start;
+}
+.awCard {
+  border: 1px solid var(--command-border);
+  border-radius: 10px;
+  background: var(--command-surface);
+  box-shadow: 0 4px 18px #10234005;
+  overflow: hidden;
+  min-width: 0;
+}
+.awCard > header {
+  min-height: 45px;
+  padding: 10px 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid var(--command-border);
+  background: var(--command-soft);
+}
+.awCard h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  margin: 0;
+  font-weight: 650;
+}
+.awCard h2 svg {
+  flex-shrink: 0;
+}
+.awCard h3 {
+  font-size: 15px;
+  font-weight: 650;
+  margin: 0 0 8px;
+}
+.awQueue {
+  grid-column: 1;
+  grid-row: 1;
+}
+.awRecords {
+  grid-column: 1;
+  grid-row: 2;
+}
+.awDetail {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+.awRight {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  display: grid;
+  gap: 14px;
+}
+.awFilters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  padding: 11px;
+}
+.awFilters input {
+  grid-column: 1/-1;
+}
+.awWorkspace input,
+.awWorkspace textarea,
+.awWorkspace select {
+  width: 100%;
+  border: 1px solid var(--command-border);
+  border-radius: 6px;
+  background: var(--command-soft);
+  color: var(--command-ink);
+  min-height: 37px;
+  padding: 8px 10px;
+}
+.awWorkspace select {
+  padding-right: 20px;
+}
+.awFilters select {
+  font-size: 11px;
+}
+.awFilters select:last-child {
+  grid-column: 1/-1;
+}
+.awQueueRow {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  padding: 12px 11px;
+  min-height: 94px;
+  border-top: 1px solid var(--command-border);
+  border-left: 3px solid transparent;
+  background: transparent;
+  cursor: pointer;
+}
+.awQueueRow.selected,
+.awRecord.selected,
+.awRecommendation.selected {
+  background: color-mix(in srgb, #1671ef 8%, var(--command-surface));
+  outline: 2px solid #1685ff;
+  outline-offset: -2px;
+}
+.awQueueRow:hover,
+.awRecord:hover {
+  background: var(--command-soft);
+}
+.awSymbol {
+  flex: 0 0 52px;
+  min-height: 60px;
+  display: grid;
+  place-items: center;
+  background: #eaf3ff;
+  color: #1685ff;
+  border-radius: 8px;
+}
+.awType-FIRE {
+  background: #fff1e8;
+  color: #ea580c;
+}
+.awType-MEDICAL {
+  background: #eefaf5;
+  color: #059669;
+}
+.awRowText {
+  flex: 1;
+  display: grid;
+  gap: 6px;
+}
+.awRowText strong {
+  font-size: 12px;
+}
+.awRowText small {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--command-muted);
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+.awRowEnd {
+  display: grid;
+  gap: 12px;
+  justify-items: end;
+  max-width: 95px;
+}
+.awRowEnd time {
+  font-size: 10px;
+  color: var(--command-muted);
+}
+.awBadge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  white-space: normal;
+  font-size: 10px !important;
+  font-weight: 650;
+  line-height: 1.2;
+  border-radius: 5px;
+  padding: 5px 8px;
+  background: var(--command-soft);
+  color: var(--command-muted);
+}
+.priority-CRITICAL {
+  background: #ffe3e7;
+  color: #be123c;
+}
+.priority-HIGH {
+  background: #ffedd5;
+  color: #b45309;
+}
+.priority-MEDIUM {
+  background: #fef3c7;
+  color: #92400e;
+}
+.priority-LOW,
+.status-ACTIVE {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.status-COMPLETED,
+.status-AVAILABLE {
+  background: #d1fae5;
+  color: #047857;
+}
+.awEmpty {
+  padding: 28px 18px;
+  color: var(--command-muted);
+  line-height: 1.7;
+  text-align: center;
+  margin: 0;
+}
+.awChoose {
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+}
+.awChoose svg {
+  color: #1685ff;
+}
+.awPager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 10px;
+  border-top: 1px solid var(--command-border);
+  font-size: 11px;
+}
+.awPager button {
+  border: 1px solid var(--command-border);
+  border-radius: 5px;
+  padding: 6px;
+}
+.awTabs {
+  display: flex;
+  gap: 6px;
+  padding: 10px;
+}
+.awTabs button {
+  padding: 7px 11px;
+  border-radius: 6px;
+  color: var(--command-muted);
+}
+.awTabs button[aria-pressed="true"] {
+  background: #0874f9;
+  color: white;
+}
+.awRecord {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  padding: 11px 13px;
+  border-top: 1px solid var(--command-border);
+}
+.awRecord > span:first-child {
+  flex: 1;
+  display: grid;
+  gap: 5px;
+}
+.awRecord strong {
+  font-size: 12px;
+}
+.awRecord small {
+  color: var(--command-muted);
+  font-size: 10px;
+}
+.awDetailBody {
+  padding: 14px;
+  display: grid;
+  gap: 15px;
+}
+.awIncidentHeading {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.awIncidentHeading .awSymbol {
+  min-height: 80px;
+  flex-basis: 72px;
+}
+.awIncidentHeading p {
+  display: flex;
+  gap: 4px;
+  color: var(--command-muted);
+  font-size: 11px;
+  margin: 5px 0;
+  line-height: 1.5;
+}
+.awIncidentHeading small {
+  font-size: 10px;
+  color: var(--command-muted);
+}
+.awFacts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+.awFacts dt {
+  font-size: 10px;
+  color: var(--command-muted);
+  margin-bottom: 6px;
+}
+.awFacts dd {
+  font-size: 11px;
+  margin: 0;
+  line-height: 1.5;
+}
+.awDescription {
+  font-size: 12px;
+  color: var(--command-muted);
+  line-height: 1.7;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.awVerification {
+  font-size: 10px;
+  color: var(--command-muted);
+  border-bottom: 1px solid var(--command-border);
+  padding-bottom: 10px;
+}
+.awLink {
+  color: #1685ff;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+}
+.awRecommendationHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.awRecommendationHeader h3 {
+  font-size: 13px;
+  margin: 0;
+}
+.awRecommendationHeader a {
+  display: flex;
+  align-items: center;
+  font-size: 10px;
+  color: #1685ff;
+}
+.awRecommendations {
+  display: grid;
+  gap: 8px;
+}
+.awRecommendation {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  border: 1px solid var(--command-border);
+  border-left: 3px solid #04b984;
+  border-radius: 7px;
+  padding: 10px;
+  text-align: left;
+}
+.awRecommendation > span:nth-child(2) {
+  flex: 1;
+  display: grid;
+  gap: 5px;
+}
+.awRecommendation strong {
+  font-size: 12px;
+}
+.awRecommendation small {
+  font-size: 10px;
+  color: var(--command-muted);
+  line-height: 1.5;
+}
+.awTeamSymbol {
+  color: #04b984;
+  background: #04b98418;
+  padding: 8px;
+  border-radius: 6px;
+}
+.awRecommendation .awBadge {
+  font-size: 9px !important;
+  padding: 4px;
+}
+.awComposer {
+  display: grid;
+  gap: 12px;
+}
+.awComposer label {
+  display: grid;
+  gap: 6px;
+  color: var(--command-muted);
+  font-size: 11px;
+}
+.awComposer h3 {
+  margin: 0;
+}
+.awComposer textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+.awTracking {
+  display: grid;
+  gap: 12px;
+}
+.awTracking p,
+.awTracking h4 {
+  margin: 0;
+  line-height: 1.5;
+}
+.awReference {
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  color: var(--command-muted);
+}
+.awMapWrap {
+  height: 330px;
+  position: relative;
+  background: #10273b;
+}
+.awMap {
+  height: 100%;
+  width: 100%;
+  z-index: 0;
+}
+.awMapNotice {
+  position: absolute;
+  z-index: 3;
+  top: 10px;
+  left: 52px;
+  right: 10px;
+  background: var(--command-surface);
+  color: var(--command-ink);
+  padding: 10px;
+  border: 1px solid var(--command-border);
+  border-radius: 6px;
+  font-size: 11px;
+  pointer-events: none;
+}
+.awMapNotice a { pointer-events: auto; color: var(--command-blue); text-decoration: underline; }
+.awMapLegend {
+  position: absolute;
+  bottom: 24px;
+  left: 10px;
+  z-index: 2;
+  background: var(--command-surface);
+  border: 1px solid var(--command-border);
+  padding: 9px;
+  border-radius: 6px;
+  display: grid;
+  gap: 6px;
+  font-size: 10px;
+  pointer-events: none;
+}
+.awMapLegend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.awMapLegend i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.awMapLegend .red {
+  background: #ec3d50;
+}
+.awMapLegend .green {
+  background: #04b984;
+}
+.awMapLegend .blue {
+  background: #1685ff;
+}
+.awMapCaption {
+  font-size: 10px;
+  color: var(--command-muted);
+  padding: 10px 13px;
+  margin: 0;
+  line-height: 1.5;
+}
+.awTimeline {
+  padding: 10px 14px;
+}
+.awTimeline button {
+  display: flex;
+  gap: 13px;
+  text-align: left;
+  width: 100%;
+  padding: 12px 0;
+  position: relative;
+}
+.awTimeline button > i {
+  width: 10px;
+  height: 10px;
+  background: #1685ff;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 3px;
+  box-shadow: 0 0 0 5px #1685ff18;
+}
+.awTimeline button > i.completed {
+  background: #04b984;
+}
+.awTimeline button > span {
+  display: grid;
+  gap: 5px;
+}
+.awTimeline strong {
+  font-size: 12px;
+}
+.awTimeline small,
+.awTimeline time {
+  font-size: 10px;
+  color: var(--command-muted);
+  line-height: 1.5;
+}
+.awNotice,
+.awError {
+  padding: 12px 15px;
+  margin: 0 0 14px;
+  border: 1px solid var(--command-border);
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.awNotice {
+  background: var(--command-soft);
+  color: var(--command-muted);
+}
+.awError {
+  background: #fff1f2;
+  color: #9f1239;
+}
+.awError button {
+  margin-left: 10px;
+  text-decoration: underline;
+}
+.awWarning {
+  color: var(--command-amber) !important;
+}
+.rqCommand[data-theme="dark"] .awCard {
+  background: linear-gradient(140deg, #0d2338, #091b2c);
+  border-color: #284158;
+}
+.rqCommand[data-theme="dark"] .awCard > header {
+  background: #0c2033;
+}
+.rqCommand[data-theme="dark"] .awSymbol {
+  background: #143758;
+}
+.rqCommand[data-theme="dark"] .awType-FIRE {
+  background: #482c24;
+}
+.rqCommand[data-theme="dark"] .awType-MEDICAL {
+  background: #0c3b32;
+}
+.rqCommand[data-theme="dark"] .awHeadingIcon {
+  background: #12365a;
+}
+.rqCommand[data-theme="dark"] .priority-CRITICAL {
+  background: #671e2d;
+  color: #ffb0b8;
+}
+.rqCommand[data-theme="dark"] .priority-HIGH {
+  background: #6d3418;
+  color: #ffd6ac;
+}
+.rqCommand[data-theme="dark"] .priority-MEDIUM {
+  background: #5e471a;
+  color: #ffe2a0;
+}
+.rqCommand[data-theme="dark"] .priority-LOW,
+.rqCommand[data-theme="dark"] .status-ACTIVE {
+  background: #123f70;
+  color: #b9dcff;
+}
+.rqCommand[data-theme="dark"] .status-COMPLETED,
+.rqCommand[data-theme="dark"] .status-AVAILABLE {
+  background: #075344;
+  color: #96f5cc;
+}
+.rqCommand[data-theme="dark"] .awError {
+  background: #411b27;
+  color: #ffc5cd;
+}
+@media (min-width: 1500px) {
+  .awMapWrap {
+    height: 365px;
+  }
+  .awQueueRow {
+    min-height: 100px;
+  }
+}
+@media (max-width: 1200px) {
+  .awGrid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .awRight {
+    grid-column: 1/-1;
+    grid-row: 3;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .awMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .awMetric {
+    min-height: 95px;
+  }
+  .awHeading h1 {
+    font-size: 25px;
+  }
+}
+@media (max-width: 700px) {
+  .awHeading {
+    flex-wrap: wrap;
+  }
+  .awHeading > div:nth-child(2) {
+    flex: 1;
+  }
+  .awHeadingActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .awHeading h1 {
+    font-size: 22px;
+  }
+  .awHeading p {
+    font-size: 12px;
+  }
+  .awGrid {
+    display: flex;
+    flex-direction: column;
+  }
+  .awGrid > *,
+  .awRight > * {
+    width: 100%;
+  }
+  .awQueue {
+    order: 1;
+  }
+  .awDetail {
+    order: 2;
+  }
+  .awRecords {
+    order: 3;
+  }
+  .awRight {
+    order: 4;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .awMetric {
+    padding: 10px;
+    gap: 8px;
+  }
+  .awMetric > span {
+    padding: 8px;
+  }
+  .awMetric > span svg {
+    width: 22px;
+  }
+  .awMetric h2 {
+    font-size: 10px;
+  }
+  .awMetric strong {
+    font-size: 27px;
+  }
+  .awMetric p {
+    font-size: 10px;
+  }
+  .awMetrics {
+    gap: 9px;
+  }
+  .awRowEnd {
+    max-width: 80px;
+  }
+  .awHeadingIcon {
+    padding: 10px;
+  }
+  .awMapWrap {
+    height: 300px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .awWorkspace * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}

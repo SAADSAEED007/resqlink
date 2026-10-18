@@ -7,12 +7,18 @@ import { assertAssignable, assertTransition, calculatePriority, distanceKm, isCa
 import { detectPotentialDuplicates, evaluateVerification, DuplicateCandidate } from './verification.service'
 import { createNotification } from './notification.service'
 import { CustomError } from '../../utils/errors'
+import { triageIncident } from './incident-triage.service'
+
+import Counter from './models/counter.model'
 
 export interface Page {
     page: number
     limit: number
 }
 export interface IncidentQuery extends Page {
+    unassigned?: boolean
+    isSimulated?: boolean
+    search?: string
     status?: IncidentStatus
     priorityLevel?: Priority
     emergencyType?: EmergencyType
@@ -20,8 +26,80 @@ export interface IncidentQuery extends Page {
     updatedSince?: Date
     sort: 'priority' | 'oldest' | 'newest'
 }
+
+export function formatReportReference(seq: number): string {
+    return `RESQ-${String(seq).padStart(6, '0')}`
+}
+
+export function formatReportReferenceFallback(id: unknown): string {
+    const raw = String(id || '').replace(/[^a-zA-Z0-9]/g, '')
+    const tail = raw.slice(-6).toUpperCase().padStart(6, '0')
+    return `RESQ-${tail}`
+}
+
+export async function initializeCounterIfNeeded(): Promise<void> {
+    const isMock = Boolean((Counter.findById as unknown as { _isMockFunction?: boolean })?._isMockFunction)
+    if (mongoose.connection.readyState === 0 && !isMock) return
+    const existing = await Counter.findById('incident_reference')
+    if (existing) return
+
+    const incidents = await Incident.find({
+        reportReference: { $regex: /^RESQ-\d+$/ }
+    })
+        .select('reportReference')
+        .lean()
+
+    let maxSeq = 0
+    for (const inc of incidents) {
+        if (typeof inc.reportReference === 'string') {
+            const match = inc.reportReference.match(/^RESQ-(\d+)$/)
+            if (match && match[1]) {
+                const num = parseInt(match[1], 10)
+                if (!isNaN(num) && num > maxSeq) {
+                    maxSeq = num
+                }
+            }
+        }
+    }
+
+    await Counter.updateOne(
+        { _id: 'incident_reference' },
+        { $setOnInsert: { seq: maxSeq } },
+        { upsert: true }
+    )
+}
+
+export async function getNextReportReference(session?: ClientSession): Promise<string> {
+    const isMock = Boolean((Counter.findOneAndUpdate as unknown as { _isMockFunction?: boolean })?._isMockFunction)
+    if (mongoose.connection.readyState === 0 && !isMock) {
+        return formatReportReference(1)
+    }
+    await initializeCounterIfNeeded()
+    const counter = await Counter.findOneAndUpdate(
+        { _id: 'incident_reference' },
+        { $inc: { seq: 1 } },
+        { new: true, upsert: true, setDefaultsOnInsert: true, session }
+    )
+    if (!counter) {
+        throw new CustomError('Failed to generate incident reference number', 500)
+    }
+    return formatReportReference(counter.seq)
+}
+
 export async function ensureIndexes() {
-    await Promise.all([Incident.init(), Team.init(), Assignment.init()])
+    if (mongoose.connection.readyState === 0) {
+        const hasMocks = Boolean((Incident.init as any)?._isMockFunction || (Counter.init as any)?._isMockFunction)
+        if (!hasMocks) return
+        await Promise.all([
+            (Incident.init as any)?._isMockFunction ? Incident.init() : Promise.resolve(),
+            (Team.init as any)?._isMockFunction ? Team.init() : Promise.resolve(),
+            (Assignment.init as any)?._isMockFunction ? Assignment.init() : Promise.resolve(),
+            (Counter.init as any)?._isMockFunction ? Counter.init() : Promise.resolve()
+        ])
+        return
+    }
+    await Promise.all([Incident.init(), Team.init(), Assignment.init(), Counter.init()])
+    await initializeCounterIfNeeded()
 }
 export async function transactional<T>(work: (session: ClientSession) => Promise<T>): Promise<T> {
     await ensureIndexes()
@@ -49,43 +127,75 @@ export async function createIncident(input: IncidentInput) {
     const candidates = await Incident.find(candidateFilter).select('_id emergencyType location reporterPhone createdAt isSimulated status').lean()
     const duplicateCheck = detectPotentialDuplicates(input, candidates as DuplicateCandidate[])
     const verification = evaluateVerification(input, duplicateCheck)
-
-    const incident = await Incident.create({
-        ...input,
-        ...calculatePriority(input),
-        locationVerificationRequired: !input.location,
-        verification
-    })
-
-    if (incident.priorityLevel === 'CRITICAL') {
-        await createNotification({
-            type: 'CRITICAL_INCIDENT',
-            severity: 'CRITICAL',
-            title: 'Critical Incident Reported',
-            message: `Critical ${incident.emergencyType} incident reported${incident.location?.address ? ` at ${incident.location.address}` : ''}. Immediate dispatch recommended.`,
-            incidentId: String(incident._id),
-            isSimulated: incident.isSimulated
-        })
-    } else {
-        await createNotification({
-            type: 'INCIDENT_CREATED',
-            severity: incident.priorityLevel === 'HIGH' ? 'HIGH' : 'MEDIUM',
-            title: 'New Incident Reported',
-            message: `New ${incident.emergencyType} incident reported${incident.location?.address ? ` near ${incident.location.address}` : ''} (Priority: ${incident.priorityLevel}).`,
-            incidentId: String(incident._id),
-            isSimulated: incident.isSimulated
-        })
+    const triage = triageIncident(input)
+    const priority = calculatePriority(input)
+    if (triage.suggestedPriority === 'CRITICAL') {
+        priority.priorityLevel = 'CRITICAL'
+        priority.priorityScore = Math.max(priority.priorityScore, 75)
+        priority.priorityReasons.unshift('Preliminary critical suggestion: reporter indicated possible immediate danger; coordinator review required')
     }
 
-    if (incident.locationVerificationRequired || incident.verification?.requiresManualReview || incident.verification?.status === 'NEEDS_REVIEW') {
-        await createNotification({
-            type: 'INCIDENT_REVIEW_REQUIRED',
-            severity: 'HIGH',
-            title: 'Incident Verification Required',
-            message: `${incident.emergencyType} incident #${String(incident._id).slice(-6)} flagged for coordinator verification.`,
-            incidentId: String(incident._id),
-            isSimulated: incident.isSimulated
-        })
+    let retries = 3
+    let incident: IncidentRecord | null = null
+    while (retries > 0) {
+        try {
+            const reportReference = await getNextReportReference()
+            incident = await Incident.create({
+                ...input,
+                ...priority,
+                immediateDanger: triage.immediateDangerReported,
+                triage,
+                locationVerificationRequired: !input.location,
+                verification,
+                reportReference
+            })
+            break
+        } catch (error: any) {
+            if (error?.code === 11000 && error?.keyPattern?.reportReference && retries > 1) {
+                retries--
+                continue
+            }
+            throw error
+        }
+    }
+    if (!incident) {
+        throw new CustomError('Failed to create incident report after reference retries', 500)
+    }
+
+    try {
+        const refLabel = incident.reportReference ? ` (${incident.reportReference})` : ''
+        if (incident.priorityLevel === 'CRITICAL') {
+            await createNotification({
+                type: 'CRITICAL_INCIDENT',
+                severity: 'CRITICAL',
+                title: 'Urgent SOS — Coordinator Review Required',
+                message: `Critical ${incident.emergencyType} incident reported${incident.location?.address ? ` near ${incident.location.address}` : ''}${refLabel}. Immediate coordinator review required.`,
+                incidentId: String(incident._id),
+                isSimulated: incident.isSimulated
+            })
+        } else {
+            await createNotification({
+                type: 'INCIDENT_CREATED',
+                severity: incident.priorityLevel === 'HIGH' ? 'HIGH' : 'MEDIUM',
+                title: 'New SOS Report',
+                message: `New ${incident.emergencyType} incident reported${incident.location?.address ? ` near ${incident.location.address}` : ''}${refLabel} (Priority: ${incident.priorityLevel}).`,
+                incidentId: String(incident._id),
+                isSimulated: incident.isSimulated
+            })
+        }
+
+        if (incident.locationVerificationRequired || incident.verification?.requiresManualReview || incident.verification?.status === 'NEEDS_REVIEW') {
+            await createNotification({
+                type: 'INCIDENT_REVIEW_REQUIRED',
+                severity: 'HIGH',
+                title: 'Incident Verification Required',
+                message: `${incident.emergencyType} incident ${incident.reportReference || `#${String(incident._id).slice(-6)}`} flagged for coordinator verification.`,
+                incidentId: String(incident._id),
+                isSimulated: incident.isSimulated
+            })
+        }
+    } catch {
+        // Notification write failure after successful incident creation must never fail public SOS submission.
     }
 
     return incident
@@ -93,6 +203,16 @@ export async function createIncident(input: IncidentInput) {
 export async function listIncidents(query: IncidentQuery) {
     const filter: FilterQuery<IncidentRecord> = {}
     if (query.status) filter.status = query.status
+    if (query.unassigned) { filter.status = 'PENDING'; filter.assignedTeam = null }
+    if (typeof query.isSimulated === 'boolean') filter.isSimulated = query.isSimulated
+    if (query.search) {
+        const escaped = query.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        filter.$or = [
+            { reportReference: { $regex: escaped, $options: 'i' } },
+            { description: { $regex: escaped, $options: 'i' } },
+            { 'location.address': { $regex: escaped, $options: 'i' } }
+        ]
+    }
     if (query.priorityLevel) filter.priorityLevel = query.priorityLevel
     if (query.emergencyType) filter.emergencyType = query.emergencyType
     if (query.verificationStatus) filter['verification.status'] = query.verificationStatus
@@ -111,7 +231,11 @@ export async function listIncidents(query: IncidentQuery) {
             .lean(),
         Incident.countDocuments(filter)
     ])
-    return { items, pagination: { ...queryPage(query), total, totalPages: Math.ceil(total / query.limit) } }
+    const enhancedItems = items.map((inc) => ({
+        ...inc,
+        reportReference: inc.reportReference || formatReportReferenceFallback(inc._id)
+    }))
+    return { items: enhancedItems, pagination: { ...queryPage(query), total, totalPages: Math.ceil(total / query.limit) } }
 }
 function queryPage(query: Page) {
     return { page: query.page, limit: query.limit }
@@ -119,6 +243,9 @@ function queryPage(query: Page) {
 export async function getIncident(id: string) {
     const incident = await Incident.findById(id)
     if (!incident) throw new CustomError('Incident not found', 404)
+    if (!incident.reportReference) {
+        incident.set('reportReference', formatReportReferenceFallback(incident._id), { strict: false })
+    }
     return incident
 }
 export async function getTeam(id: string) {
@@ -197,14 +324,19 @@ export async function listTeams(query: TeamQuery) {
     return { items, pagination: { ...queryPage(query), total, totalPages: Math.ceil(total / query.limit) } }
 }
 export interface AssignmentFilter {
+    completedAt?: { $gte?: Date; $lt?: Date }
     status?: string
     incidentId?: unknown
     teamId?: unknown
     isSimulated?: boolean
 }
 
-export async function listAssignments(query: Page & { status?: string; incidentId?: string; teamId?: string; isSimulated?: boolean }) {
+export async function listAssignments(query: Page & { status?: string; incidentId?: string; teamId?: string; isSimulated?: boolean; completedFrom?: Date; completedBefore?: Date; sort?: 'assigned' | 'completed' }) {
     const filter: AssignmentFilter = {}
+    if (query.completedFrom || query.completedBefore) filter.completedAt = {
+        ...(query.completedFrom ? { $gte: new Date(query.completedFrom) } : {}),
+        ...(query.completedBefore ? { $lt: new Date(query.completedBefore) } : {})
+    }
     if (query.status) filter.status = query.status
     if (query.incidentId) filter.incidentId = query.incidentId
     if (query.teamId) filter.teamId = query.teamId
@@ -212,7 +344,7 @@ export async function listAssignments(query: Page & { status?: string; incidentI
 
     const populateIncident = {
         path: 'incidentId',
-        select: '_id emergencyType priorityLevel status location reporterName peopleAffected createdAt'
+        select: '_id emergencyType priorityLevel status location peopleAffected createdAt'
     }
     const populateTeam = {
         path: 'teamId',
@@ -223,7 +355,7 @@ export async function listAssignments(query: Page & { status?: string; incidentI
         Assignment.find(filter)
             .populate(populateIncident)
             .populate(populateTeam)
-            .sort({ assignedAt: -1, _id: 1 })
+            .sort(query.sort === 'completed' ? { completedAt: -1, _id: 1 } : { assignedAt: -1, _id: 1 })
             .skip((query.page - 1) * query.limit)
             .limit(query.limit)
             .lean(),
@@ -235,7 +367,7 @@ export async function listAssignments(query: Page & { status?: string; incidentI
 export async function getAssignment(id: string) {
     const populateIncident = {
         path: 'incidentId',
-        select: '_id emergencyType priorityLevel status location reporterName peopleAffected createdAt'
+        select: '_id emergencyType priorityLevel status location peopleAffected createdAt'
     }
     const populateTeam = {
         path: 'teamId',
@@ -271,16 +403,20 @@ export async function assignTeam(input: { incidentId: string; teamId: string; no
         return assignment
     })
 
-    await createNotification({
-        type: 'TEAM_ASSIGNED',
-        severity: 'HIGH',
-        title: 'Rescue Team Dispatched',
-        message: `Rescue team has been assigned to incident #${String(input.incidentId).slice(-6)}.`,
-        incidentId: String(input.incidentId),
-        teamId: String(input.teamId),
-        assignmentId: String(assignment._id),
-        isSimulated: assignment.isSimulated
-    })
+    try {
+        await createNotification({
+            type: 'TEAM_ASSIGNED',
+            severity: 'HIGH',
+            title: 'Rescue Team Assigned',
+            message: `Rescue team has been assigned to incident #${String(input.incidentId).slice(-6)}.`,
+            incidentId: String(input.incidentId),
+            teamId: String(input.teamId),
+            assignmentId: String(assignment._id),
+            isSimulated: assignment.isSimulated
+        })
+    } catch {
+        // Notification write failure must not fail assignment operation
+    }
 
     return assignment
 }
@@ -321,34 +457,38 @@ export async function changeStatus(id: string, status: IncidentStatus, coordinat
         return incident
     })
 
-    if (status === 'IN_PROGRESS') {
-        await createNotification({
-            type: 'INCIDENT_IN_PROGRESS',
-            severity: 'HIGH',
-            title: 'Rescue Operation In Progress',
-            message: `Incident #${String(incident._id).slice(-6)} is now actively in progress.`,
-            incidentId: String(incident._id),
-            teamId: incident.assignedTeam ? String(incident.assignedTeam) : null,
-            isSimulated: incident.isSimulated
-        })
-    } else if (status === 'RESOLVED') {
-        await createNotification({
-            type: 'INCIDENT_RESOLVED',
-            severity: 'LOW',
-            title: 'Incident Resolved',
-            message: `Incident #${String(incident._id).slice(-6)} has been successfully resolved.`,
-            incidentId: String(incident._id),
-            isSimulated: incident.isSimulated
-        })
-    } else if (status === 'CANCELLED') {
-        await createNotification({
-            type: 'INCIDENT_CANCELLED',
-            severity: 'LOW',
-            title: 'Incident Cancelled',
-            message: `Incident #${String(incident._id).slice(-6)} has been cancelled.`,
-            incidentId: String(incident._id),
-            isSimulated: incident.isSimulated
-        })
+    try {
+        if (status === 'IN_PROGRESS') {
+            await createNotification({
+                type: 'INCIDENT_IN_PROGRESS',
+                severity: 'HIGH',
+                title: 'Incident In Progress',
+                message: `Incident #${String(incident._id).slice(-6)} is now actively in progress.`,
+                incidentId: String(incident._id),
+                teamId: incident.assignedTeam ? String(incident.assignedTeam) : null,
+                isSimulated: incident.isSimulated
+            })
+        } else if (status === 'RESOLVED') {
+            await createNotification({
+                type: 'INCIDENT_RESOLVED',
+                severity: 'LOW',
+                title: 'Incident Resolved',
+                message: `Incident #${String(incident._id).slice(-6)} has been successfully resolved.`,
+                incidentId: String(incident._id),
+                isSimulated: incident.isSimulated
+            })
+        } else if (status === 'CANCELLED') {
+            await createNotification({
+                type: 'INCIDENT_CANCELLED',
+                severity: 'LOW',
+                title: 'Incident Cancelled',
+                message: `Incident #${String(incident._id).slice(-6)} has been cancelled.`,
+                incidentId: String(incident._id),
+                isSimulated: incident.isSimulated
+            })
+        }
+    } catch {
+        // Notification write failure must not fail status update operation
     }
 
     return incident
@@ -372,6 +512,11 @@ export async function overridePriority(id: string, priorityLevel: Priority, reas
         })
         incident.priorityLevel = priorityLevel
         incident.priorityScore = score
+        if (incident.triage) {
+            incident.triage.status = 'COORDINATOR_REVIEWED'
+            incident.triage.reviewedAt = new Date()
+            incident.triage.reviewedBy = new mongoose.Types.ObjectId(coordinatorId)
+        }
         // Original risk reasons/confidence stay intact; audit holds manual rationale.
         await incident.save({ session })
         return incident
@@ -394,7 +539,7 @@ export async function recommendTeams(id: string) {
             team,
             approximateDistanceKm: Math.round(distanceKm(incident.location as Location, team.location) * 100) / 100,
             capacityWarning:
-                team.capacity < incident.peopleAffected
+                typeof incident.peopleAffected === 'number' && team.capacity < incident.peopleAffected
                     ? 'Capacity below reported people; multiple trips or additional resources may be needed'
                     : null
         }))

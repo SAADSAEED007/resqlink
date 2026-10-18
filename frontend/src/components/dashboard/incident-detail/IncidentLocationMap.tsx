@@ -1,60 +1,250 @@
 "use client";
+
 import { useEffect, useRef, useState } from "react";
 import type { Map as LeafletMap } from "leaflet";
-import Image from "next/image";
-import { MapPin, Minus, Plus, ExternalLink } from "lucide-react";
+import { ExternalLink, MapPin, Minus, Plus } from "lucide-react";
 import type { Incident, RescueTeam, IncidentLocation } from "@/types/api";
-import { getIncidentMarkerIcon, getRescueTeamMarkerIcon, MARKER_ASSETS, type MarkerKind } from "../map-marker";
+import { getIncidentMarkerIcon, getRescueTeamMarkerIcon } from "../map-marker";
+import { validCoordinates } from "@/components/maps/map-coordinates";
+import { useMapTiles } from "@/components/maps/use-map-base";
+import { MapFeedback } from "@/components/maps/MapFeedback";
 
-export function validLocation(location?: IncidentLocation | null): location is IncidentLocation {
-  return !!location && Number.isFinite(location.latitude) && Number.isFinite(location.longitude) && Math.abs(location.latitude) <= 90 && Math.abs(location.longitude) <= 180;
+export function validLocation(
+  location?: IncidentLocation | null,
+): location is IncidentLocation {
+  return validCoordinates(location);
 }
-export function IncidentLocationMap({ incident, teams }: { incident: Incident; teams: RescueTeam[] }) {
+
+export function IncidentLocationMap({
+  incident,
+  teams,
+}: {
+  incident: Incident;
+  teams: RescueTeam[];
+}) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<LeafletMap | null>(null);
   const [failed, setFailed] = useState(false);
-  const location = validLocation(incident.location) ? incident.location : null;
-  const latitude = location?.latitude, longitude = location?.longitude;
-  const markers = teams.filter(team => validLocation(team.location));
-  const positions = JSON.stringify(markers.map(team => ({ id: team._id, name: team.name, lat: team.location.latitude, lng: team.location.longitude, status: team.status })));
+  const [generation, setGeneration] = useState(0);
+  const [attempt, setAttempt] = useState(0);
+  const tiles = useMapTiles(map, generation > 0, generation);
+
+  const rawLocation = validLocation(incident.location)
+    ? incident.location
+    : null;
+
+  const latitude = rawLocation?.latitude;
+  const longitude = rawLocation?.longitude;
+
+  const validTeams = teams.filter((team) => validLocation(team.location));
+  const positionsKey = JSON.stringify(
+    validTeams.map((team) => ({
+      id: team._id,
+      name: team.name,
+      lat: team.location.latitude,
+      lng: team.location.longitude,
+      status: team.status,
+    })),
+  );
+
   useEffect(() => {
     if (latitude === undefined || longitude === undefined) return;
     let active = true;
     let observer: ResizeObserver | undefined;
-    void import("leaflet").then(L => {
-      if (!active || !container.current) return;
-      const instance = L.map(container.current, { center: [latitude, longitude], zoom: 13, zoomControl: false, scrollWheelZoom: false });
-      map.current = instance;
-      L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
-        maxZoom: 16,
-        attribution: 'Tiles &copy; <a href="https://www.esri.com">Esri</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      }).on("tileerror", () => { if (active) setFailed(true); }).addTo(instance);
-      L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16 }).addTo(instance);
-      const popup = document.createElement("div");
-      popup.textContent = "Reported incident location. Focus halo is decorative; affected area is not mapped.";
-      L.marker([latitude, longitude], { icon: getIncidentMarkerIcon(L, incident.priorityLevel || "CRITICAL"), title: "Reported incident location", alt: "Reported incident location" }).bindPopup(popup).addTo(instance);
-      observer = new ResizeObserver(() => instance.invalidateSize({ pan: true, animate: false }));
-      observer.observe(container.current);
-    }).catch(() => { if (active) setFailed(true); });
-    return () => { active = false; observer?.disconnect(); map.current?.remove(); map.current = null; };
-  }, [latitude, longitude, incident.priorityLevel]);
+
+    void import("leaflet")
+      .then((L) => {
+        if (!active || !container.current) return;
+
+        if (map.current) {
+          map.current.remove();
+          map.current = null;
+        }
+
+        const instance = L.map(container.current, {
+          center: [latitude, longitude],
+          zoom: 13,
+          zoomControl: false,
+          scrollWheelZoom: false,
+          attributionControl: true,
+        });
+        map.current = instance;
+
+        setGeneration((value) => value + 1);
+
+        // Visual-only subtle focus halo around the selected incident (non-geographic impact claim)
+        const priorityColor =
+          incident.priorityLevel === "CRITICAL"
+            ? "#dc2626"
+            : incident.priorityLevel === "HIGH"
+              ? "#d97706"
+              : incident.priorityLevel === "MEDIUM"
+                ? "#2563eb"
+                : "#64748b";
+
+        L.circleMarker([latitude, longitude], {
+          radius: 22,
+          color: priorityColor,
+          weight: 1.5,
+          opacity: 0.8,
+          fillColor: priorityColor,
+          fillOpacity: 0.15,
+          interactive: false,
+        }).addTo(instance);
+
+        // Center Incident Marker with custom icon
+        const popup = document.createElement("div");
+        popup.className = "rqMapPopupContent";
+        popup.textContent = `${incident.location?.address || "Reported incident location"}. ${incident.priorityLevel} Priority Incident. Focus halo is decorative.`;
+
+        L.marker([latitude, longitude], {
+          icon: getIncidentMarkerIcon(L, incident.priorityLevel || "CRITICAL"),
+          title: "Reported incident location",
+          alt: "Reported incident location",
+        })
+          .bindPopup(popup)
+          .addTo(instance);
+
+        observer = new ResizeObserver(() =>
+          instance.invalidateSize({ pan: true, animate: false }),
+        );
+        observer.observe(container.current);
+      })
+      .catch(() => {
+        if (active) setFailed(true);
+      });
+
+    return () => {
+      active = false;
+      observer?.disconnect();
+      map.current?.remove();
+      map.current = null;
+    };
+  }, [
+    latitude,
+    longitude,
+    incident.priorityLevel,
+    incident.location?.address,
+    attempt,
+  ]);
+
+  // Team positions layer
   useEffect(() => {
     let active = true;
     let cleanup: (() => void) | undefined;
-    void import("leaflet").then(L => {
+
+    void import("leaflet").then((L) => {
       if (!active || !map.current) return;
       const group = L.layerGroup().addTo(map.current);
-      for (const team of JSON.parse(positions) as { id: string; name: string; lat: number; lng: number; status: string }[]) {
-        const text = document.createElement("span"); text.textContent = `${team.name} — ${team.status}. Reported position, not live GPS.`;
-        L.marker([team.lat, team.lng], { icon: getRescueTeamMarkerIcon(L, team.status), title: team.name, alt: `Rescue team: ${team.name}` }).bindPopup(text).addTo(group);
+
+      const parsedTeams = JSON.parse(positionsKey) as {
+        id: string;
+        name: string;
+        lat: number;
+        lng: number;
+        status: string;
+      }[];
+
+      for (const team of parsedTeams) {
+        const text = document.createElement("span");
+        text.textContent = `${team.name} — ${team.status}`;
+        L.marker([team.lat, team.lng], {
+          icon: getRescueTeamMarkerIcon(L, team.status),
+          title: team.name,
+          alt: `Rescue team: ${team.name}`,
+        })
+          .bindPopup(text)
+          .addTo(group);
       }
+
       cleanup = () => group.remove();
     });
-    return () => { active = false; cleanup?.(); };
-  }, [positions, latitude, longitude]);
-  return <section className="rqDetailCard rqDetailLocation">
-    <header><h2>Incident Location</h2>{location && <a href={`https://www.openstreetmap.org/?mlat=${location.latitude}&mlon=${location.longitude}#map=15/${location.latitude}/${location.longitude}`} target="_blank" rel="noreferrer">Open in Maps <ExternalLink size={12} /></a>}</header>
-    {location ? <div className="rqDetailMapCanvas"><div ref={container} className="rqDetailMap" aria-label="Reported incident location map" /><div className="rqDetailMapZoom"><button aria-label="Zoom incident map in" onClick={() => map.current?.zoomIn()}><Plus size={17}/></button><button aria-label="Zoom incident map out" onClick={() => map.current?.zoomOut()}><Minus size={17}/></button></div><div className="rqDetailMapLegend"><span><Image src={MARKER_ASSETS[(incident.priorityLevel as MarkerKind) || "CRITICAL"] || MARKER_ASSETS.CRITICAL} alt="Reported location" className="rqLegendIconImg" width={18} height={18} unoptimized /> Reported location</span><small>Focus halo only · impact area unavailable</small>{markers.length > 0 && <span><Image src={MARKER_ASSETS.BUSY} alt="Rescue team" className="rqLegendIconImg" width={18} height={18} unoptimized /> Reported team position</span>}</div></div> : <div className="rqDetailMapMissing"><MapPin size={36}/><h3>Location verification required</h3><p>{incident.location?.address || "No location description supplied."}</p><small>No coordinates have been assumed.</small></div>}
-    {failed && <p role="status" className="rqDetailFootnote">Map tiles could not load. Use Open in Maps to inspect the reported coordinates.</p>}
-  </section>;
+
+    return () => {
+      active = false;
+      cleanup?.();
+    };
+  }, [positionsKey, generation]);
+
+  return (
+    <section className="rqDetailCard rqDetailLocation">
+      <header className="rqCardHeader">
+        <h2>Incident Location</h2>
+        {rawLocation && (
+          <a
+            href={`https://www.openstreetmap.org/?mlat=${rawLocation.latitude}&mlon=${rawLocation.longitude}#map=15/${rawLocation.latitude}/${rawLocation.longitude}`}
+            target="_blank"
+            rel="noreferrer"
+            className="rqOpenMapsLink"
+          >
+            Open in Maps <ExternalLink size={12} />
+          </a>
+        )}
+      </header>
+
+      {rawLocation ? (
+        <div className="rqDetailMapCanvas">
+          <div
+            ref={container}
+            className="rqDetailMap rqOperationalMap"
+            aria-label="Incident location map"
+          />
+
+          <MapFeedback
+            status={failed ? "error" : tiles.status}
+            retry={() => {
+              if (failed) {
+                setFailed(false);
+                setAttempt((value) => value + 1);
+              } else tiles.retry();
+            }}
+          />
+          {/* Top Right Zoom Controls */}
+          <div className="rqDetailMapZoom">
+            <button
+              type="button"
+              aria-label="Zoom incident map in"
+              onClick={() => map.current?.zoomIn()}
+            >
+              <Plus size={15} />
+            </button>
+            <button
+              type="button"
+              aria-label="Zoom incident map out"
+              onClick={() => map.current?.zoomOut()}
+            >
+              <Minus size={15} />
+            </button>
+          </div>
+
+          {/* Bottom Right Honest Legend Overlay */}
+          <div className="rqDetailMapLegendBox">
+            <div className="rqLegendRow">
+              <span className="rqLegendDot rqDotIncident" />
+              <span>Reported Location</span>
+            </div>
+            <div className="rqLegendRow">
+              <span className="rqLegendCircle rqCircleBlue" />
+              <span>Available / Dispatched Team</span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="rqDetailMapMissing">
+          <MapPin size={36} />
+          <h2>Location verification required</h2>
+          <p>
+            {incident.location?.address ||
+              "No valid coordinates reported for this incident."}
+          </p>
+        </div>
+      )}
+
+      {failed && (
+        <p role="status" className="rqDetailFootnote">
+          Map tiles could not load. Inspect coordinates via Open in Maps.
+        </p>
+      )}
+    </section>
+  );
 }

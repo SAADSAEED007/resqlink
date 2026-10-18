@@ -31,12 +31,22 @@ export function identifyIncompleteFields(input: IncidentInput) {
         warnings.push('No contact phone provided: callbacks and direct coordination unavailable')
     }
 
-    if (input.waterLevel === undefined || input.waterLevel === 'UNKNOWN') {
+    if (!input.description) {
+        missingFields.push('description')
+        warnings.push('No situation description provided: coordinator follow-up is recommended')
+    }
+
+    if (input.peopleAffected == null) {
+        missingFields.push('peopleAffected')
+        warnings.push('Affected people count is unknown')
+    }
+
+    if (input.waterLevel == null || input.waterLevel === 'UNKNOWN') {
         missingFields.push('waterLevel')
         warnings.push('Water level is unknown or unverified')
     }
 
-    if (input.immediateDanger === undefined) {
+    if (input.immediateDanger == null) {
         missingFields.push('immediateDanger')
         warnings.push('Immediate danger assessment missing; situation urgency unconfirmed')
     }
@@ -44,7 +54,7 @@ export function identifyIncompleteFields(input: IncidentInput) {
     const hasIncompleteVulnerabilities =
         !input.vulnerablePeople ||
         ['elderly', 'children', 'disabled', 'medicalNeeds'].some(
-            (key) => input.vulnerablePeople?.[key as keyof NonNullable<IncidentInput['vulnerablePeople']>] === undefined
+            (key) => input.vulnerablePeople?.[key as keyof NonNullable<IncidentInput['vulnerablePeople']>] == null
         )
 
     if (hasIncompleteVulnerabilities) {

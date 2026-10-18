@@ -17,10 +17,12 @@ import {
     TrendPointDaily
 } from './types'
 import { CustomError } from '../../utils/errors'
+import { formatReportReferenceFallback } from './response.service'
 
 
 export interface RawIncidentItem {
     _id: unknown
+    reportReference?: string
     reporterName?: string
     emergencyType?: EmergencyType
     priorityLevel?: Priority
@@ -64,6 +66,7 @@ export interface PopulatedTeamRef {
 
 export interface PopulatedIncidentRef {
     _id?: unknown
+    reportReference?: string
     reporterName?: string
     emergencyType?: EmergencyType
     status?: IncidentStatus
@@ -95,7 +98,10 @@ export function calculateTrends(incidents: Array<{ createdAt?: Date | string; pr
             timestamp: isoBucket,
             label: hourLabel,
             count: 0,
-            criticalCount: 0
+            criticalCount: 0,
+            highCount: 0,
+            mediumCount: 0,
+            lowCount: 0
         })
     }
 
@@ -109,7 +115,10 @@ export function calculateTrends(incidents: Array<{ createdAt?: Date | string; pr
             date: dateStr,
             label,
             count: 0,
-            criticalCount: 0
+            criticalCount: 0,
+            highCount: 0,
+            mediumCount: 0,
+            lowCount: 0
         })
     }
 
@@ -118,14 +127,17 @@ export function calculateTrends(incidents: Array<{ createdAt?: Date | string; pr
         const d = new Date(inc.createdAt)
         const time = d.getTime()
         if (Number.isNaN(time)) continue
-        const isCritical = inc.priorityLevel === 'CRITICAL'
+        const priority = inc.priorityLevel
 
         if (time >= now - 24 * 60 * 60 * 1000 && time <= now) {
             const isoHour = d.toISOString().slice(0, 13) + ':00'
             const bucket = last24Hours.find((b) => b.timestamp === isoHour)
             if (bucket) {
                 bucket.count++
-                if (isCritical) bucket.criticalCount++
+                if (priority === 'CRITICAL') bucket.criticalCount++
+                if (priority === 'HIGH') bucket.highCount!++
+                if (priority === 'MEDIUM') bucket.mediumCount!++
+                if (priority === 'LOW') bucket.lowCount!++
             }
         }
 
@@ -133,11 +145,31 @@ export function calculateTrends(incidents: Array<{ createdAt?: Date | string; pr
         const dayBucket = last7Days.find((b) => b.date === isoDay)
         if (dayBucket) {
             dayBucket.count++
-            if (isCritical) dayBucket.criticalCount++
+            if (priority === 'CRITICAL') dayBucket.criticalCount++
+            if (priority === 'HIGH') dayBucket.highCount!++
+            if (priority === 'MEDIUM') dayBucket.mediumCount!++
+            if (priority === 'LOW') dayBucket.lowCount!++
         }
     }
 
-    return { last24Hours, last7Days }
+    const last30Days = Array.from({ length: 30 }, (_, index) => {
+        const bucketDate = new Date(now - (29 - index) * 24 * 60 * 60 * 1000)
+        return { date: bucketDate.toISOString().slice(0, 10), label: bucketDate.toISOString().slice(5, 10), count: 0, criticalCount: 0, highCount: 0, mediumCount: 0, lowCount: 0 }
+    })
+    for (const inc of incidents) {
+        if (!inc.createdAt) continue
+        const d = new Date(inc.createdAt)
+        if (isNaN(d.getTime())) continue
+        const date = d.toISOString().slice(0, 10)
+        const bucket = last30Days.find((item) => item.date === date)
+        if (!bucket) continue
+        bucket.count++
+        if (inc.priorityLevel === 'CRITICAL') bucket.criticalCount++
+        if (inc.priorityLevel === 'HIGH') bucket.highCount++
+        if (inc.priorityLevel === 'MEDIUM') bucket.mediumCount++
+        if (inc.priorityLevel === 'LOW') bucket.lowCount++
+    }
+    return { last24Hours, last7Days, last30Days }
 }
 
 export function buildActivityTimeline(
@@ -159,6 +191,7 @@ export function buildActivityTimeline(
                 status: inc.status,
                 metadata: {
                     incidentId: String(inc._id),
+                    reportReference: inc.reportReference || formatReportReferenceFallback(inc._id),
                     reporterName: inc.reporterName || 'Anonymous',
                     emergencyType: inc.emergencyType || 'OTHER',
                     peopleAffected: inc.peopleAffected || 1
@@ -178,6 +211,7 @@ export function buildActivityTimeline(
                         actor: ov.coordinatorId ? { id: String(ov.coordinatorId), role: 'coordinator' } : undefined,
                         metadata: {
                             incidentId: String(inc._id),
+                            reportReference: inc.reportReference || formatReportReferenceFallback(inc._id),
                             previousPriority: ov.previousPriority || 'UNKNOWN',
                             newPriority: ov.newPriority || 'UNKNOWN',
                             reason: ov.reason || ''
@@ -198,6 +232,7 @@ export function buildActivityTimeline(
                 actor: inc.verification.reviewedBy ? { id: String(inc.verification.reviewedBy), role: 'coordinator' } : undefined,
                 metadata: {
                     incidentId: String(inc._id),
+                    reportReference: inc.reportReference || formatReportReferenceFallback(inc._id),
                     verificationStatus: inc.verification.status || '',
                     requiresManualReview: inc.verification.requiresManualReview,
                     reviewNotes: inc.verification.reviewNotes || ''
@@ -221,6 +256,7 @@ export function buildActivityTimeline(
                         actor: sh.changedBy ? { id: String(sh.changedBy), role: 'coordinator' } : undefined,
                         metadata: {
                             incidentId: String(inc._id),
+                            reportReference: inc.reportReference || formatReportReferenceFallback(inc._id),
                             previousStatus: sh.previousStatus,
                             newStatus: sh.newStatus,
                             notes: sh.notes || ''
@@ -247,6 +283,7 @@ export function buildActivityTimeline(
                 metadata: {
                     assignmentId: String(asg._id),
                     incidentId: incObj?._id ? String(incObj._id) : String(asg.incidentId),
+                    reportReference: incObj?.reportReference || (incObj?._id ? formatReportReferenceFallback(incObj._id) : undefined),
                     teamId: teamObj?._id ? String(teamObj._id) : String(asg.teamId),
                     notes: asg.notes || ''
                 }
@@ -262,6 +299,7 @@ export function buildActivityTimeline(
                 metadata: {
                     assignmentId: String(asg._id),
                     incidentId: incObj?._id ? String(incObj._id) : String(asg.incidentId),
+                    reportReference: incObj?.reportReference || (incObj?._id ? formatReportReferenceFallback(incObj._id) : undefined),
                     teamId: teamObj?._id ? String(teamObj._id) : String(asg.teamId)
                 }
             })
@@ -367,7 +405,7 @@ export async function getDashboardSummary(query?: DashboardQuery): Promise<Dashb
         Assignment.countDocuments(assignmentFilter),
         Incident.find({
             ...incidentFilter,
-            createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+            createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), $lte: new Date() }
         })
             .select('createdAt priorityLevel')
             .lean(),
@@ -468,12 +506,12 @@ export async function getDashboardActivity(query?: ActivityQuery): Promise<{ ite
         Incident.find(incidentFilter)
             .sort({ createdAt: -1, _id: 1 })
             .limit(limit)
-            .select('_id reporterName emergencyType priorityLevel priorityScore status peopleAffected priorityOverrides verification statusHistory createdAt')
+            .select('_id reportReference reporterName emergencyType priorityLevel priorityScore status peopleAffected priorityOverrides verification statusHistory createdAt')
             .lean(),
         Assignment.find(assignmentFilter)
             .sort({ assignedAt: -1, _id: 1 })
             .limit(limit)
-            .populate('incidentId', 'reporterName emergencyType status priorityLevel')
+            .populate('incidentId', 'reporterName emergencyType status priorityLevel reportReference')
             .populate('teamId', 'name teamCode status')
             .lean()
     ])
@@ -487,7 +525,7 @@ export async function getIncidentActivity(
     query?: IncidentActivityQuery
 ): Promise<{ incidentId: string; items: ActivityItem[]; total: number }> {
     const incident = await Incident.findById(id)
-        .select('_id reporterName emergencyType priorityLevel priorityScore status peopleAffected priorityOverrides verification statusHistory createdAt isSimulated')
+        .select('_id reportReference reporterName emergencyType priorityLevel priorityScore status peopleAffected priorityOverrides verification statusHistory createdAt isSimulated')
         .lean()
 
     if (!incident) {
@@ -496,7 +534,7 @@ export async function getIncidentActivity(
 
     const assignments = await Assignment.find({ incidentId: incident._id })
         .populate('teamId', 'name teamCode status')
-        .populate('incidentId', 'reporterName emergencyType status priorityLevel')
+        .populate('incidentId', 'reporterName emergencyType status priorityLevel reportReference')
         .lean()
 
     const limit = query?.limit || 50

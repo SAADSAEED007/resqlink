@@ -17,8 +17,6 @@ import {
   Users,
   ClipboardList,
   MapPin,
-  BarChart3,
-  Settings,
   Search,
   LogOut,
   X,
@@ -39,7 +37,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const { user, logout } = useAuth();
+  const { user, logout, status } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const toast = useToast();
@@ -81,41 +79,20 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       label: "Assignments",
       href: "/dashboard/assignments",
       icon: ClipboardList,
-      soon: true,
-    },
-    {
-      label: "Operations Map",
-      href: "/dashboard/map",
-      icon: MapPin,
-      soon: true,
-    },
-    {
-      label: "Analytics",
-      href: "/dashboard/analytics",
-      icon: BarChart3,
-      soon: true,
-    },
-    {
-      label: "Settings",
-      href: "/dashboard/settings",
-      icon: Settings,
-      soon: true,
+      soon: false,
     },
   ];
 
-  // Derive user initials
-  const initials = user?.name
-    ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase()
-    : "C";
-
-  const displayName = user?.name || "Coordinator";
-  const displayRole =
-    user?.role === "admin" ? "Operations Lead" : "Coordinator";
+  const identity = user?.name?.trim() || user?.email?.trim() || "Coordinator";
+  const initials = identity
+    .split(/[\s@._-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+  const displayRole = user?.role === "admin" ? "Coordinator" : "User";
 
   return (
     <div className="dashboard-shell rqCommand" data-theme={theme}>
@@ -187,13 +164,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               </Link>
             ),
           )}
-          <Link href="/" className="public-return">
-            Public Portal <span aria-hidden="true">&#8599;</span>
-          </Link>
-          <p className="rqCommandNavNote">
-            Decision support for project coordinators. Not connected to official
-            emergency dispatch.
-          </p>
         </nav>
         <div className="rqCommandPromo">
           <Image src="/images/rescue-sidebar.jpg" alt="Rescue workers helping communities" fill sizes="220px" className="object-cover" />
@@ -249,11 +219,20 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               )}
             </button>
             <NotificationBell />
-            <span className="rqCommandAvatar">{initials}</span>
-            <div className="rqCommandUser">
-              <strong className="account-name">{displayName}</strong>
-              <small>{displayRole}</small>
-            </div>
+            {status === "loading" ? (
+              <div className="rqCommandProfileLoading" aria-label="Loading account profile">
+                <span className="rqCommandAvatar" aria-hidden="true" />
+                <span aria-hidden="true"><i /><i /></span>
+              </div>
+            ) : (
+              <>
+                <span className="rqCommandAvatar">{initials || "C"}</span>
+                <div className="rqCommandUser">
+                  <strong className="account-name">{identity}</strong>
+                  <small>{displayRole}</small>
+                </div>
+              </>
+            )}
             <button
               className="rqCommandIcon"
               title="Sign out"

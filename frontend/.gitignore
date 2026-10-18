@@ -44,3 +44,7 @@ next-env.d.ts
 
 /test-results/
 /playwright-report/
+
+# Dedicated risk-intelligence browser artifacts
+/test-results-sindh/
+/test-results-maps*/

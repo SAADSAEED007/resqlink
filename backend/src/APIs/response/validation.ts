@@ -10,24 +10,26 @@ const text = (max: number) =>
         .max(max)
         // eslint-disable-next-line no-control-regex
         .pattern(/^[^<>\u0000-\u001f]*$/)
-const count = Joi.number().integer().min(0).max(10000)
+const count = Joi.number().integer().min(0).max(10000).allow(null)
 const latitude = Joi.number().min(-90).max(90).required()
 const longitude = Joi.number().min(-180).max(180).required()
 export const locationSchema = Joi.object({ latitude, longitude, address: text(300) })
 export const incidentSchema = Joi.object({
-    reporterName: text(100).min(2).required(),
+    reporterName: text(100).min(2).allow(null, ''),
     reporterPhone: Joi.string()
         .trim()
-        .pattern(/^[+\d ()-]{5,32}$/),
+        .pattern(/^[+\d ()-]{5,32}$/)
+        .allow(null, ''),
     emergencyType: Joi.string()
         .valid(...EMERGENCY_TYPES)
         .required(),
-    description: text(2000).min(5).required(),
+    description: text(2000).min(1).allow(null, ''),
     location: locationSchema.allow(null),
-    peopleAffected: Joi.number().integer().min(1).max(10000).required(),
-    vulnerablePeople: Joi.object({ elderly: count, children: count, disabled: count, medicalNeeds: count }),
-    waterLevel: Joi.string().valid(...WATER_LEVELS),
-    immediateDanger: Joi.boolean()
+    peopleAffected: Joi.number().integer().min(1).max(10000).allow(null),
+    vulnerablePeople: Joi.object({ elderly: count, children: count, disabled: count, medicalNeeds: count }).allow(null),
+    waterLevel: Joi.string().valid(...WATER_LEVELS).allow(null),
+    immediateDanger: Joi.boolean().allow(null),
+    safetyAnswer: Joi.string().valid('YES', 'NO', 'UNSURE', 'UNANSWERED').default('UNANSWERED')
 })
 export const teamContactSchema = Joi.object({
     phone: Joi.string()
@@ -90,6 +92,9 @@ export const verificationUpdateSchema = Joi.object({
 const paging = { page: Joi.number().integer().min(1).max(100000).default(1), limit: Joi.number().integer().min(1).max(100).default(20) }
 export const incidentQuerySchema = Joi.object({
     ...paging,
+    unassigned: Joi.boolean(),
+    isSimulated: Joi.boolean(),
+    search: text(100),
     status: Joi.string().valid(...INCIDENT_STATUSES),
     priorityLevel: Joi.string().valid(...PRIORITIES),
     verificationStatus: Joi.string().valid(...VERIFICATION_STATUSES),
@@ -106,6 +111,9 @@ export const teamQuerySchema = Joi.object({
 })
 export const assignmentQuerySchema = Joi.object({
     ...paging,
+    completedFrom: Joi.date().iso(),
+    completedBefore: Joi.date().iso().when('completedFrom', { is: Joi.exist(), then: Joi.date().greater(Joi.ref('completedFrom')) }),
+    sort: Joi.string().valid('assigned', 'completed'),
     status: Joi.string().valid('ACTIVE', 'COMPLETED', 'CANCELLED'),
     incidentId: Joi.string().hex().length(24),
     teamId: Joi.string().hex().length(24),

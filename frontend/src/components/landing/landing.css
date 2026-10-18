@@ -315,7 +315,8 @@ html:has(.rqLandingPage) {
   margin-bottom: 1.25rem;
 }
 .rqLandingPage .rqLandingCommunitySection h2,
-.rqLandingPage .rqLandingAboutSection h2 {
+.rqLandingPage .rqLandingAboutSection h2,
+.rqLandingPage .rqLandingTeamSection h2 {
   font-size: clamp(2rem, 3vw, 2.8rem);
   line-height: 1.15;
   letter-spacing: -0.04em;
@@ -328,41 +329,211 @@ html:has(.rqLandingPage) {
 }
 .rqLandingCommunityGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5rem;
-  align-items: start;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: clamp(3rem, 7vw, 7rem);
+  align-items: center;
 }
-.rqLandingCommunityCopy {
+.rqLandingCommunityGrid > div:first-child > p:not(.rqLandingSectionLabel) {
+  max-width: 35rem;
+  margin-top: 1.4rem;
   font-size: 0.9375rem;
   color: var(--landing-text);
   line-height: 1.85;
 }
-.rqLandingCommunityCopy p + p {
-  margin-top: 1rem;
+.rqLandingCommunityFeatures {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.rqLandingCommunityFeature {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--landing-border);
+  border-radius: 1rem;
+  background: rgb(255 255 255 / 3%);
+  transition: border-color 180ms ease, background-color 180ms ease,
+    transform 180ms ease;
+}
+.rqLandingCommunityFeature:hover {
+  border-color: rgb(255 255 255 / 42%);
+  background: rgb(255 255 255 / 6%);
+  transform: translateY(-2px);
+}
+.rqLandingCommunityFeature > span {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.8rem;
+  color: var(--landing-red);
+  background: rgb(255 67 82 / 10%);
+}
+.rqLandingCommunityFeature h3 {
+  margin: 0 0 0.3rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--landing-white);
+}
+.rqLandingCommunityFeature p {
+  margin: 0;
+  color: var(--landing-text);
+  font-size: 0.8125rem;
+  line-height: 1.65;
 }
 .rqLandingInlineLink {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
-  color: var(--landing-white);
+  color: var(--landing-white) !important;
   min-height: 44px;
   margin-top: 1.5rem;
+  padding-inline: 1rem;
   font-size: 0.875rem;
   font-weight: 550;
+  border-radius: 0.75rem;
+  background: var(--landing-action) !important;
 }
 .rqLandingInlineLink:hover {
-  color: var(--landing-red);
+  background: var(--landing-action-hover) !important;
 }
-.rqLandingAboutSection > div {
+.rqLandingCommunityFuture {
+  padding-top: 1.25rem;
+  margin-top: 1.5rem !important;
+  border-top: 1px solid var(--landing-border);
+  color: var(--landing-muted) !important;
+  font-size: 0.75rem !important;
+  line-height: 1.65 !important;
+}
+.rqLandingCommunityFuture strong {
+  color: var(--landing-white);
+  font-weight: 550;
+}
+.rqLandingAboutIntro {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 5rem;
 }
-.rqLandingAboutSection > div > p {
+.rqLandingAboutIntro > p {
   max-width: 34rem;
   font-size: 0.9375rem;
   color: var(--landing-text);
   line-height: 1.85;
+}
+.rqLandingAboutFlow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  padding: 0;
+  margin: 4rem 0 0;
+  list-style: none;
+}
+.rqLandingAboutPillar {
+  position: relative;
+  min-height: 15rem;
+  padding: 2rem;
+  border-block: 1px solid var(--landing-border);
+}
+.rqLandingAboutPillar + .rqLandingAboutPillar {
+  border-left: 1px solid var(--landing-border);
+}
+.rqLandingAboutPillar svg {
+  margin-bottom: 2.4rem;
+  color: var(--landing-red);
+}
+.rqLandingAboutPillar > p {
+  margin: 0 0 0.5rem;
+  color: var(--landing-muted);
+  font-size: 0.625rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+}
+.rqLandingAboutPillar h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+.rqLandingAboutPillar > span:last-child {
+  display: block;
+  max-width: 22rem;
+  color: var(--landing-text);
+  font-size: 0.8125rem;
+  line-height: 1.7;
+}
+.rqLandingFooterDisclosure {
+  margin-top: 1.25rem;
+  color: var(--landing-muted);
+  font-size: 0.6875rem;
+  line-height: 1.6;
+}
+.rqLandingTeamSection {
+  padding-block: 5rem;
+  border-top: 1px solid var(--landing-border);
+  background: var(--landing-deep);
+  scroll-margin-top: 2rem;
+}
+.rqLandingTeamIntro {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5rem;
+  align-items: end;
+}
+.rqLandingTeamIntro > p {
+  max-width: 32rem;
+  color: var(--landing-text);
+  font-size: 0.9375rem;
+  line-height: 1.75;
+}
+.rqLandingTeamGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 0;
+  margin: 2.5rem 0 0;
+  list-style: none;
+}
+.rqLandingTeamCard {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--landing-border);
+  border-radius: 0.85rem;
+  background: rgb(255 255 255 / 3%);
+  transition: border-color 180ms ease, transform 180ms ease;
+}
+.rqLandingTeamCard:hover {
+  border-color: rgb(255 255 255 / 42%);
+  transform: translateY(-2px);
+}
+.rqLandingTeamMonogram {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  border: 1px solid rgb(255 67 82 / 32%);
+  border-radius: 50%;
+  color: var(--landing-white);
+  background: rgb(255 67 82 / 10%);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.rqLandingTeamCard h3 {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+.rqLandingTeamCard p {
+  margin: 0.2rem 0 0;
+  color: var(--landing-muted);
+  font-size: 0.6875rem;
+  line-height: 1.4;
 }
 .rqLandingFooter {
   border-top: 1px solid var(--landing-border);
@@ -555,8 +726,12 @@ html:has(.rqLandingPage) {
     padding-bottom: 2.75rem;
   }
   .rqLandingCommunityGrid,
-  .rqLandingAboutSection > div {
+  .rqLandingAboutIntro,
+  .rqLandingTeamIntro {
     gap: 2.5rem;
+  }
+  .rqLandingTeamGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 @media (max-width: 767px) {
@@ -659,20 +834,49 @@ html:has(.rqLandingPage) {
     padding-block: 3.5rem;
   }
   .rqLandingCommunityGrid,
-  .rqLandingAboutSection > div {
+  .rqLandingAboutIntro,
+  .rqLandingTeamIntro {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
   .rqLandingPage .rqLandingCommunitySection h2,
-  .rqLandingPage .rqLandingAboutSection h2 {
+  .rqLandingPage .rqLandingAboutSection h2,
+  .rqLandingPage .rqLandingTeamSection h2 {
     font-size: 2rem;
   }
   .rqLandingCommunitySection {
     padding-block: 3rem;
   }
   .rqLandingCommunityCopy,
-  .rqLandingAboutSection > div > p {
+  .rqLandingAboutIntro > p {
     font-size: 0.875rem;
+  }
+  .rqLandingAboutFlow {
+    grid-template-columns: 1fr;
+    margin-top: 2.5rem;
+  }
+  .rqLandingAboutPillar {
+    min-height: auto;
+    padding: 1.5rem 0;
+    border-block: 0;
+    border-top: 1px solid var(--landing-border);
+  }
+  .rqLandingAboutPillar + .rqLandingAboutPillar {
+    border-left: 0;
+  }
+  .rqLandingAboutPillar svg {
+    margin-bottom: 1.25rem;
+  }
+  .rqLandingTeamSection {
+    padding-block: 3.5rem;
+  }
+  .rqLandingTeamGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.625rem;
+  }
+  .rqLandingTeamCard {
+    align-items: flex-start;
+    flex-direction: column;
   }
   .rqLandingFooterTop {
     flex-direction: column;
@@ -696,5 +900,18 @@ html:has(.rqLandingPage) {
   }
   .rqLandingPage .rqLandingEmergencyButton:hover {
     transform: none;
+  }
+  .rqLandingCommunityFeature:hover,
+  .rqLandingTeamCard:hover {
+    transform: none;
+  }
+}
+@media (max-width: 359px) {
+  .rqLandingTeamGrid {
+    grid-template-columns: 1fr;
+  }
+  .rqLandingTeamCard {
+    flex-direction: row;
+    align-items: center;
   }
 }

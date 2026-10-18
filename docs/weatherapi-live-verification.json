@@ -1,0 +1,247 @@
+{
+  "verification": "Local real WeatherAPI and Groq service calls; production auth and database writes not tested",
+  "checkedAt": "2026-10-18T09:11:50.449Z",
+  "districts": [
+    {
+      "id": "hyderabad",
+      "provider": "WeatherAPI.com",
+      "current": {
+        "time": "2026-10-18T09:00:00.000Z",
+        "temperatureC": 37.2,
+        "weatherCode": 0,
+        "providerConditionCode": 1000,
+        "condition": "Sunny",
+        "windKmh": 11.5,
+        "gustKmh": 29.5,
+        "feelsLikeC": 34.6,
+        "humidityPercent": 17,
+        "precipitationMm": 0
+      },
+      "next24Hours": {
+        "start": "2026-10-18T10:00:00.000Z",
+        "end": "2026-10-19T10:00:00.000Z",
+        "hourlyPeriods": 24,
+        "precipitationMm": 0,
+        "maxProbabilityPercent": 3,
+        "maxWindKmh": 16.2,
+        "maxGustKmh": 29.2,
+        "peakHourlyPrecipitationMm": 0
+      },
+      "retrievedAt": "2026-10-18T09:11:43.901Z",
+      "days": 3,
+      "hourlyPeriods": 72,
+      "attention": "ROUTINE",
+      "error": ""
+    },
+    {
+      "id": "sukkur",
+      "provider": "WeatherAPI.com",
+      "current": {
+        "time": "2026-10-18T09:00:00.000Z",
+        "temperatureC": 36.4,
+        "weatherCode": 0,
+        "providerConditionCode": 1000,
+        "condition": "Sunny",
+        "windKmh": 8.6,
+        "gustKmh": 26.6,
+        "feelsLikeC": 33.7,
+        "humidityPercent": 15,
+        "precipitationMm": 0
+      },
+      "next24Hours": {
+        "start": "2026-10-18T10:00:00.000Z",
+        "end": "2026-10-19T10:00:00.000Z",
+        "hourlyPeriods": 24,
+        "precipitationMm": 0,
+        "maxProbabilityPercent": 0,
+        "maxWindKmh": 14.4,
+        "maxGustKmh": 27.7,
+        "peakHourlyPrecipitationMm": 0
+      },
+      "retrievedAt": "2026-10-18T09:11:44.529Z",
+      "days": 3,
+      "hourlyPeriods": 72,
+      "attention": "ROUTINE",
+      "error": ""
+    },
+    {
+      "id": "larkana",
+      "provider": "WeatherAPI.com",
+      "current": {
+        "time": "2026-10-18T09:00:00.000Z",
+        "temperatureC": 37,
+        "weatherCode": 0,
+        "providerConditionCode": 1000,
+        "condition": "Sunny",
+        "windKmh": 10.1,
+        "gustKmh": 24.5,
+        "feelsLikeC": 34,
+        "humidityPercent": 14,
+        "precipitationMm": 0
+      },
+      "next24Hours": {
+        "start": "2026-10-18T10:00:00.000Z",
+        "end": "2026-10-19T10:00:00.000Z",
+        "hourlyPeriods": 24,
+        "precipitationMm": 0,
+        "maxProbabilityPercent": 0,
+        "maxWindKmh": 13.7,
+        "maxGustKmh": 24.8,
+        "peakHourlyPrecipitationMm": 0
+      },
+      "retrievedAt": "2026-10-18T09:11:45.455Z",
+      "days": 3,
+      "hourlyPeriods": 72,
+      "attention": "ROUTINE",
+      "error": ""
+    },
+    {
+      "id": "mirpur-khas",
+      "provider": "WeatherAPI.com",
+      "current": {
+        "time": "2026-10-18T09:00:00.000Z",
+        "temperatureC": 38,
+        "weatherCode": 0,
+        "providerConditionCode": 1000,
+        "condition": "Sunny",
+        "windKmh": 3.6,
+        "gustKmh": 5.1,
+        "feelsLikeC": 37,
+        "humidityPercent": 17,
+        "precipitationMm": 0
+      },
+      "next24Hours": {
+        "start": "2026-10-18T10:00:00.000Z",
+        "end": "2026-10-19T10:00:00.000Z",
+        "hourlyPeriods": 24,
+        "precipitationMm": 0,
+        "maxProbabilityPercent": 9,
+        "maxWindKmh": 13.7,
+        "maxGustKmh": 27.7,
+        "peakHourlyPrecipitationMm": 0
+      },
+      "retrievedAt": "2026-10-18T09:11:46.674Z",
+      "days": 3,
+      "hourlyPeriods": 72,
+      "attention": "ROUTINE",
+      "error": ""
+    },
+    {
+      "id": "badin",
+      "provider": "WeatherAPI.com",
+      "current": {
+        "time": "2026-10-18T09:00:00.000Z",
+        "temperatureC": 37.8,
+        "weatherCode": 0,
+        "providerConditionCode": 1000,
+        "condition": "Sunny",
+        "windKmh": 7.6,
+        "gustKmh": 18.4,
+        "feelsLikeC": 35.4,
+        "humidityPercent": 14,
+        "precipitationMm": 0
+      },
+      "next24Hours": {
+        "start": "2026-10-18T10:00:00.000Z",
+        "end": "2026-10-19T10:00:00.000Z",
+        "hourlyPeriods": 24,
+        "precipitationMm": 0,
+        "maxProbabilityPercent": 2,
+        "maxWindKmh": 18.4,
+        "maxGustKmh": 30,
+        "peakHourlyPrecipitationMm": 0
+      },
+      "retrievedAt": "2026-10-18T09:11:47.495Z",
+      "days": 3,
+      "hourlyPeriods": 72,
+      "attention": "ROUTINE",
+      "error": ""
+    },
+    {
+      "id": "thatta",
+      "provider": "WeatherAPI.com",
+      "current": {
+        "time": "2026-10-18T09:00:00.000Z",
+        "temperatureC": 37.2,
+        "weatherCode": 0,
+        "providerConditionCode": 1000,
+        "condition": "Sunny",
+        "windKmh": 4.7,
+        "gustKmh": 8,
+        "feelsLikeC": 35.9,
+        "humidityPercent": 17,
+        "precipitationMm": 0
+      },
+      "next24Hours": {
+        "start": "2026-10-18T10:00:00.000Z",
+        "end": "2026-10-19T10:00:00.000Z",
+        "hourlyPeriods": 24,
+        "precipitationMm": 0,
+        "maxProbabilityPercent": 4,
+        "maxWindKmh": 28.8,
+        "maxGustKmh": 39.6,
+        "peakHourlyPrecipitationMm": 0
+      },
+      "retrievedAt": "2026-10-18T09:11:48.503Z",
+      "days": 3,
+      "hourlyPeriods": 72,
+      "attention": "ROUTINE",
+      "error": ""
+    },
+    {
+      "id": "dadu",
+      "provider": "WeatherAPI.com",
+      "current": {
+        "time": "2026-10-18T09:00:00.000Z",
+        "temperatureC": 36.9,
+        "weatherCode": 0,
+        "providerConditionCode": 1000,
+        "condition": "Sunny",
+        "windKmh": 10.1,
+        "gustKmh": 20.9,
+        "feelsLikeC": 34.3,
+        "humidityPercent": 16,
+        "precipitationMm": 0
+      },
+      "next24Hours": {
+        "start": "2026-10-18T10:00:00.000Z",
+        "end": "2026-10-19T10:00:00.000Z",
+        "hourlyPeriods": 24,
+        "precipitationMm": 0,
+        "maxProbabilityPercent": 0,
+        "maxWindKmh": 11.9,
+        "maxGustKmh": 24.5,
+        "peakHourlyPrecipitationMm": 0
+      },
+      "retrievedAt": "2026-10-18T09:11:49.517Z",
+      "days": 3,
+      "hourlyPeriods": 72,
+      "attention": "ROUTINE",
+      "error": ""
+    }
+  ],
+  "ai": {
+    "status": "REAL_PROVIDER_SUCCESS",
+    "provider": "Groq",
+    "model": "openai/gpt-oss-20b",
+    "generatedAt": "2026-10-18T09:11:50.449Z",
+    "evidence": [
+      {
+        "id": "weather:provider",
+        "text": "WeatherAPI.com, observation 2026-10-18T09:00:00.000Z, fetched 2026-10-18T09:11:43.901Z."
+      },
+      {
+        "id": "weather:forecast",
+        "text": "0 mm from 2026-10-18T10:00:00.000Z to 2026-10-19T10:00:00.000Z."
+      },
+      {
+        "id": "weather:attention",
+        "text": "ROUTINE. Next 24-hour precipitation (0 mm) is below the configured prototype attention thresholds."
+      }
+    ],
+    "limitations": [
+      "AI selects recorded evidence and general precautions. It does not predict flooding or issue official warnings.",
+      "Free-text assessment findings remain available for human review; they are not transmitted to the provider."
+    ]
+  }
+}

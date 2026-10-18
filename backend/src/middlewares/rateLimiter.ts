@@ -20,5 +20,7 @@ export default (req: Request, _: Response, next: NextFunction) => {
             .catch(() => {
                 httpError(next, new Error(responseMessage.TOO_MANY_REQUESTS), req, 429)
             })
+    } else {
+        next()
     }
 }

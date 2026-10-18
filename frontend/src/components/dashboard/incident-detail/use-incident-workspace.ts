@@ -1,14 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { incidents } from "@/lib/api/incidents";
 import { ApiError, errorMessage } from "@/lib/api/client";
 import type { Incident, Recommendations } from "@/types/api";
+import { eligibleDemoTeam, type DemoAction } from "../demo-environment";
 import { useDashboard } from "../dashboard-context";
 
 export function useIncidentWorkspace(id: string) {
   const dashboard = useDashboard();
-  const { isDemoMode, incidents: demoRecords, refresh } = dashboard;
+  const { isDemoMode, refresh } = dashboard;
   const [incident, setIncident] = useState<Incident | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -24,10 +25,19 @@ export function useIncidentWorkspace(id: string) {
   const active = useRef(false);
   const generation = useRef(0);
   const validId = /^[a-f\d]{24}$/i.test(id);
-  const demo = isDemoMode ? demoRecords.find(record => record._id === id) : null;
+  const isDemoRef = id === "INC-2024-0814-001" || id.startsWith("INC-");
+  const isSimulatedTarget = isDemoMode && !validId;
+  const demo = useMemo(() => isSimulatedTarget ? dashboard.demo.incidents.find(record => record._id === id || (id === "INC-2024-0814-001" && record._id === dashboard.demo.incidents[0]?._id)) || null : null, [isSimulatedTarget, dashboard.demo.incidents, id]);
 
   const loadRecommendations = useCallback(async (record: Incident, signal?: AbortSignal) => {
-    if (isDemoMode || record.isSimulated || record.status !== "PENDING" || record.assignedTeam) {
+    if (isSimulatedTarget || record.isSimulated) {
+      if (!signal?.aborted && active.current) {
+        setRecommendations({ manualSelectionRequired: true, distanceType: "APPROXIMATE_STRAIGHT_LINE_KM", message: "Eligible simulated teams; coordinator selection required.", items: dashboard.demo.teams.filter(team => eligibleDemoTeam(record, team)).map(team => ({ team, approximateDistanceKm: 0, capacityWarning: record.peopleAffected && record.peopleAffected > team.capacity ? "Reported people exceed team capacity; review resources." : null })) });
+        setRecommendationError("");
+      }
+      return;
+    }
+    if (record.status !== "PENDING" || record.assignedTeam) {
       if (!signal?.aborted && active.current) setRecommendations(null);
       return;
     }
@@ -43,7 +53,7 @@ export function useIncidentWorkspace(id: string) {
         setRecommendationError(errorMessage(failure));
       }
     }
-  }, [isDemoMode]);
+  }, [isSimulatedTarget, dashboard.demo.teams]);
 
   useEffect(() => {
     active.current = true;
@@ -55,10 +65,16 @@ export function useIncidentWorkspace(id: string) {
       if (running || lock.current || document.hidden) return;
       running = true;
       try {
-        if (!validId) throw new ApiError("Invalid incident reference.", 400);
-        const record = isDemoMode ? demo : await incidents.get(id, controller.signal);
+        if (!validId && !isSimulatedTarget) throw new ApiError("Invalid incident reference.", 400);
+        const record = isSimulatedTarget ? demo : await incidents.get(id, controller.signal);
         if (!record) throw new ApiError("Incident not found.", 404);
-        if (!record._id || record._id !== id || !["CRITICAL", "HIGH", "MEDIUM", "LOW"].includes(record.priorityLevel) || typeof record.description !== "string" || !["PENDING", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CANCELLED"].includes(record.status))
+        if (
+          !record._id ||
+          (record._id !== id && !(isDemoMode && id === "INC-2024-0814-001")) ||
+          !["CRITICAL", "HIGH", "MEDIUM", "LOW"].includes(record.priorityLevel) ||
+          (record.description != null && typeof record.description !== "string") ||
+          !["PENDING", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CANCELLED"].includes(record.status)
+        )
           throw new ApiError("The incident response could not be read. Please retry.", 0, "protocol");
         if (controller.signal.aborted || run !== generation.current || lock.current) return;
         setIncident(record);
@@ -88,10 +104,16 @@ export function useIncidentWorkspace(id: string) {
       clearTimeout(timer);
       document.removeEventListener("visibilitychange", visible);
     };
-  }, [id, isDemoMode, demo, validId, attempt, loadRecommendations]);
+  }, [id, isDemoMode, demo, validId, isDemoRef, isSimulatedTarget, attempt, loadRecommendations]);
 
-  async function mutate(task: () => Promise<{ _id: string }>, success: string) {
-    if (lock.current || isDemoMode || !incident || incident.isSimulated || (uncertain && !acknowledged)) return false;
+  async function mutate(task: () => Promise<{ _id: string }>, success: string, simulation?: DemoAction) {
+    if (lock.current || !incident || (!isDemoMode && incident.isSimulated) || (uncertain && !acknowledged)) return false;
+    if (isDemoMode) {
+      lock.current = true;
+      try { if (!simulation) throw new Error("This demo action is not supported."); dashboard.demoAction(simulation); setFeedback("Simulation updated successfully."); setActionError(""); return true; }
+      catch (failure) { setActionError(failure instanceof Error ? failure.message : "Simulation could not be updated."); return false; }
+      finally { lock.current = false; }
+    }
     lock.current = true;
     const run = generation.current;
     setBusy(true); setActionError(""); setFeedback("");
@@ -127,9 +149,9 @@ export function useIncidentWorkspace(id: string) {
       if (active.current) setBusy(false);
     }
   }
-  return { ...dashboard, incident: isDemoMode ? demo ?? null : incident, loading, error, recommendations, recommendationError,
+  return { ...dashboard, incident: isSimulatedTarget ? (demo ?? incident) : incident, loading, error, recommendations, recommendationError,
     busy, feedback, actionError, uncertain, acknowledged, setAcknowledged, mutate,
     reload: () => setAttempt(value => value + 1),
-    blocked: busy || (uncertain && !acknowledged) || isDemoMode || !!incident?.isSimulated,
+    blocked: busy || (uncertain && !acknowledged) || (!isDemoMode && !!incident?.isSimulated),
   };
 }

@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "./map-test-fixtures";
 import { MOCK_INCIDENTS, MOCK_RESCUE_TEAMS } from "../src/components/dashboard/mock-data";
 import type { Assignment, Incident } from "../src/types/api";
 
@@ -220,6 +220,37 @@ test("missing optional priority and verification data remain readable", async ({
   await open(page, api.id);
   await expect(page.getByRole("img", { name: "CRITICAL priority, numeric score unavailable" })).toBeVisible();
   await expect(page.getByText("Priority reasons were not supplied.")).toBeVisible();
+});
+test("minimal SOS report with omitted optional fields renders cleanly", async ({ page }) => {
+  const api = await setup(page);
+  api.update({
+    description: undefined,
+    reporterName: undefined,
+    reporterPhone: undefined,
+    peopleAffected: undefined,
+    vulnerablePeople: undefined,
+    waterLevel: undefined,
+    immediateDanger: undefined,
+  });
+  await open(page, api.id);
+  await expect(page.getByRole("heading", { name: "Incident unavailable" })).toHaveCount(0);
+  await expect(page.getByText("No detailed field narrative provided by reporter.")).toBeVisible();
+  await expect(page.getByText("Not reported").first()).toBeVisible();
+});
+test("incident with explicit null optional fields renders correctly without throwing", async ({ page }) => {
+  const api = await setup(page);
+  api.update({
+    description: null,
+    reporterName: null,
+    reporterPhone: null,
+    peopleAffected: null,
+    vulnerablePeople: null,
+    waterLevel: null,
+    immediateDanger: null,
+  });
+  await open(page, api.id);
+  await expect(page.getByRole("heading", { name: "Incident unavailable" })).toHaveCount(0);
+  await expect(page.getByText("No detailed field narrative provided by reporter.")).toBeVisible();
 });
 test("visual review in both themes and all required widths", async ({ page }, info) => {
   const errors: string[] = []; page.on("pageerror", error => errors.push(error.message));

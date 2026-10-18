@@ -1,0 +1,7 @@
+{
+  "measurement": "Controlled mock-provider replay of actual before/after service implementations; not production traffic or quota accounting",
+  "beforeCold": 7,
+  "beforeRefresh": 7,
+  "afterCold": 1,
+  "afterRefresh": 0
+}

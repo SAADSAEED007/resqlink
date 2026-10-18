@@ -1,9 +1,10 @@
 import { Ambulance, Flame, Package, Search, Ship, Truck } from "lucide-react";
 import type { Capability, RescueTeam, IncidentLocation } from "@/types/api";
+import { validCoordinates as validPoint } from "@/components/maps/map-coordinates";
 export const capabilities: Record<Capability, string> = { WATER_RESCUE: "Water Rescue", MEDICAL: "Medical Response", EVACUATION: "Evacuation", FIRE_RESPONSE: "Fire Response", SUPPLY_DELIVERY: "Supply Delivery" };
 export const statusText = { AVAILABLE: "Available", BUSY: "On Mission", OFFLINE: "Offline" };
 export function validCoordinates(location?: IncidentLocation | null): location is IncidentLocation {
-  return !!location && Number.isFinite(location.latitude) && Number.isFinite(location.longitude) && Math.abs(location.latitude) <= 90 && Math.abs(location.longitude) <= 180;
+  return validPoint(location);
 }
 export function referenceId(value: unknown): string {
   return typeof value === "string" ? value : value && typeof value === "object" && "_id" in value && typeof value._id === "string" ? value._id : "";

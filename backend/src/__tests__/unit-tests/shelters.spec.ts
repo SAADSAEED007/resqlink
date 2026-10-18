@@ -1,7 +1,7 @@
+jest.mock('../../handlers/logger', () => ({ __esModule: true, default: { info: jest.fn(), error: jest.fn(), warn: jest.fn() } }))
 /* Supertest response.body and Jest matchers are dynamic. */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import mongoose from 'mongoose'
-
 
 import Shelter from '../../APIs/shelters/models/shelter.model'
 import ReliefResource from '../../APIs/shelters/models/relief-resource.model'
@@ -35,7 +35,6 @@ import query from '../../APIs/user/_shared/repo/user.repository'
 import jwt from '../../utils/jwt'
 import config from '../../config/config'
 import { EUserRoles } from '../../constant/users'
-
 
 beforeEach(() => {
     jest.spyOn(Shelter, 'init').mockResolvedValue(new Shelter())
@@ -267,7 +266,6 @@ describe('shelters & resources - service workflows', () => {
         }
 
         const fakeResource = new ReliefResource({
-
             _id: new mongoose.Types.ObjectId(),
             shelterId,
             ...input.initialResources![0],
@@ -343,9 +341,7 @@ describe('shelters & resources - service workflows', () => {
             status: 'OPEN'
         })
 
-        const fakeResources = [
-            { shelterId, category: 'FOOD', resourceName: 'Ration box', quantity: 200, unit: 'boxes', status: 'ADEQUATE' }
-        ]
+        const fakeResources = [{ shelterId, category: 'FOOD', resourceName: 'Ration box', quantity: 200, unit: 'boxes', status: 'ADEQUATE' }]
 
         jest.spyOn(Shelter, 'findById').mockResolvedValue(fakeShelter as unknown as ReturnType<typeof Shelter.findById>)
         jest.spyOn(ReliefResource, 'find').mockReturnValue({
@@ -363,8 +359,9 @@ describe('shelters & resources - service workflows', () => {
         const fakeShelter = new Shelter({ _id: shelterId, name: 'Active Shelter' })
         jest.spyOn(Shelter, 'findById').mockResolvedValue(fakeShelter as unknown as ReturnType<typeof Shelter.findById>)
 
-        const createSpy = jest.spyOn(ReliefResource, 'create').mockImplementation(((doc: unknown) =>
-            Promise.resolve(new ReliefResource(doc))) as never)
+        const createSpy = jest
+            .spyOn(ReliefResource, 'create')
+            .mockImplementation(((doc: unknown) => Promise.resolve(new ReliefResource(doc))) as never)
 
         const resource = await createOrUpdateResource(
             String(shelterId),
@@ -397,16 +394,9 @@ describe('shelters & resources - service workflows', () => {
         })
 
         jest.spyOn(existingResource, 'save').mockResolvedValue(existingResource)
-        jest.spyOn(ReliefResource, 'findOne').mockResolvedValue(
-            existingResource as unknown as ReturnType<typeof ReliefResource.findOne>
-        )
+        jest.spyOn(ReliefResource, 'findOne').mockResolvedValue(existingResource as unknown as ReturnType<typeof ReliefResource.findOne>)
 
-        const updated = await updateResource(
-            String(shelterId),
-            String(resourceId),
-            { quantity: 200 },
-            String(coordinatorId)
-        )
+        const updated = await updateResource(String(shelterId), String(resourceId), { quantity: 200 }, String(coordinatorId))
 
         expect(updated.quantity).toBe(200)
         expect(updated.status).toBe('ADEQUATE')
@@ -435,9 +425,7 @@ describe('shelters & resources - service workflows', () => {
 
         jest.spyOn(ReliefResource, 'findOne').mockResolvedValue(null as unknown as ReturnType<typeof ReliefResource.findOne>)
 
-        const shelterCreateSpy = jest
-            .spyOn(Shelter, 'create')
-            .mockImplementation(((doc: unknown) => Promise.resolve(new Shelter(doc))) as never)
+        const shelterCreateSpy = jest.spyOn(Shelter, 'create').mockImplementation(((doc: unknown) => Promise.resolve(new Shelter(doc))) as never)
         const resourceCreateSpy = jest
             .spyOn(ReliefResource, 'create')
             .mockImplementation(((doc: unknown) => Promise.resolve(new ReliefResource(doc))) as never)
@@ -582,4 +570,3 @@ describe('shelters - HTTP router & RBAC protection', () => {
         expect(res.status).toBe(403)
     })
 })
-

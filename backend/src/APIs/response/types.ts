@@ -11,6 +11,8 @@ export type Capability = (typeof CAPABILITIES)[number]
 export type Priority = (typeof PRIORITIES)[number]
 export type IncidentStatus = (typeof INCIDENT_STATUSES)[number]
 export type VerificationStatus = (typeof VERIFICATION_STATUSES)[number]
+export type SosSafetyAnswer = 'YES' | 'NO' | 'UNSURE' | 'UNANSWERED'
+export type TriageStatus = 'NEEDS_ASSESSMENT' | 'PRELIMINARY' | 'COORDINATOR_REVIEWED'
 export interface VerificationDetails {
     status: VerificationStatus
     requiresManualReview: boolean
@@ -29,16 +31,17 @@ export interface Location {
 }
 export interface RiskInput {
     emergencyType: EmergencyType
-    peopleAffected: number
+    peopleAffected?: number | null
     location?: Location | null
-    vulnerablePeople?: { elderly?: number; children?: number; disabled?: number; medicalNeeds?: number }
-    waterLevel?: (typeof WATER_LEVELS)[number]
-    immediateDanger?: boolean
+    vulnerablePeople?: { elderly?: number | null; children?: number | null; disabled?: number | null; medicalNeeds?: number | null } | null
+    waterLevel?: (typeof WATER_LEVELS)[number] | null
+    immediateDanger?: boolean | null
 }
 export interface IncidentInput extends RiskInput {
-    reporterName: string
-    reporterPhone?: string
-    description: string
+    reporterName?: string | null
+    reporterPhone?: string | null
+    description?: string | null
+    safetyAnswer?: SosSafetyAnswer
 }
 export interface TeamContact {
     phone?: string
@@ -153,6 +156,9 @@ export interface TrendPointHourly {
     label: string
     count: number
     criticalCount: number
+    highCount?: number
+    mediumCount?: number
+    lowCount?: number
 }
 
 export interface TrendPointDaily {
@@ -160,11 +166,15 @@ export interface TrendPointDaily {
     label: string
     count: number
     criticalCount: number
+    highCount?: number
+    mediumCount?: number
+    lowCount?: number
 }
 
 export interface DashboardTrends {
     last24Hours: TrendPointHourly[]
     last7Days: TrendPointDaily[]
+    last30Days?: TrendPointDaily[]
 }
 
 export interface DashboardSummary {

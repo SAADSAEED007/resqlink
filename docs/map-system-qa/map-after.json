@@ -1,0 +1,141 @@
+{
+  "tiles": [
+    {
+      "url": "https://tile.openstreetmap.org/12/2811/1756.png",
+      "status": 200
+    },
+    {
+      "url": "https://tile.openstreetmap.org/12/2810/1756.png",
+      "status": 200
+    },
+    {
+      "url": "https://tile.openstreetmap.org/12/2809/1755.png",
+      "status": 200
+    },
+    {
+      "url": "https://tile.openstreetmap.org/12/2811/1755.png",
+      "status": 200
+    },
+    {
+      "url": "https://tile.openstreetmap.org/12/2809/1756.png",
+      "status": 200
+    },
+    {
+      "url": "https://tile.openstreetmap.org/12/2810/1755.png",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/12/1755/2809",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/12/1756/2811",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/12/1755/2810",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/12/1756/2809",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/12/1756/2810",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/12/1756/2810",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/12/1755/2809",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/12/1755/2810",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/12/1755/2811",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/12/1755/2811",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/12/1756/2809",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/12/1756/2811",
+      "status": 200
+    }
+  ],
+  "errors": [],
+  "productionUrl": "https://resqlink-drab.vercel.app/login",
+  "productionText": "Skip to content\n\nCOORDINATED RESPONSE / SINDH\n\nDecisions with\nclarity when\nevery minute matters.\n\nResQLink brings verified reports, available teams, and accountable human decisions into one operational picture.\n\nSECURE COORDINATOR WORKSPACE\n←\nBack to public portal\n\nCOMMAND CENTER\n\nWelcome back.\n\nSign in to review live reports and coordinate a considered response.\n\nEmail address *\nPassword *\nSign in\n\nAuthorized coordinators only. Access is managed by your administrator.\n\nPrototype / simulation. R",
+  "styles": {
+    "map": {
+      "background": "rgb(232, 237, 242)",
+      "width": 648,
+      "height": 275
+    },
+    "pane": {
+      "filter": "none",
+      "opacity": "1"
+    },
+    "tiles": [
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://tile.openstreetmap.org/12/2810/1755.png"
+      },
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://tile.openstreetmap.org/12/2810/1756.png"
+      },
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://tile.openstreetmap.org/12/2809/1755.png"
+      },
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://tile.openstreetmap.org/12/2811/1755.png"
+      },
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://tile.openstreetmap.org/12/2809/1756.png"
+      },
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://tile.openstreetmap.org/12/2811/1756.png"
+      }
+    ]
+  },
+  "darkFilter": "none"
+}

@@ -7,19 +7,16 @@ import { PriorityIncidentQueue } from "./PriorityIncidentQueue";
 import { RescueTeamAvailability } from "./RescueTeamAvailability";
 import { IncidentTrends } from "./IncidentTrends";
 import { RecentActivity } from "./RecentActivity";
-import { IncidentDetailModal } from "./IncidentDetailModal";
+import { IncidentQuickPreview } from "./IncidentQuickPreview";
 import { MOCK_TRENDS_24H } from "./mock-data";
 import {
-  Flame,
-  AlertTriangle,
-  Users,
-  CheckCircle2,
   RefreshCw,
   AlertOctagon,
 } from "lucide-react";
 
 export function DashboardOverview() {
   const {
+    demoAction,
     filteredIncidents,
     filteredTeams,
     loading,
@@ -38,23 +35,17 @@ export function DashboardOverview() {
 
   return (
     <div className="space-y-4">
-      <div className="rqCommandMode" role="status">
-        <span>
-          <strong>{isDemoMode ? "Demonstration Mode" : "API records"}</strong>{" "}
-          &middot;{" "}
-          {isDemoMode
-            ? "Showing simulated emergency response data"
-            : "Loaded API records / refreshes every 7 seconds"}
-        </span>
-        <div>
-          <small>
-            {!isDemoMode && lastUpdated
-              ? `Updated ${new Date(lastUpdated).toLocaleTimeString()}`
-              : ""}
-          </small>
-          <button onClick={() => setIsDemoMode(!isDemoMode)}>
-            {isDemoMode ? "Connect to API" : "Use demo data"}
-          </button>
+      <section className={`rqCommandMode ${isDemoMode ? "is-demo" : "is-real"}`} aria-label="Data mode">
+        <div className="rqDataModeCopy">
+          <span className="rqDataModeState">{isDemoMode ? "Demo Mode Active" : error ? "Real Data Unavailable" : lastUpdated ? "Real Data Connected" : "Connecting to Real Data"}</span>
+          <p>{isDemoMode ? "Simulated Data · Viewing sample incidents, rescue teams, and operational records." : lastUpdated ? `Last successful refresh ${new Date(lastUpdated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · Refreshes every 7 seconds.` : "Fetching authenticated operational records…"}</p>
+        </div>
+        <div className="rqDataModeActions">
+          {isDemoMode && <button onClick={() => {if(window.confirm("Reset all simulated incidents, teams, assignments and activity?")) demoAction({type:"reset"});}}>Reset Demo</button>}
+          <div className="rqDataModeSelector" role="group" aria-label="Choose dashboard data mode">
+            <button className={isDemoMode ? "is-selected" : ""} aria-pressed={isDemoMode} onClick={() => setIsDemoMode(true)}>Demo Mode</button>
+            <button className={!isDemoMode ? "is-selected" : ""} aria-pressed={!isDemoMode} onClick={() => setIsDemoMode(false)}>Real Data</button>
+          </div>
           <button
             aria-label="Refresh data"
             title={isDemoMode ? "Demo data is a fixed snapshot" : "Refresh data"}
@@ -67,7 +58,7 @@ export function DashboardOverview() {
             />
           </button>
         </div>
-      </div>
+      </section>
 
       {/* Error State Banner if live API fails */}
       {error && !isDemoMode && (
@@ -108,8 +99,7 @@ export function DashboardOverview() {
           value={stats.activeIncidents}
           trendText="Open reports"
           trendColor="red"
-          icon={<Flame className="w-5 h-5 text-[var(--command-red)]" />}
-          iconBgColor="rgba(240, 68, 82, 0.15)"
+          iconSrc="/images/icons/kpi-active-incidents.webp"
           sparklinePoints={isDemoMode ? MOCK_TRENDS_24H.map(point => point.critical + point.high + point.medium + point.low) : undefined}
           sparklineColor="#ee354b"
           loading={loading && !isDemoMode}
@@ -120,10 +110,7 @@ export function DashboardOverview() {
           value={stats.criticalCases}
           trendText="Needs priority review"
           trendColor="amber"
-          icon={
-            <AlertTriangle className="w-5 h-5 text-[var(--command-amber)]" />
-          }
-          iconBgColor="rgba(245, 185, 66, 0.15)"
+          iconSrc="/images/icons/kpi-critical-cases.webp"
           sparklinePoints={isDemoMode ? MOCK_TRENDS_24H.map(point => point.critical) : undefined}
           sparklineColor="#f6bf69"
           loading={loading && !isDemoMode}
@@ -135,8 +122,7 @@ export function DashboardOverview() {
           secondaryValue={`/ ${stats.totalTeams}`}
           trendText={`${stats.busyTeams} teams on mission`}
           trendColor="muted"
-          icon={<Users className="w-5 h-5 text-[var(--command-green)]" />}
-          iconBgColor="rgba(24, 199, 133, 0.15)"
+          iconSrc="/images/icons/kpi-available-teams.webp"
           loading={loading && !isDemoMode}
         />
 
@@ -145,8 +131,7 @@ export function DashboardOverview() {
           value={stats.resolvedToday}
           trendText="Resolved records updated today"
           trendColor="blue"
-          icon={<CheckCircle2 className="w-5 h-5 text-[var(--command-blue)]" />}
-          iconBgColor="rgba(35, 120, 246, 0.15)"
+          iconSrc="/images/icons/kpi-resolved-today.webp"
           loading={loading && !isDemoMode}
         />
       </section>
@@ -191,23 +176,8 @@ export function DashboardOverview() {
           loading={loading && !isDemoMode}
         />
 
-        {isDemoMode ? (
-          <IncidentTrends loading={false} />
-        ) : (
-          <section className="rqCommandCard rqCommandEmpty">
-            <h2>Incident Trends</h2>
-            <p>Historical trend data is not available from the current API.</p>
-          </section>
-        )}
-
-        {isDemoMode ? (
-          <RecentActivity loading={false} />
-        ) : (
-          <section className="rqCommandCard rqCommandEmpty">
-            <h2>Recent Activity &amp; Assignments</h2>
-            <p>An activity feed is not available from the current API.</p>
-          </section>
-        )}
+        <IncidentTrends loading={loading && !isDemoMode} realData={!isDemoMode} refreshAt={lastUpdated} />
+        <RecentActivity loading={loading && !isDemoMode} realData={!isDemoMode} refreshAt={lastUpdated} />
       </section>
 
       {selectedTeam && (
@@ -230,8 +200,8 @@ export function DashboardOverview() {
         </section>
       )}
 
-      {/* Interactive Detail Modal */}
-      <IncidentDetailModal
+      {/* Incident Quick Preview Drawer */}
+      <IncidentQuickPreview
         incident={selectedIncident}
         onClose={() => setSelectedIncident(null)}
       />

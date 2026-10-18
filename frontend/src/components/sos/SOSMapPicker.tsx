@@ -1,7 +1,11 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import type { IncidentLocation } from "@/types/api";
-import { Button, LoadingSpinner } from "@/components/ui";
+import { Button } from "@/components/ui";
+import { useMapBase } from "@/components/maps/use-map-base";
+import { MapFeedback } from "@/components/maps/MapFeedback";
+import { validCoordinates } from "@/components/maps/map-coordinates";
+
 export default function SOSMapPicker({
   value,
   onSelect,
@@ -10,132 +14,134 @@ export default function SOSMapPicker({
   onSelect: (point: IncidentLocation) => void;
 }) {
   const container = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<import("leaflet").Map | null>(null);
+  const { map, ready, status, retry } = useMapBase(container, true, "light");
   const markerRef = useRef<import("leaflet").Marker | null>(null);
-  const onSelectRef = useRef(onSelect);
-  const initialValue = useRef(value);
-  const [status, setStatus] = useState("loading");
-  const [tileError, setTileError] = useState(false);
+  const valueKey = JSON.stringify(value);
+  const source = useRef(valueKey);
   useEffect(() => {
-    onSelectRef.current = onSelect;
-  }, [onSelect]);
+    source.current = valueKey;
+  }, [valueKey]);
+  const [draft, setDraft] = useState<{
+    point: IncidentLocation;
+    source: string;
+  } | null>(null);
+  const candidate =
+    draft?.source === valueKey
+      ? draft.point
+      : validCoordinates(value)
+        ? value
+        : null;
+  const candidateKey = JSON.stringify(candidate);
   useEffect(() => {
-    let cancelled = false;
-    async function init() {
-      const L = await import("leaflet");
-      if (cancelled || !container.current) return;
-      const point = initialValue.current;
-      const map = L.map(container.current, {
-        center: point ? [point.latitude, point.longitude] : [24.8607, 67.0011],
-        zoom: point ? 14 : 10,
-        zoomControl: true,
-        attributionControl: true,
+    if (!ready) return;
+    let active = true;
+    let cleanup: (() => void) | undefined;
+    void import("leaflet").then((L) => {
+      if (!active || !map.current) return;
+      const instance = map.current;
+      const point = JSON.parse(source.current) as IncidentLocation | null;
+      if (validCoordinates(point))
+        instance.setView([point.latitude, point.longitude], 14);
+      const marker = L.marker([0, 0], {
+        draggable: true,
+        title: "Candidate emergency location",
+        icon: L.divIcon({
+          className: "rqSosMapMarker",
+          html: '<span aria-hidden="true"></span>',
+          iconSize: [28, 28],
+          iconAnchor: [14, 14],
+        }),
       });
-      mapRef.current = map;
-      const tiles = L.tileLayer(
-        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        {
-          maxZoom: 19,
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        },
-      ).addTo(map);
-      tiles.on("tileerror", () => {
-        if (!cancelled) setTileError(true);
-      });
-      const marker = L.marker(
-        point ? [point.latitude, point.longitude] : [24.8607, 67.0011],
-        {
-          draggable: true,
-          title: "Selected emergency location",
-          icon: L.divIcon({
-            className: "rqSosMapMarker",
-            html: '<span aria-hidden="true"></span>',
-            iconSize: [28, 28],
-            iconAnchor: [14, 14],
-          }),
-        },
-      );
       markerRef.current = marker;
-      if (point) marker.addTo(map);
-      map.on("click", (event: import("leaflet").LeafletMouseEvent) => {
-        onSelectRef.current({
-          latitude: Number(event.latlng.lat.toFixed(6)),
-          longitude: Number(event.latlng.wrap().lng.toFixed(6)),
-        });
-      });
-      marker.on("dragend", () => {
-        const point = marker.getLatLng().wrap();
-        onSelectRef.current({
-          latitude: Number(point.lat.toFixed(6)),
-          longitude: Number(point.lng.toFixed(6)),
-        });
-      });
-      setStatus("ready");
-      map.invalidateSize();
-    }
-    void init().catch(() => {
-      if (!cancelled) setStatus("error");
+      const choose = (point: import("leaflet").LatLng) => {
+        const wrapped = point.wrap();
+        const location = {
+          latitude: Number(wrapped.lat.toFixed(6)),
+          longitude: Number(wrapped.lng.toFixed(6)),
+        };
+        if (validCoordinates(location))
+          setDraft({ point: location, source: source.current });
+      };
+      const click = (event: import("leaflet").LeafletMouseEvent) =>
+        choose(event.latlng);
+      instance.on("click", click);
+      marker.on("dragend", () => choose(marker.getLatLng()));
+      cleanup = () => {
+        instance.off("click", click);
+        marker.off();
+        marker.remove();
+        markerRef.current = null;
+      };
     });
     return () => {
-      cancelled = true;
-      mapRef.current?.remove();
-      mapRef.current = null;
-      markerRef.current = null;
+      active = false;
+      cleanup?.();
     };
-  }, []);
+  }, [map, ready]);
   useEffect(() => {
-    const map = mapRef.current;
-    const marker = markerRef.current;
-    if (!map || !marker) return;
-    if (value) {
-      marker.setLatLng([value.latitude, value.longitude]);
-      if (!map.hasLayer(marker)) marker.addTo(map);
-      map.panTo([value.latitude, value.longitude]);
-    } else marker.remove();
-  }, [value, status]);
+    if (!ready) return;
+    let active = true;
+    void import("leaflet").then(() => {
+      if (!active || !map.current || !markerRef.current) return;
+      const point = JSON.parse(candidateKey) as IncidentLocation | null;
+      if (validCoordinates(point)) {
+        markerRef.current.setLatLng([point.latitude, point.longitude]);
+        if (!map.current.hasLayer(markerRef.current))
+          markerRef.current.addTo(map.current);
+      } else markerRef.current.remove();
+    });
+    return () => {
+      active = false;
+    };
+  }, [candidateKey, map, ready]);
   return (
     <div className="rqSosMapPicker">
       <p className="helper">
-        {value
-          ? "Selected point shown. Tap elsewhere or drag the marker to adjust."
-          : "Starting view: Karachi. This is not your reported location. Tap a point to select it."}
+        {candidate
+          ? `Candidate point: ${candidate.latitude.toFixed(6)}, ${candidate.longitude.toFixed(6)}. Confirm it before using it in your report.`
+          : "Sindh overview shown. This is not your reported location. Tap a point to choose a candidate."}
       </p>
-      <div
-        ref={container}
-        className="rqSosMap"
-        role="group"
-        aria-label="Emergency location map"
-      />
-      {status === "loading" && <LoadingSpinner label="Loading map..." />}
-      {status === "error" && (
-        <p role="alert" className="validation">
-          The map could not be opened. Enter an address or coordinates below.
-        </p>
-      )}
-      {tileError && (
-        <p role="status" className="helper">
-          Map tiles could not be loaded. You can still enter an address or
-          coordinates.
-        </p>
-      )}
+      <div style={{ position: "relative" }}>
+        <div
+          ref={container}
+          className="rqSosMap rqOperationalMap"
+          role="group"
+          aria-label="Emergency location map"
+        />
+        <MapFeedback status={status} retry={retry} />
+      </div>
       <Button
         variant="outline"
-        disabled={status !== "ready"}
+        disabled={!ready || !candidate}
         onClick={() => {
-          const point = mapRef.current?.getCenter().wrap();
-          if (point)
-            onSelect({
+          if (candidate && validCoordinates(candidate)) onSelect(candidate);
+        }}
+      >
+        Confirm selected location
+      </Button>
+      <Button
+        variant="outline"
+        disabled={!ready}
+        onClick={() => {
+          const point = map.current?.getCenter().wrap();
+          if (point) {
+            const location = {
               latitude: Number(point.lat.toFixed(6)),
               longitude: Number(point.lng.toFixed(6)),
-            });
+            };
+            if (validCoordinates(location)) {
+              setDraft({ point: location, source: valueKey });
+              onSelect(location);
+            }
+          }
         }}
       >
         Use map center
       </Button>
       <p className="helper">
-        You can pan with arrow keys after focusing the map, then choose Use map
-        center. Manual entry is available below.
+        Pan with arrow keys after focusing the map, then choose Use map center
+        to confirm that point. You can also enter a landmark without using the
+        map.
       </p>
     </div>
   );
