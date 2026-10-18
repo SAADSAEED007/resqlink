@@ -182,6 +182,13 @@ export interface MonitoringOverview {
   unavailable: number;
 }
 export interface CommunityAnalysis {
+  assessmentHeadline: string;
+  attentionLevel: string;
+  recommendedDecision: string;
+  decisionLabel: string;
+  decisionReason: string;
+  evidenceSummary: string;
+  reassessmentTriggers: string[];
   summary: string;
   reviewLevel: string;
   keyInsights: {

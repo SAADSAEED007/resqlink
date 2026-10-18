@@ -1331,6 +1331,15 @@
 .siGroqSection > .siPrimary { margin-top:2px; }
 .siForecast .siDays { gap:7px; }
 .siForecast .siDay { border:1px solid var(--command-border); border-radius:7px; background:var(--command-soft); }
+.siAdvisorHighlight, .siDecisionRecommendation { display:grid; gap:6px; padding:12px; border:1px solid var(--command-border); border-radius:8px; background:var(--command-soft); }
+.siAdvisorHighlight h4, .siDecisionRecommendation h4 { margin:0; font-size:12px; }
+.siAdvisorHighlight > strong { font-size:15px; }
+.siAdvisorHighlight.elevated { border-left:4px solid var(--command-amber); }
+.siAdvisorHighlight.urgent_review { border-left:4px solid var(--command-red); }
+.siAdvisorHighlight.data_unavailable { border-left:4px solid #64748b; }
+.siAdvisorHighlight.routine { border-left:4px solid var(--command-green); }
+.siDecisionRecommendation { background:linear-gradient(135deg,#eff6ff,#fff); }
+.siDecisionRecommendation p { margin:0; color:var(--command-muted); font-size:12px; line-height:1.45; }
 @media (max-width: 900px) {
   .siMapFrame { height:325px; }
 }
