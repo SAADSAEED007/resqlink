@@ -156,7 +156,8 @@ export function IncidentManagement() {
   const preview = () => {
     setIsDemoMode(true);
     setSelectedIncident(null);
-    router.push(`/dashboard/incidents/INC-2024-0814-001?demo=true`);
+    const firstDemoIncident = demo.incidents[0];
+    if (firstDemoIncident) router.push(`/dashboard/incidents/${encodeURIComponent(firstDemoIncident._id)}?demo=true`);
   };
 
   const pendingCount = data.items.filter((i) => i.status === "PENDING").length;
