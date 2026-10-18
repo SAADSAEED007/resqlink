@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "./map-test-fixtures";
 import { MOCK_INCIDENTS, MOCK_RESCUE_TEAMS } from "../src/components/dashboard/mock-data";
 import type { Assignment, Incident } from "../src/types/api";
 

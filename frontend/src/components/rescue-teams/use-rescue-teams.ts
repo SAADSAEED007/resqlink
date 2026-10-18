@@ -7,7 +7,9 @@ import { useDashboard } from "@/components/dashboard/dashboard-context";
 import { MOCK_RESCUE_TEAMS } from "@/components/dashboard/mock-data";
 
 function validTeam(team: RescueTeam | undefined): team is RescueTeam {
-  return !!team && typeof team._id === "string" && typeof team.name === "string" && typeof team.teamCode === "string" && Array.isArray(team.capabilities) && !!team.location && Number.isFinite(team.capacity) && ["AVAILABLE", "BUSY", "OFFLINE"].includes(team.status);
+  // Keep an otherwise valid team visible when its base is missing; map adapters
+  // independently decide whether a real coordinate pair can be plotted.
+  return !!team && typeof team._id === "string" && typeof team.name === "string" && typeof team.teamCode === "string" && Array.isArray(team.capabilities) && Number.isFinite(team.capacity) && ["AVAILABLE", "BUSY", "OFFLINE"].includes(team.status);
 }
 
 export function useRescueTeams() {

@@ -57,11 +57,19 @@ export const LEGEND_ITEMS: Array<{
   label: string;
   asset: string;
 }> = [
-  { kind: "CRITICAL", label: "Critical Incident", asset: MARKER_ASSETS.CRITICAL },
+  {
+    kind: "CRITICAL",
+    label: "Critical Incident",
+    asset: MARKER_ASSETS.CRITICAL,
+  },
   { kind: "HIGH", label: "High Incident", asset: MARKER_ASSETS.HIGH },
   { kind: "MEDIUM", label: "Medium Incident", asset: MARKER_ASSETS.MEDIUM },
   { kind: "LOW", label: "Low Incident", asset: MARKER_ASSETS.LOW },
-  { kind: "AVAILABLE", label: "Available Team", asset: MARKER_ASSETS.AVAILABLE },
+  {
+    kind: "AVAILABLE",
+    label: "Available Team",
+    asset: MARKER_ASSETS.AVAILABLE,
+  },
   { kind: "BUSY", label: "Team On Mission", asset: MARKER_ASSETS.BUSY },
 ];
 
@@ -86,11 +94,13 @@ const iconCache = new Map<string, L.DivIcon>();
 export function getIncidentMarkerIcon(
   L: typeof import("leaflet"),
   priority: string | undefined,
-  selected = false
+  selected = false,
 ): L.DivIcon {
-  const normalized = (priority && priority.toUpperCase() in MARKER_ASSETS
-    ? priority.toUpperCase()
-    : "LOW") as MarkerKind;
+  const normalized = (
+    priority && priority.toUpperCase() in MARKER_ASSETS
+      ? priority.toUpperCase()
+      : "LOW"
+  ) as MarkerKind;
   const cacheKey = `incident:${normalized}:${selected}`;
   let icon = iconCache.get(cacheKey);
 
@@ -115,9 +125,26 @@ export function getIncidentMarkerIcon(
 export function getRescueTeamMarkerIcon(
   L: typeof import("leaflet"),
   status: string | undefined,
-  selected = false
+  selected = false,
 ): L.DivIcon {
-  const normalized = (status === "AVAILABLE" ? "AVAILABLE" : "BUSY") as MarkerKind;
+  if (status === "OFFLINE") {
+    const key = `team:OFFLINE:${selected}`;
+    let icon = iconCache.get(key);
+    if (!icon) {
+      icon = L.divIcon({
+        className: "rqMapMarker",
+        html: `<span class="rqMapOffline${selected ? " is-selected" : ""}" role="img" aria-label="Offline team">×</span>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -18],
+      });
+      iconCache.set(key, icon);
+    }
+    return icon;
+  }
+  const normalized = (
+    status === "AVAILABLE" ? "AVAILABLE" : "BUSY"
+  ) as MarkerKind;
   const cacheKey = `team:${normalized}:${selected}`;
   let icon = iconCache.get(cacheKey);
 

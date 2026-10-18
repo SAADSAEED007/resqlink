@@ -1,13 +1,10 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import type {
-  Map as LeafletMap,
-  LayerGroup,
-  CircleMarker,
-  TileLayer,
-} from "leaflet";
+import { useEffect, useRef } from "react";
+import type { LayerGroup, CircleMarker } from "leaflet";
 import { Plus, Minus, Crosshair, MapPin } from "lucide-react";
-import { useDashboardTheme } from "@/components/layout/dashboard-theme";
+import { useMapBase } from "@/components/maps/use-map-base";
+import { MapFeedback } from "@/components/maps/MapFeedback";
+import { validCoordinates } from "@/components/maps/map-coordinates";
 import type { MonitoredDistrict, AttentionLevel } from "@/types/risk-zones";
 import { attentionLabels } from "./monitoring-utils";
 const colors: Record<AttentionLevel, string> = {
@@ -26,84 +23,40 @@ export function SindhMonitoringMap({
   onSelect: (id: string) => void;
 }) {
   const element = useRef<HTMLDivElement>(null),
-    map = useRef<LeafletMap | null>(null),
     layers = useRef<LayerGroup | null>(null),
-    tiles = useRef<TileLayer | null>(null),
-    references = useRef<TileLayer | null>(null),
     markers = useRef(new Map<string, CircleMarker>());
   const select = useRef(onSelect);
   useEffect(() => {
     select.current = onSelect;
   }, [onSelect]);
-  const { theme } = useDashboardTheme();
-  const [ready, setReady] = useState(false);
+  const { map, ready, status, retry } = useMapBase(element);
   const fitted = useRef(false),
     focused = useRef(selectedId);
   const signature = JSON.stringify(
-    items.map((item) => [
-      item.id,
-      item.name,
-      item.latitude,
-      item.longitude,
-      item.attention?.level,
-      item.weather?.next24Hours.precipitationMm,
-      item.weather?.retrievedAt,
-    ]),
+    items
+      .filter(validCoordinates)
+      .map((item) => [
+        item.id,
+        item.name,
+        item.latitude,
+        item.longitude,
+        item.attention?.level,
+        item.weather?.next24Hours.precipitationMm,
+        item.weather?.retrievedAt,
+      ]),
   );
-  useEffect(() => {
-    let active = true;
-    let observer: ResizeObserver | undefined;
-    void import("leaflet").then((L) => {
-      if (!active || !element.current) return;
-      const instance = L.map(element.current, {
-        center: [26.45, 68.3],
-        zoom: 7,
-        zoomControl: false,
-        scrollWheelZoom: false,
-      });
-      map.current = instance;
-      layers.current = L.layerGroup().addTo(instance);
-      observer = new ResizeObserver(() =>
-        instance.invalidateSize({ pan: false }),
-      );
-      observer.observe(element.current);
-      setReady(true);
-    });
-    return () => {
-      active = false;
-      observer?.disconnect();
-      map.current?.remove();
-      map.current = null;
-      layers.current = null;
-    };
-  }, []);
   useEffect(() => {
     let active = true;
     void import("leaflet").then((L) => {
       if (!active || !ready || !map.current) return;
-      const previous = tiles.current;
-      const url =
-        theme === "dark"
-          ? "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-          : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
-      tiles.current = L.tileLayer(url, {
-        maxZoom: 18,
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' +
-          (theme === "dark" ? " &copy; Esri" : ""),
-      }).addTo(map.current);
-      tiles.current.once("load", () => previous?.remove());
-      references.current?.remove();
-      if (theme === "dark")
-        references.current = L.tileLayer(
-          "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
-          { maxZoom: 18, zIndex: 2 },
-        ).addTo(map.current);
+      layers.current = L.layerGroup().addTo(map.current);
     });
     return () => {
       active = false;
+      layers.current?.remove();
+      layers.current = null;
     };
-  }, [ready, theme]);
+  }, [map, ready]);
   useEffect(() => {
     let active = true;
     void import("leaflet").then((L) => {
@@ -164,7 +117,7 @@ export function SindhMonitoringMap({
     return () => {
       active = false;
     };
-  }, [ready, signature]);
+  }, [map, ready, signature]);
   useEffect(() => {
     if (!ready) return;
     for (const [id, marker] of markers.current) {
@@ -186,7 +139,7 @@ export function SindhMonitoringMap({
       map.current?.panTo([lat, lon], { animate: false });
       focused.current = selectedId;
     }
-  }, [ready, lat, lon, selectedId]);
+  }, [map, ready, lat, lon, selectedId]);
   return (
     <section className="siCard siMapCard">
       <header>
@@ -199,9 +152,10 @@ export function SindhMonitoringMap({
       <div className="siMapFrame">
         <div
           ref={element}
-          className="siMap"
+          className="siMap rqOperationalMap"
           aria-label="Sindh district monitoring locations"
         />
+        <MapFeedback status={status} retry={retry} />
         <div className="siMapLegend">
           {Object.entries(attentionLabels).map(([key, value]) => (
             <span key={key}>

@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "./map-test-fixtures";
 import { MOCK_RESCUE_TEAMS, MOCK_INCIDENTS } from "../src/components/dashboard/mock-data";
 import type { RescueTeam, Assignment } from "../src/types/api";
 
@@ -79,7 +79,10 @@ test("directory, map selection, profile tabs and real populated history stay syn
   await expect(page.locator(".rtCapabilityChips")).toContainText("Water Rescue");
   await page.getByRole("tab", { name: "Overview", exact: true }).click();
   await expect(page.getByTitle(`Select team ${api.second.name}`, { exact: true })).toBeVisible();
-  await page.getByTitle(`Select team ${api.second.name}`, { exact: true }).click();
+  // All city bases now fit together. Keyboard selection remains available when
+  // nearby symbols overlap at this honest city-wide scale.
+  await page.getByTitle(`Select team ${api.second.name}`, { exact: true }).focus();
+  await page.keyboard.press("Enter");
   await expect(page.locator(".rtDetails h3")).toHaveText(api.second.name);
   await expect(page.locator(".rtDirectoryRow[aria-pressed=true]")).toContainText(api.second.name);
   await expect(page.locator(".rtMap .leaflet-popup")).toContainText(api.second.name);
@@ -147,7 +150,7 @@ test("missing location is visible in directory but has no fabricated marker", as
   const api = await setup(page, { noLocation: true }); await open(page);
   await expect(page.locator(".rtDirectoryRow").first()).toContainText("Location not provided");
   await expect(page.getByTitle(`Select team ${api.first.name}`, { exact: true })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Focus selected team", exact: true })).toBeDisabled();
+  await expect(page.locator(".rtMapEmpty")).toContainText("Selected team location requires verification");
 });
 test("empty API and failed API states never substitute demo records", async ({ page }) => {
   await setup(page, { empty: true }); await open(page);

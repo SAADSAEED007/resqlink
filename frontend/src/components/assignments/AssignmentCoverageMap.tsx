@@ -1,147 +1,162 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import type { Map as LeafletMap, LayerGroup } from "leaflet";
+import { useEffect, useRef } from "react";
+import Link from "next/link";
 import { MapPin, Crosshair } from "lucide-react";
 import {
   getIncidentMarkerIcon,
   getRescueTeamMarkerIcon,
 } from "@/components/dashboard/map-marker";
-import { useDashboardTheme } from "@/components/layout/dashboard-theme";
 import type { Incident, RescueTeam } from "@/types/api";
-import { coordinates, incidentNames } from "./assignment-data";
+import { incidentNames } from "./assignment-data";
+import { useMapBase } from "@/components/maps/use-map-base";
+import { MapFeedback } from "@/components/maps/MapFeedback";
+import {
+  mapPosition,
+  outsideOperationalRegion,
+  validCoordinates,
+  type MapPosition,
+} from "@/components/maps/map-coordinates";
+import { fitMapPositions, positionsKey } from "@/components/maps/map-bounds";
+import { teamPopup } from "@/components/maps/map-popups";
+import { bindMarkerActivation } from "@/components/maps/map-markers";
 
 export function AssignmentCoverageMap({
   incident,
   teams,
   selectedTeam,
   selectTeam,
+  eligibleTeamIds,
 }: {
   incident?: Incident;
   teams: RescueTeam[];
   selectedTeam: string;
   selectTeam: (id: string) => void;
+  eligibleTeamIds: string[];
 }) {
-  const node = useRef<HTMLDivElement>(null),
-    map = useRef<LeafletMap | null>(null),
-    layer = useRef<LayerGroup | null>(null);
-  const [ready, setReady] = useState(false);
-  const { theme } = useDashboardTheme();
+  const node = useRef<HTMLDivElement>(null);
+  const { map, ready, status, retry } = useMapBase(node, true);
   const callback = useRef(selectTeam);
   useEffect(() => {
     callback.current = selectTeam;
   }, [selectTeam]);
+  const mapped = teams.filter((team) => validCoordinates(team.location));
+  const incidentPoint = mapPosition(incident?.location);
+  const positions = [
+    ...(incidentPoint ? [incidentPoint] : []),
+    ...mapped.map((team) => mapPosition(team.location)!),
+  ];
+  const viewKey = JSON.stringify([
+    incident?._id,
+    JSON.parse(positionsKey(positions)),
+  ]);
+  const signature = JSON.stringify({
+    incident,
+    teams: mapped,
+    selectedTeam,
+    eligibleTeamIds,
+  });
+  const markers = useRef(new Map<string, import("leaflet").Marker>());
+  const eligibleIds = useRef(new Set(eligibleTeamIds));
   useEffect(() => {
-    let active = true;
-    let observer: ResizeObserver | undefined;
-    void import("leaflet").then((L) => {
-      if (!active || !node.current) return;
-      const instance = L.map(node.current, {
-        zoomControl: true,
-        scrollWheelZoom: false,
-      }).setView([0, 0], 2);
-      map.current = instance;
-      layer.current = L.layerGroup().addTo(instance);
-      observer = new ResizeObserver(() => instance.invalidateSize());
-      observer.observe(node.current);
-      setReady(true);
-    });
-    return () => {
-      active = false;
-      observer?.disconnect();
-      map.current?.remove();
-      map.current = null;
-    };
-  }, []);
+    eligibleIds.current = new Set(eligibleTeamIds);
+  }, [eligibleTeamIds]);
+  const popupSelection = useRef("");
   useEffect(() => {
-    if (!ready) return;
+    if (!ready) {
+      markers.current.clear();
+      return;
+    }
     let active = true;
-    let tiles: import("leaflet").TileLayer | undefined;
-    let labels: import("leaflet").TileLayer | undefined;
     void import("leaflet").then((L) => {
       if (!active || !map.current) return;
-      const style = theme === "dark" ? "Dark" : "Light";
-      const base = `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_${style}_Gray`;
-      tiles = L.tileLayer(`${base}_Base/MapServer/tile/{z}/{y}/{x}`, {
-        attribution: "Tiles &copy; Esri &copy; OpenStreetMap contributors",
-        maxZoom: 16,
-      }).addTo(map.current);
-      labels = L.tileLayer(`${base}_Reference/MapServer/tile/{z}/{y}/{x}`, {
-        maxZoom: 16,
-      }).addTo(map.current);
-    });
-    return () => {
-      active = false;
-      tiles?.remove();
-      labels?.remove();
-    };
-  }, [ready, theme]);
-  const serialized = JSON.stringify({ incident, teams, selectedTeam });
-  useEffect(() => {
-    if (!ready) return;
-    let active = true;
-    const data = JSON.parse(serialized) as {
-      incident?: Incident;
-      teams: RescueTeam[];
-      selectedTeam: string;
-    };
-    void import("leaflet").then((L) => {
-      if (!active || !layer.current) return;
-      layer.current.clearLayers();
-      if (coordinates(data.incident?.location)) {
+      const data = JSON.parse(signature) as {
+        incident?: Incident;
+        teams: RescueTeam[];
+        selectedTeam: string;
+        eligibleTeamIds: string[];
+      };
+      const point = mapPosition(data.incident?.location);
+      const ids = new Set([
+        ...data.teams.map((team) => team._id),
+        ...(point && data.incident ? [data.incident._id] : []),
+      ]);
+      for (const [id, marker] of markers.current)
+        if (!ids.has(id)) {
+          marker.remove();
+          markers.current.delete(id);
+        }
+      if (point && data.incident) {
         const content = document.createElement("div");
-        content.textContent = `${incidentNames[data.incident!.emergencyType]} · ${data.incident!.priorityLevel} · ${data.incident!.location?.address || "Stored incident location"}`;
-        L.marker(
-          [
-            data.incident!.location!.latitude,
-            data.incident!.location!.longitude,
-          ],
-          {
-            icon: getIncidentMarkerIcon(L, data.incident!.priorityLevel, true),
+        content.textContent = `${incidentNames[data.incident.emergencyType]} · ${data.incident.priorityLevel} · Reported location. ${data.incident.location?.address || "Address not recorded"}${outsideOperationalRegion(data.incident.location!) ? " · Outside approximate Sindh operational extent" : ""}`;
+        const link = document.createElement("a");
+        link.href = `/dashboard/incidents/${encodeURIComponent(data.incident._id)}`;
+        link.textContent = "View Incident Details";
+        content.append(document.createElement("br"), link);
+        let marker = markers.current.get(data.incident._id);
+        if (!marker) {
+          marker = L.marker(point, {
             title: "Selected incident location",
-          },
-        )
-          .bindPopup(content)
-          .addTo(layer.current);
-      }
-      for (const team of data.teams.filter(
-        (team) => team.status !== "OFFLINE" && coordinates(team.location),
-      )) {
-        const content = document.createElement("div");
-        content.textContent = `${team.name} · ${team.status} · Stored base location, not live GPS`;
-        L.marker([team.location.latitude, team.location.longitude], {
-          icon: getRescueTeamMarkerIcon(
-            L,
-            team.status,
-            team._id === data.selectedTeam,
-          ),
-          title: team.name,
-        })
-          .bindPopup(content)
-          .on("click", () => {
-            if (team.status === "AVAILABLE") callback.current(team._id);
+            alt: "Reported incident location",
           })
-          .addTo(layer.current);
+            .bindPopup(content)
+            .addTo(map.current);
+          markers.current.set(data.incident._id, marker);
+        } else marker.setLatLng(point).setPopupContent(content);
+        marker.setIcon(
+          getIncidentMarkerIcon(L, data.incident.priorityLevel, true),
+        );
       }
+      for (const team of data.teams) {
+        const eligible = data.eligibleTeamIds.includes(team._id);
+        let marker = markers.current.get(team._id);
+        if (!marker) {
+          marker = L.marker(mapPosition(team.location)!, {
+            icon: getRescueTeamMarkerIcon(
+              L,
+              team.status,
+              team._id === data.selectedTeam,
+            ),
+            title: team.name,
+            alt: `${team.name}: stored team base location`,
+          })
+            .bindPopup(teamPopup(team, eligible), { autoPan: false })
+            .addTo(map.current);
+          bindMarkerActivation(marker, () => {
+            if (eligibleIds.current.has(team._id)) callback.current(team._id);
+          });
+          markers.current.set(team._id, marker);
+        } else
+          marker
+            .setLatLng(mapPosition(team.location)!)
+            .setPopupContent(teamPopup(team, eligible));
+        marker
+          .setIcon(
+            getRescueTeamMarkerIcon(
+              L,
+              team.status,
+              team._id === data.selectedTeam,
+            ),
+          )
+          .setOpacity(eligible || team._id === data.selectedTeam ? 1 : 0.65);
+        if (
+          team._id === data.selectedTeam &&
+          popupSelection.current !== data.selectedTeam
+        )
+          marker.openPopup();
+      }
+      popupSelection.current = data.selectedTeam;
     });
     return () => {
       active = false;
     };
-  }, [serialized, ready]);
-  const focusTeam = teams.find((team) => team._id === selectedTeam);
-  const center = coordinates(focusTeam?.location)
-    ? focusTeam.location
-    : incident?.location;
-  const lat = center?.latitude,
-    lng = center?.longitude;
+  }, [map, ready, signature]);
   useEffect(() => {
-    if (
-      ready &&
-      lat !== undefined &&
-      lng !== undefined &&
-      coordinates({ latitude: lat, longitude: lng })
-    )
-      map.current?.setView([lat, lng], 12, { animate: false });
-  }, [lat, lng, ready]);
+    if (ready && map.current)
+      fitMapPositions(
+        map.current,
+        (JSON.parse(viewKey) as [string | null, MapPosition[]])[1],
+      );
+  }, [map, ready, viewKey]);
   return (
     <section className="awCard awMapCard">
       <header>
@@ -150,11 +165,9 @@ export function AssignmentCoverageMap({
           Incident Location &amp; Team Coverage
         </h2>
         <button
-          aria-label="Focus selected map location"
-          disabled={!coordinates(center)}
+          aria-label="Fit incident and team locations"
           onClick={() => {
-            if (coordinates(center))
-              map.current?.setView([center.latitude, center.longitude], 12);
+            if (map.current) fitMapPositions(map.current, positions);
           }}
         >
           <Crosshair size={18} />
@@ -163,16 +176,36 @@ export function AssignmentCoverageMap({
       <div className="awMapWrap">
         <div
           ref={node}
-          className="awMap"
-          aria-label="Selected incident and eligible rescue team base locations"
+          className="awMap rqOperationalMap"
+          aria-label="Selected incident and stored rescue team base locations"
         />
-        {!coordinates(incident?.location) && (
-          <p className="awMapNotice">
-            {incident
-              ? "Incident location requires review; no incident marker plotted."
-              : "Select an incident to see stored locations."}
-          </p>
-        )}
+        <div className="awMapNotice">
+          {incident ? (
+            <>
+              {incidentNames[incident.emergencyType]} · {incident.priorityLevel}
+              <br />
+              {incidentPoint
+                ? "Reported incident location and stored team bases."
+                : "Incident location has not been mapped yet. Team locations shown. Incident position requires verification."}
+              <br />
+              <Link
+                href={`/dashboard/incidents/${encodeURIComponent(incident._id)}`}
+              >
+                View Incident Details
+              </Link>
+            </>
+          ) : (
+            "Select an incident. Stored team bases are shown."
+          )}
+          {!positions.length && (
+            <>
+              <br />
+              No verified map positions available for these records. Sindh
+              overview shown.
+            </>
+          )}
+        </div>
+        <MapFeedback status={status} retry={retry} />
         <div className="awMapLegend">
           <span>
             <i className="red" />
@@ -186,11 +219,15 @@ export function AssignmentCoverageMap({
             <i className="blue" />
             Busy team
           </span>
+          <span>
+            <i style={{ background: "#64748b" }} />
+            Offline team
+          </span>
         </div>
       </div>
       <p className="awMapCaption">
-        Stored locations · eligible teams for this incident · no live tracking
-        or travel-time estimate
+        Stored team base locations · eligible teams can be selected manually ·
+        no live tracking or travel-time estimate
       </p>
     </section>
   );

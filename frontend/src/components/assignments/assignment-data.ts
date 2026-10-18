@@ -4,6 +4,7 @@ import type {
   RescueTeam,
   IncidentLocation,
 } from "@/types/api";
+import { validCoordinates } from "@/components/maps/map-coordinates";
 
 export type AssignmentRecord = Omit<Assignment, "incidentId" | "teamId"> & {
   incidentId:
@@ -57,13 +58,7 @@ export function incidentName(record: AssignmentRecord) {
 export function coordinates(
   location: IncidentLocation | null | undefined,
 ): location is IncidentLocation {
-  return (
-    !!location &&
-    Number.isFinite(location.latitude) &&
-    Number.isFinite(location.longitude) &&
-    Math.abs(location.latitude) <= 90 &&
-    Math.abs(location.longitude) <= 180
-  );
+  return validCoordinates(location);
 }
 export function timestamp(value: string | null) {
   return value

@@ -1,0 +1,212 @@
+{
+  "tiles": [
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/11/877/1405",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/11/877/1404",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/11/878/1404",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/11/878/1405",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/11/877/1403",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/11/877/1406",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/11/878/1403",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/11/877/1404",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/11/878/1406",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/11/877/1403",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/11/878/1405",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/11/877/1405",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/11/877/1406",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/11/878/1404",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/11/878/1403",
+      "status": 200
+    },
+    {
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/11/878/1406",
+      "status": 200
+    }
+  ],
+  "errors": [],
+  "productionUrl": "https://resqlink-drab.vercel.app/dashboard/rescue-teams",
+  "styles": {
+    "map": {
+      "background": "rgb(6, 20, 37)",
+      "width": 648,
+      "height": 275
+    },
+    "pane": {
+      "filter": "none",
+      "opacity": "1"
+    },
+    "tiles": [
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/11/877/1404"
+      },
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/11/877/1405"
+      },
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/11/878/1404"
+      },
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/11/878/1405"
+      },
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/11/877/1403"
+      },
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/11/877/1406"
+      },
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/11/878/1403"
+      },
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/11/878/1406"
+      },
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/11/877/1404"
+      },
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/11/877/1405"
+      },
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/11/878/1404"
+      },
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/11/878/1405"
+      },
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/11/877/1403"
+      },
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/11/877/1406"
+      },
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/11/878/1403"
+      },
+      {
+        "loaded": true,
+        "naturalWidth": 256,
+        "width": 256,
+        "height": 256,
+        "opacity": "1",
+        "src": "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/11/878/1406"
+      }
+    ]
+  },
+  "darkFilter": "sepia(1) saturate(1.8) hue-rotate(165deg) brightness(0.65)"
+}
