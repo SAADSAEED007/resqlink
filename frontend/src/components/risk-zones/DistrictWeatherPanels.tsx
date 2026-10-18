@@ -32,6 +32,10 @@ export function DistrictAiPanel({
       alive.current = false;
     };
   }, []);
+  useEffect(() => {
+    setAnalysis(null);
+    setError("");
+  }, [district?.id]);
   const version = JSON.stringify([
     district?.weather?.retrievedAt,
     district?.attention?.level,
@@ -65,15 +69,15 @@ export function DistrictAiPanel({
       <header>
         <h2>
           <BrainCircuit size={17} />
-          AI Risk Analysis
+          AI Preparedness Advisor
         </h2>
         <span className="siProvider">
-          {district?.aiConfigured ? "Powered by Groq" : "Groq not configured"}
+          Evidence-based operational guidance
         </span>
       </header>
       <div className="siAiBody">
         <section className="siAutomatedAssessment" aria-label="Automated Weather Assessment">
-          <div className="siSectionHeading"><ShieldCheck size={16} /><h3>Automated Weather Assessment</h3></div>
+          <div className="siSectionHeading"><ShieldCheck size={16} /><h3>Weather Attention Assessment</h3></div>
           <div className="siAssessmentIdentity"><strong>{district?.name || "Select a district"}</strong><Attention level={district?.attention?.level || "DATA_UNAVAILABLE"} /></div>
           <span className="siEyebrow">Deterministic prototype rules · Not AI-generated</span>
           {district?.weather ? <div className="siEvidenceValues"><span><b>{district.weather.next24Hours.precipitationMm} mm</b>Forecast / 24h</span><span><b>{district.weather.next24Hours.maxProbabilityPercent}%</b>Max rain chance</span><span><b>{district.weather.current.windKmh} km/h</b>Current wind</span></div> : <p>Current weather evidence is unavailable. Assessments and resources can still be reviewed.</p>}
@@ -85,7 +89,7 @@ export function DistrictAiPanel({
           </details>
         </section>
         <section className="siGroqSection" aria-label="Groq AI Preparedness Analysis" aria-busy={busy}>
-        <div className="siSectionHeading"><BrainCircuit size={16} /><h3>Groq AI Preparedness Analysis</h3></div>
+        <div className="siSectionHeading"><BrainCircuit size={16} /><h3>Operational recommendation</h3></div>
         {!district?.aiConfigured ? (
           <div className="siEmptyCompact siAiStatus">
             <BrainCircuit size={26} />
@@ -96,15 +100,25 @@ export function DistrictAiPanel({
           <div className="siEmptyCompact siAiStatus">
             <Lightbulb size={25} />
             <p>
-              {available ? "Generate a district-specific explanation from the forecast and matching local assessments." : "A current forecast is required for AI guidance. Review existing local reports in the meantime."}
+              {available ? "Generate evidence-based operational guidance for this district." : "Fresh weather evidence is required for AI guidance. Review existing local reports in the meantime."}
             </p>
           </div>
         ) : (
           <>
             <p className="siGeneratedMeta">{district?.name} · Generated <time dateTime={analysis.value.generatedAt}>{date(analysis.value.generatedAt)} PKT</time></p>
+            <div className={`siAdvisorHighlight ${analysis.value.attentionLevel.toLowerCase()}`}>
+              <Attention level={district?.attention?.level || "DATA_UNAVAILABLE"} />
+              <h4>Current assessment</h4>
+              <strong>{analysis.value.assessmentHeadline}</strong>
+            </div>
+            <div className="siDecisionRecommendation">
+              <span className="siEyebrow">Recommended coordinator decision</span>
+              <h4>{analysis.value.decisionLabel}</h4>
+              <p>{analysis.value.decisionReason}</p>
+            </div>
             <div className="siAnalysisSummary">
-              <h4>Weather Evidence</h4>
-              <p>{analysis.value.summary}</p>
+              <h4>Key evidence</h4>
+              <p>{analysis.value.evidenceSummary}</p>
               {analysis.version !== version && (
                 <p role="status">
                   Forecast evidence changed. This is the previous analysis; generate an updated result.
@@ -113,7 +127,7 @@ export function DistrictAiPanel({
             </div>
             <h3>
               <Lightbulb size={17} />
-              Why It Matters
+              Human action guidance
             </h3>
             <ul>
               {analysis.value.keyInsights.map((item, i) => (
@@ -125,16 +139,12 @@ export function DistrictAiPanel({
             </ul>
             <h3>
               <ListChecks size={17} />
-              Recommended Human Actions
+              Reassessment triggers
             </h3>
             <ul className="siActionsList">
-              {analysis.value.preparednessActions.map((item, i) => (
-                <li key={i}>
-                  <strong>{item.action}</strong>
-                  <small>{item.reason}</small>
-                </li>
-              ))}
+              {analysis.value.reassessmentTriggers.map((item, i) => <li key={i}>{item}</li>)}
             </ul>
+            <details><summary>Suggested human actions</summary><ul className="siActionsList">{analysis.value.preparednessActions.slice(0, 3).map((item, i) => <li key={i}><strong>{item.action}</strong><small>{item.reason}</small></li>)}</ul></details>
             {analysis.value.missingInformation.length > 0 && (
               <details>
                 <summary>Missing information</summary>
@@ -146,7 +156,7 @@ export function DistrictAiPanel({
               </details>
             )}
             <details>
-              <summary>Evidence sources &amp; limitations</summary>
+              <summary>Evidence &amp; data sources</summary>
               {analysis.value.evidence?.map((fact) => (
                 <p key={fact.id}>
                   <strong>{fact.id}</strong>: {fact.text}
@@ -173,7 +183,7 @@ export function DistrictAiPanel({
           onClick={() => void generate()}
         >
           <RefreshCw size={16} className={busy ? "siSpin" : ""} />
-          {busy ? "Analyzing forecast evidence…" : "Generate Updated Analysis"}
+          {busy ? "Generating preparedness analysis…" : "Refresh AI Assessment"}
         </button>
         {error && available && <p className="siFootnote">Use Generate Updated Analysis to retry. The automated assessment remains available.</p>}
         </section>
