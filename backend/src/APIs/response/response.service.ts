@@ -8,6 +8,8 @@ import { detectPotentialDuplicates, evaluateVerification, DuplicateCandidate } f
 import { CustomError } from '../../utils/errors'
 import { triageIncident } from './incident-triage.service'
 
+import Counter from './models/counter.model'
+
 export interface Page {
     page: number
     limit: number
@@ -23,8 +25,63 @@ export interface IncidentQuery extends Page {
     updatedSince?: Date
     sort: 'priority' | 'oldest' | 'newest'
 }
+
+export function formatReportReference(seq: number): string {
+    return `RESQ-${String(seq).padStart(6, '0')}`
+}
+
+export function formatReportReferenceFallback(id: unknown): string {
+    const raw = String(id || '').replace(/[^a-zA-Z0-9]/g, '')
+    const tail = raw.slice(-6).toUpperCase().padStart(6, '0')
+    return `RESQ-${tail}`
+}
+
+export async function initializeCounterIfNeeded(): Promise<void> {
+    const existing = await Counter.findById('incident_reference')
+    if (existing) return
+
+    const incidents = await Incident.find({
+        reportReference: { $regex: /^RESQ-\d+$/ }
+    })
+        .select('reportReference')
+        .lean()
+
+    let maxSeq = 0
+    for (const inc of incidents) {
+        if (typeof inc.reportReference === 'string') {
+            const match = inc.reportReference.match(/^RESQ-(\d+)$/)
+            if (match && match[1]) {
+                const num = parseInt(match[1], 10)
+                if (!isNaN(num) && num > maxSeq) {
+                    maxSeq = num
+                }
+            }
+        }
+    }
+
+    await Counter.updateOne(
+        { _id: 'incident_reference' },
+        { $setOnInsert: { seq: maxSeq } },
+        { upsert: true }
+    )
+}
+
+export async function getNextReportReference(session?: ClientSession): Promise<string> {
+    await initializeCounterIfNeeded()
+    const counter = await Counter.findOneAndUpdate(
+        { _id: 'incident_reference' },
+        { $inc: { seq: 1 } },
+        { new: true, upsert: true, setDefaultsOnInsert: true, session }
+    )
+    if (!counter) {
+        throw new CustomError('Failed to generate incident reference number', 500)
+    }
+    return formatReportReference(counter.seq)
+}
+
 export async function ensureIndexes() {
-    await Promise.all([Incident.init(), Team.init(), Assignment.init()])
+    await Promise.all([Incident.init(), Team.init(), Assignment.init(), Counter.init()])
+    await initializeCounterIfNeeded()
 }
 export async function transactional<T>(work: (session: ClientSession) => Promise<T>): Promise<T> {
     await ensureIndexes()
@@ -60,14 +117,28 @@ export async function createIncident(input: IncidentInput) {
         priority.priorityReasons.unshift('Preliminary critical suggestion: reporter indicated possible immediate danger; coordinator review required')
     }
 
-    return Incident.create({
-        ...input,
-        ...priority,
-        immediateDanger: triage.immediateDangerReported,
-        triage,
-        locationVerificationRequired: !input.location,
-        verification
-    })
+    let retries = 3
+    while (retries > 0) {
+        try {
+            const reportReference = await getNextReportReference()
+            return await Incident.create({
+                ...input,
+                ...priority,
+                immediateDanger: triage.immediateDangerReported,
+                triage,
+                locationVerificationRequired: !input.location,
+                verification,
+                reportReference
+            })
+        } catch (error: any) {
+            if (error?.code === 11000 && error?.keyPattern?.reportReference && retries > 1) {
+                retries--
+                continue
+            }
+            throw error
+        }
+    }
+    throw new CustomError('Failed to create incident report after reference retries', 500)
 }
 export async function listIncidents(query: IncidentQuery) {
     const filter: FilterQuery<IncidentRecord> = {}
@@ -76,7 +147,11 @@ export async function listIncidents(query: IncidentQuery) {
     if (typeof query.isSimulated === 'boolean') filter.isSimulated = query.isSimulated
     if (query.search) {
         const escaped = query.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-        filter.$or = [{ description: { $regex: escaped, $options: 'i' } }, { 'location.address': { $regex: escaped, $options: 'i' } }]
+        filter.$or = [
+            { reportReference: { $regex: escaped, $options: 'i' } },
+            { description: { $regex: escaped, $options: 'i' } },
+            { 'location.address': { $regex: escaped, $options: 'i' } }
+        ]
     }
     if (query.priorityLevel) filter.priorityLevel = query.priorityLevel
     if (query.emergencyType) filter.emergencyType = query.emergencyType
@@ -96,7 +171,11 @@ export async function listIncidents(query: IncidentQuery) {
             .lean(),
         Incident.countDocuments(filter)
     ])
-    return { items, pagination: { ...queryPage(query), total, totalPages: Math.ceil(total / query.limit) } }
+    const enhancedItems = items.map((inc) => ({
+        ...inc,
+        reportReference: inc.reportReference || formatReportReferenceFallback(inc._id)
+    }))
+    return { items: enhancedItems, pagination: { ...queryPage(query), total, totalPages: Math.ceil(total / query.limit) } }
 }
 function queryPage(query: Page) {
     return { page: query.page, limit: query.limit }
@@ -104,6 +183,9 @@ function queryPage(query: Page) {
 export async function getIncident(id: string) {
     const incident = await Incident.findById(id)
     if (!incident) throw new CustomError('Incident not found', 404)
+    if (!incident.reportReference) {
+        incident.set('reportReference', formatReportReferenceFallback(incident._id), { strict: false })
+    }
     return incident
 }
 export async function getTeam(id: string) {

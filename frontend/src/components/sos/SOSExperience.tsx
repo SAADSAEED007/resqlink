@@ -58,6 +58,7 @@ export function SOSExperience() {
   const [uncertain, setUncertain] = useState(false);
   const [retryAcknowledged, setRetryAcknowledged] = useState(false);
   const [reference, setReference] = useState("");
+  const [copied, setCopied] = useState(false);
   const [mediaInfo, setMediaInfo] = useState(false);
   const mediaDialog = useRef<HTMLDialogElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -150,7 +151,7 @@ export function SOSExperience() {
           "protocol",
         );
       completed.current = true;
-      setReference(incident._id);
+      setReference(incident.reportReference || incident._id);
       setStep("success");
     } catch (error) {
       if (error instanceof ApiError && error.code === "aborted") return;
@@ -186,7 +187,7 @@ export function SOSExperience() {
           ? "Tell us what happened"
           : step === "review"
             ? "Review your report"
-            : "Emergency report recorded";
+            : "SOS Report Submitted";
   return (
     <div className="rqSosRoot">
       <header className="rqSosNav">
@@ -373,9 +374,21 @@ export function SOSExperience() {
                   system. It has not been sent to official emergency services.
                 </p>
                 <div>
-                  <span>REPORT REFERENCE</span>
+                  <span>Your Report Reference</span>
                   <strong>{reference}</strong>
                 </div>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    if (reference) {
+                      void navigator.clipboard?.writeText(reference);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2500);
+                    }
+                  }}
+                >
+                  {copied ? "Copied!" : "Copy Reference Number"}
+                </Button>
                 <p className="helper">
                   Keep this reference for your records. Public tracking is not
                   available. A rescue team has not been dispatched by this

@@ -103,7 +103,9 @@ export function IncidentQuickPreview({
 
   if (!incident) return null;
 
-  const shortRef = `INC-${incident._id.slice(-6).toUpperCase()}`;
+  const shortRef =
+    incident.reportReference ||
+    `RESQ-${incident._id.replace(/[^a-zA-Z0-9]/g, "").slice(-6).toUpperCase()}`;
   const Icon = emergencyIcons[incident.emergencyType] || HelpCircle;
   const locationInfo = getIncidentLocationInfo(incident);
   const timeInfo = formatIncidentTime(incident.createdAt);

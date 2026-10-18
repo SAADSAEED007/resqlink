@@ -81,11 +81,13 @@ const schema = new Schema(
         verification: { type: verificationSchema, required: true },
         statusHistory: { type: [statusHistorySchema], default: [] },
         isSimulated: { type: Boolean, default: false, required: true },
+        reportReference: { type: String, trim: true, match: /^RESQ-\d{6,}$/ },
 
         demoKey: { type: String }
     },
     { timestamps: true, optimisticConcurrency: true }
 )
+schema.index({ reportReference: 1 }, { unique: true, partialFilterExpression: { reportReference: { $type: 'string' } } })
 schema.index({ demoKey: 1 }, { unique: true, partialFilterExpression: { demoKey: { $type: 'string' } } })
 schema.index({ status: 1, priorityScore: -1, createdAt: 1, _id: 1 })
 schema.index({ 'verification.status': 1, createdAt: -1 })

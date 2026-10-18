@@ -120,7 +120,7 @@ test("records a public manual report, omits unknown fields, and uses the server 
   await review(page);
   await page.getByRole("button", { name: "Record Emergency Report" }).click();
   await expect(
-    page.getByRole("heading", { name: "Emergency report recorded" }),
+    page.getByRole("heading", { name: /SOS Report Submitted|Emergency report recorded/ }),
   ).toBeVisible();
   await expect(page.getByText(reference, { exact: true })).toBeVisible();
   expect(payloads).toHaveLength(1);
@@ -167,7 +167,7 @@ test("validates coordinates and required fields, keeps zero assistance counts, a
   await page.getByRole("button", { name: "Review Report" }).click();
   await page.getByRole("button", { name: "Record Emergency Report" }).click();
   await expect(
-    page.getByRole("heading", { name: "Emergency report recorded" }),
+    page.getByRole("heading", { name: /SOS Report Submitted|Emergency report recorded/ }),
   ).toBeVisible();
   expect(payloads[0].vulnerablePeople).toEqual({ children: 0 });
   expect(payloads[0].description).toContain(
@@ -189,7 +189,7 @@ test("geolocation uses only explicitly granted device coordinates", async ({
   await review(page);
   await page.getByRole("button", { name: "Record Emergency Report" }).click();
   await expect(
-    page.getByRole("heading", { name: "Emergency report recorded" }),
+    page.getByRole("heading", { name: /SOS Report Submitted|Emergency report recorded/ }),
   ).toBeVisible();
   expect(payloads[0].location).toEqual({
     latitude: 27.7052,
@@ -246,7 +246,7 @@ test("map starts without reporting a default location and records only a selecte
   await review(page);
   await page.getByRole("button", { name: "Record Emergency Report" }).click();
   await expect(
-    page.getByRole("heading", { name: "Emergency report recorded" }),
+    page.getByRole("heading", { name: /SOS Report Submitted|Emergency report recorded/ }),
   ).toBeVisible();
   const location = payloads[0].location as {
     latitude: number;
@@ -278,7 +278,7 @@ test("unknown location is explicit and photo availability is honest", async ({
   ).toBeVisible();
   await page.getByRole("button", { name: "Record Emergency Report" }).click();
   await expect(
-    page.getByRole("heading", { name: "Emergency report recorded" }),
+    page.getByRole("heading", { name: /SOS Report Submitted|Emergency report recorded/ }),
   ).toBeVisible();
   expect(payloads[0].location).toBeNull();
   expect(payloads[0]).not.toHaveProperty("attachments");
@@ -296,11 +296,11 @@ test("backend validation failure preserves data and allows a deliberate retry", 
   await page.getByRole("button", { name: "Record Emergency Report" }).click();
   await expect(page.getByText(/The server rejected this report/)).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Emergency report recorded" }),
+    page.getByRole("heading", { name: /SOS Report Submitted|Emergency report recorded/ }),
   ).not.toBeVisible();
   await page.getByRole("button", { name: "Retry submission" }).click();
   await expect(
-    page.getByRole("heading", { name: "Emergency report recorded" }),
+    page.getByRole("heading", { name: /SOS Report Submitted|Emergency report recorded/ }),
   ).toBeVisible();
   expect(payloads).toHaveLength(2);
   expect(payloads[0]).toEqual(payloads[1]);
@@ -324,7 +324,7 @@ for (const failure of ["network", 500, "invalid"] as const)
       page.getByRole("button", { name: "Retry submission" }),
     ).toBeDisabled();
     await expect(
-      page.getByRole("heading", { name: "Emergency report recorded" }),
+      page.getByRole("heading", { name: /SOS Report Submitted|Emergency report recorded/ }),
     ).not.toBeVisible();
     await page.getByRole("button", { name: "Edit details" }).click();
     await page
@@ -336,7 +336,7 @@ for (const failure of ["network", 500, "invalid"] as const)
       .check();
     await page.getByRole("button", { name: "Retry submission" }).click();
     await expect(
-      page.getByRole("heading", { name: "Emergency report recorded" }),
+      page.getByRole("heading", { name: /SOS Report Submitted|Emergency report recorded/ }),
     ).toBeVisible();
     expect(payloads).toHaveLength(2);
     expect(payloads[1].description).toContain("updated flood report");
@@ -368,7 +368,7 @@ test("submission loading and synchronous guard prevent double posting", async ({
     page.getByRole("button", { name: "Recording report" }),
   ).toBeDisabled();
   await expect(
-    page.getByRole("heading", { name: "Emergency report recorded" }),
+    page.getByRole("heading", { name: /SOS Report Submitted|Emergency report recorded/ }),
   ).toBeVisible();
   expect(attempts).toBe(1);
 });
