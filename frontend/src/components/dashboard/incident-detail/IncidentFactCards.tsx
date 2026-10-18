@@ -525,10 +525,13 @@ export function IncidentActivityTimeline({
     time: string;
     title: string;
     sub: string;
-    type: "report" | "priority" | "verification" | "assignment";
+    type: "report" | "priority" | "verification" | "assignment" | "status";
   };
 
   const events: TimelineItem[] = [];
+  for (const [index, change] of (incident.statusHistory || []).entries()) {
+    if (change.timestamp) events.push({id:`status-${index}`,time:formatIncidentDate(change.timestamp),title:`Status changed: ${change.previousStatus} → ${change.newStatus}`,sub:incident.isSimulated ? 'Simulated lifecycle transition' : 'Recorded lifecycle transition',type:'status'});
+  }
 
   // Event 1: Creation
   if (incident.createdAt) {

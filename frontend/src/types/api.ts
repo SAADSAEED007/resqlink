@@ -74,6 +74,7 @@ export interface Incident extends CreateIncidentInput, RecordFields {
   priorityScore: number;
   priorityLevel: PriorityLevel;
   priorityReasons: string[];
+  statusHistory?: { previousStatus: IncidentStatus; newStatus: IncidentStatus; timestamp: string; changedBy?: string | null }[];
   triage?: {
     safetyAnswer: "YES" | "NO" | "UNSURE" | "UNANSWERED";
     status: "NEEDS_ASSESSMENT" | "PRELIMINARY" | "COORDINATOR_REVIEWED";

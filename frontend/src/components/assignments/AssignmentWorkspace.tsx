@@ -50,7 +50,7 @@ export function AssignmentWorkspace() {
   const mapTeams = Array.from(
     new Map(
       [
-        ...registeredTeams.filter((team) => !team.isSimulated),
+        ...registeredTeams.filter((team) => team.isSimulated === isDemoMode),
         ...model.mapTeams,
       ].map((team) => [team._id, team]),
     ).values(),
@@ -86,12 +86,7 @@ export function AssignmentWorkspace() {
           </button>
         </div>
       </header>
-      {isDemoMode ? (
-        <p className="awNotice">
-          Assignments use persisted coordinator records. Exit demo mode and sign
-          in to coordinate a response.
-        </p>
-      ) : (
+      {isDemoMode && <p className="awNotice">Demo Mode · Simulated records and actions. No production writes.</p>}
         <>
           {model.error && (
             <div className="awError" role="alert">
@@ -137,7 +132,6 @@ export function AssignmentWorkspace() {
             </div>
           </div>
         </>
-      )}
     </div>
   );
 }

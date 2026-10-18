@@ -67,6 +67,15 @@ export function IncidentQuickPreview({
     }
   }, [incident]);
 
+  useEffect(() => {
+    if (!incident) return;
+    const elements = new Set<HTMLElement>([document.body, document.documentElement]);
+    for (let node = drawerRef.current?.parentElement; node; node = node.parentElement) elements.add(node);
+    const previous = [...elements].map(element => ({element,overflow:element.style.overflow}));
+    previous.forEach(({element}) => {element.style.overflow="hidden";});
+    return () => previous.forEach(({element,overflow}) => {element.style.overflow=overflow;});
+  }, [incident]);
+
   // Keyboard accessibility: Escape to close and Tab trapping
   useEffect(() => {
     if (!incident) return;

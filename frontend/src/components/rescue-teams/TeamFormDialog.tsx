@@ -124,9 +124,9 @@ export function TeamFormDialog({ team, model, onClose }: { team?: RescueTeam; mo
               />
             </label>
             <label>
-              Unique team code
+              Unique team code · Permanent identifier
               <input
-                aria-label="Unique team code"
+                aria-label="Unique team code" title="Team codes are permanent identifiers and cannot be changed after registration."
                 required
                 disabled={!!team}
                 maxLength={32}

@@ -1,0 +1,2 @@
+import { defineConfig } from '@playwright/test';
+export default defineConfig({testDir:'./tests',testMatch:['final-qa.spec.ts','sos-ux.spec.ts'],workers:1,timeout:90000,expect:{timeout:20000},use:{baseURL:'http://localhost:3031',channel:'chrome',screenshot:'only-on-failure'},webServer:{command:'npm run dev -- --webpack -p 3031',url:'http://localhost:3031/sos',reuseExistingServer:false,timeout:120000,env:{NEXT_PUBLIC_API_URL:'http://localhost:4000/api',NEXT_PUBLIC_AUTH_URL:'http://localhost:4000/v1'}}});

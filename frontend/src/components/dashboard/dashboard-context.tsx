@@ -10,6 +10,7 @@ import {
   useRef,
   type ReactNode,
 } from "react";
+import { applyDemoAction, createDemoEnvironment, type DemoAction, type DemoEnvironment } from "./demo-environment";
 import type { Incident, RescueTeam, Assignment } from "@/types/api";
 import { incidents as incidentsApi } from "@/lib/api/incidents";
 import { teams as teamsApi } from "@/lib/api/teams";
@@ -50,11 +51,15 @@ interface DashboardContextType {
   filteredIncidents: Incident[];
   filteredTeams: RescueTeam[];
   stats: DashboardStats;
+  demo: DemoEnvironment;
+  demoAction: (action: DemoAction) => { _id: string };
 }
 
 const DashboardContext = createContext<DashboardContextType | null>(null);
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
+  const [demo, setDemo] = useState(createDemoEnvironment);
+  const demoRef = useRef(demo);
   const [liveIncidents, setLiveIncidents] = useState<Incident[]>([]);
   const [liveTeams, setLiveTeams] = useState<RescueTeam[]>([]);
   const [liveAssignments, setLiveAssignments] = useState<Assignment[]>([]);
@@ -64,7 +69,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   // Demo mode is the intentional fresh-session default for judge demonstrations.
   // The query parameter remains available for explicit links and testing.
-  const [isDemoMode, setIsDemoMode] = useState<boolean>(() => {
+  const [isDemoMode, setMode] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       if (params.get("demo") === "false") return false;
@@ -72,11 +77,20 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     }
     return true;
   });
+  const modeRef = useRef(isDemoMode);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(
     null,
   );
   const [selectedTeam, setSelectedTeam] = useState<RescueTeam | null>(null);
+
+  const setIsDemoMode = useCallback((value: boolean) => { modeRef.current = value; setMode(value); setSelectedIncident(null); setSelectedTeam(null); }, []);
+  const demoAction = useCallback((action: DemoAction) => {
+    if (!modeRef.current) throw new Error("Switch to Demo Mode to simulate an action.");
+    const next = applyDemoAction(demoRef.current, action);
+    demoRef.current = next; setDemo(next);
+    return { _id: action.type === "assign" ? next.assignments[0]._id : "incidentId" in action ? action.incidentId : "teamId" in action ? action.teamId : "demo-reset" };
+  }, []);
 
   const [attempt, setAttempt] = useState(0);
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
@@ -102,9 +116,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       setIsRefreshing(true);
       controller = new AbortController();
       const results = await Promise.allSettled([
-        incidentsApi.list({ limit: 100, sort: "priority" }, controller.signal),
-        teamsApi.list({ limit: 100 }, controller.signal),
-        assignmentsApi.list({ limit: 100 }, controller.signal),
+        incidentsApi.list({ limit: 100, sort: "priority", isSimulated: false }, controller.signal),
+        teamsApi.list({ limit: 100, isSimulated: false }, controller.signal),
+        assignmentsApi.list({ limit: 100, isSimulated: false }, controller.signal),
       ]);
       if (!active) return;
       const [incidentResult, teamResult, assignmentResult] = results;
@@ -170,19 +184,19 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const currentIncidents = useMemo(() => {
-    if (isDemoMode) return MOCK_INCIDENTS;
+    if (isDemoMode) return demo.incidents;
     return liveIncidents;
-  }, [isDemoMode, liveIncidents]);
+  }, [isDemoMode, liveIncidents, demo.incidents]);
 
   const currentTeams = useMemo(() => {
-    if (isDemoMode) return MOCK_RESCUE_TEAMS;
+    if (isDemoMode) return demo.teams;
     return liveTeams;
-  }, [isDemoMode, liveTeams]);
+  }, [isDemoMode, liveTeams, demo.teams]);
 
   const currentAssignments = useMemo(() => {
-    if (isDemoMode) return MOCK_ASSIGNMENTS;
+    if (isDemoMode) return demo.assignments;
     return liveAssignments;
-  }, [isDemoMode, liveAssignments]);
+  }, [isDemoMode, liveAssignments, demo.assignments]);
 
   const filteredIncidents = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -265,9 +279,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       setIsDemoMode,
       searchQuery,
       setSearchQuery,
-      selectedIncident,
+      selectedIncident: selectedIncident ? currentIncidents.find(i=>i._id===selectedIncident._id) || null : null,
       setSelectedIncident,
-      selectedTeam,
+      selectedTeam: selectedTeam ? currentTeams.find(t=>t._id===selectedTeam._id) || null : null,
       setSelectedTeam,
       refresh,
       isRefreshing: isDemoMode ? false : isRefreshing,
@@ -275,6 +289,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       filteredIncidents,
       filteredTeams,
       stats,
+      demo, demoAction,
     }),
     [
       currentIncidents,
@@ -291,7 +306,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       lastUpdated,
       filteredIncidents,
       filteredTeams,
-      stats,
+      stats, demo, demoAction, setIsDemoMode,
     ],
   );
 
@@ -303,6 +318,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 }
 
 const defaultDashboardContext: DashboardContextType = {
+  demo: createDemoEnvironment(),
+  demoAction: () => { throw new Error("Demo provider is unavailable."); },
   incidents: MOCK_INCIDENTS,
   teams: MOCK_RESCUE_TEAMS,
   assignments: MOCK_ASSIGNMENTS,

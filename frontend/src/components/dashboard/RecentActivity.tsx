@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { MOCK_ACTIVITIES, type ActivityItem } from "./mock-data";
 import { dashboard, type DashboardActivity } from "@/lib/api/dashboard";
+import { useDashboard } from "./dashboard-context";
 import { errorMessage } from "@/lib/api/client";
 
 interface RecentActivityProps {
@@ -20,6 +21,7 @@ interface RecentActivityProps {
 }
 
 export function RecentActivity({ loading = false, realData = false, refreshAt = null }: RecentActivityProps) {
+  const { demo } = useDashboard();
   const [records, setRecords] = useState<DashboardActivity[] | null>(null);
   const [error, setError] = useState("");
   useEffect(() => {
@@ -32,7 +34,7 @@ export function RecentActivity({ loading = false, realData = false, refreshAt = 
     id: item.id, timestamp: item.timestamp, title: item.title, subtitle: item.metadata?.incidentId ? `Incident ${item.metadata.incidentId.slice(-6)}` : "Operational record", timeAgo: relativeTime(item.timestamp),
     iconType: item.type === "TEAM_ASSIGNED" ? "assignment" : item.type === "ASSIGNMENT_COMPLETED" ? "completed" : item.type === "INCIDENT_RESOLVED" ? "resolved" : "alert",
     statusText: item.status || item.priority || "Recorded", statusTone: item.priority === "CRITICAL" ? "red" : item.type === "TEAM_ASSIGNED" ? "green" : "blue",
-  })) : MOCK_ACTIVITIES;
+  })) : [...demo.activity, ...MOCK_ACTIVITIES];
   const getActivityIcon = (type: ActivityItem["iconType"]) => {
     switch (type) {
       case "assignment":

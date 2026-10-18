@@ -8,6 +8,8 @@ test('map selection survives safety responses and optional details stay intact',
   await page.getByRole('button',{name:'Confirm selected location',exact:true}).click();
   await expect(page.getByRole('status')).toHaveText('Location selected on map');
   await page.getByRole('radio',{name:'Yes, immediate danger',exact:true}).check();
+  await expect(page.getByRole('button',{name:'Confirm selected location',exact:true})).not.toBeVisible();
+  await page.getByText('Choose on Map',{exact:true}).click();
   await expect(page.locator('.rqSosMapMarker')).toHaveCount(1);
   await page.getByText('Additional Information',{exact:false}).click(); await page.getByLabel('Your name',{exact:true}).fill('Test reporter');
   await page.getByText('Additional Information',{exact:false}).click(); await page.getByText('Additional Information',{exact:false}).click(); await expect(page.getByLabel('Your name',{exact:true})).toHaveValue('Test reporter');

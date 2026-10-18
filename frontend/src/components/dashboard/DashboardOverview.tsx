@@ -16,6 +16,7 @@ import {
 
 export function DashboardOverview() {
   const {
+    demoAction,
     filteredIncidents,
     filteredTeams,
     loading,
@@ -40,6 +41,7 @@ export function DashboardOverview() {
           <p>{isDemoMode ? "Simulated Data · Viewing sample incidents, rescue teams, and operational records." : lastUpdated ? `Last successful refresh ${new Date(lastUpdated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · Refreshes every 7 seconds.` : "Fetching authenticated operational records…"}</p>
         </div>
         <div className="rqDataModeActions">
+          {isDemoMode && <button onClick={() => {if(window.confirm("Reset all simulated incidents, teams, assignments and activity?")) demoAction({type:"reset"});}}>Reset Demo</button>}
           <div className="rqDataModeSelector" role="group" aria-label="Choose dashboard data mode">
             <button className={isDemoMode ? "is-selected" : ""} aria-pressed={isDemoMode} onClick={() => setIsDemoMode(true)}>Demo Mode</button>
             <button className={!isDemoMode ? "is-selected" : ""} aria-pressed={!isDemoMode} onClick={() => setIsDemoMode(false)}>Real Data</button>
