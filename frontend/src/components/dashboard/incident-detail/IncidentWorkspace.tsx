@@ -208,7 +208,7 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
       <nav className="rqDetailBreadcrumb" aria-label="Breadcrumb">
         <Link href={listHref}>Incidents</Link>
         <ChevronRight size={13} className="rqBreadcrumbChevron" />
-        <span className="rqCurrentBreadcrumb">{id}</span>
+        <span className="rqCurrentBreadcrumb">{incident.reportReference || id}</span>
       </nav>
 
       {/* 2. Incident Header */}
@@ -254,7 +254,7 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
 
         {/* Subtitle metadata row */}
         <div className="rqHeaderMetaRow">
-          <span className="rqMetaItem font-mono">{id}</span>
+          <span className="rqMetaItem font-mono font-semibold">{incident.reportReference || id}</span>
           <span className="rqMetaBullet">•</span>
           <span className="rqMetaItem">
             <MapPin size={12} className="inline mr-1" />

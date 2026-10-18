@@ -68,6 +68,7 @@ interface RecordFields {
   demoKey?: string;
 }
 export interface Incident extends CreateIncidentInput, RecordFields {
+  reportReference?: string;
   location: IncidentLocation | null;
   locationVerificationRequired: boolean;
   verification?: VerificationDetails;

@@ -22,6 +22,7 @@ export function QuickSOS() {
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState("");
   const [reference, setReference] = useState("");
+  const [copied, setCopied] = useState(false);
   const update = (patch: Partial<SOSDraft>) => { setDraft((old) => ({ ...old, ...patch })); setErrors({}); setFailure(""); };
   const validate = () => {
     const next = { ...validateLocation(draft), ...validateDetails(draft) };
@@ -32,11 +33,11 @@ export function QuickSOS() {
   async function send() {
     if (!validate()) return setScreen("form");
     setBusy(true); setFailure("");
-    try { const incident = await incidents.create(toIncidentInput(draft)); setReference(incident._id); setScreen("success"); }
+    try { const incident = await incidents.create(toIncidentInput(draft)); setReference(incident.reportReference || incident._id); setScreen("success"); }
     catch { setFailure("Your report was not recorded. Your details are still here; check your connection and try again."); }
     finally { setBusy(false); }
   }
-  const reset = () => { setDraft({ ...emptyDraft }); setScreen("start"); setDetails(false); setFailure(""); };
+  const reset = () => { setDraft({ ...emptyDraft }); setReference(""); setCopied(false); setScreen("start"); setDetails(false); setFailure(""); };
   return <div className="rqSosRoot">
     <header className="rqSosNav"><Link href="/" aria-label="ResQLink home"><Image src="/images/ResQLink Shield Brand Logo.png" alt="ResQLink" width={2172} height={724}/></Link><Link href="/">Back to public portal</Link></header>
     <div className="rqSosLayout"><aside className="rqSosStory"><span className="rqSosStoryLabel">CITIZEN EMERGENCY REPORTING</span><h2>Get Help.<br/>Report Now.</h2><p>Share only what you know. A coordinator reviews every report in this demonstration system.</p></aside>
@@ -45,6 +46,6 @@ export function QuickSOS() {
       {screen === "form" && <section className="rqQuickForm"><h1>Quick Emergency Report</h1><p>Tell us what happened and where help is needed.</p><h2>What happened?</h2><div className="rqQuickTypes">{emergencyChoices.map(({ value }) => { const Icon = icons[value]; return <button type="button" key={value} aria-pressed={draft.emergencyType === value} className={draft.emergencyType === value ? "selected" : ""} onClick={() => update({ emergencyType: value })}><Icon/><span>{labels[value]}</span>{draft.emergencyType === value && <Check/>}</button>; })}</div>{errors.emergencyType && <p className="validation">{errors.emergencyType}</p>}
       {draft.emergencyType && <><h2>Where do you need help?</h2><SOSLocationStep draft={draft} errors={errors} update={update}/><details className="rqQuickDetails" open={details} onToggle={(event) => setDetails((event.target as HTMLDetailsElement).open)}><summary>Add More Details <small>(Optional)</small></summary><div><FormField label="What happened?" error={errors.description}>{props => <Textarea {...props} value={draft.description} maxLength={2000} onChange={e => update({ description: e.target.value })}/>}</FormField><FormField label="Your name (optional)" error={errors.reporterName}>{props => <Input {...props} value={draft.reporterName} onChange={e => update({ reporterName: e.target.value })}/>}</FormField><FormField label="People affected (optional)" error={errors.peopleAffected}>{props => <Input {...props} type="number" min={1} value={draft.peopleAffected} onChange={e => update({ peopleAffected: e.target.value })}/>}</FormField>{draft.emergencyType === "FLOOD" && <FormField label="Water level">{props => <Select {...props} value={draft.waterLevel} onChange={e => update({ waterLevel: e.target.value as SOSDraft["waterLevel"] })}><option value="UNKNOWN">Not sure</option><option value="LOW">Low</option><option value="MODERATE">Moderate</option><option value="HIGH">High</option></Select>}</FormField>}</div></details><Button className="rqSosPrimary rqQuickSend" onClick={() => validate() && setScreen("confirm")}>Send Emergency Report</Button><p className="rqSosPrototype">Demonstration system. Not connected to official emergency dispatch.</p></>}</section>}
       {screen === "confirm" && <section className="rqSosSuccess"><h1>Confirm emergency report</h1><p><strong>{labels[draft.emergencyType]}</strong><br/>{locationSummary(draft)}</p><p className="rqSosPrototype">This records a report in a demonstration system; it does not contact official emergency services.</p>{failure && <p className="rqSosSubmissionError">{failure}</p>}<Button variant="outline" onClick={() => setScreen("form")}>Edit report</Button><Button className="rqSosPrimary" loading={busy} loadingLabel="Recording report" onClick={send}>Confirm and send</Button></section>}
-      {screen === "success" && <section className="rqSosSuccess"><CheckCircle2 size={42}/><h1>Emergency report recorded</h1><p>Your report has been recorded in this demonstration system. This does not contact official emergency services.</p><div><span>REPORT ID</span><strong>{reference}</strong></div><Button variant="outline" onClick={() => void navigator.clipboard?.writeText(reference)}>Copy Report ID</Button><Button className="rqSosPrimary" onClick={reset}>Submit Another Report</Button></section>}
+      {screen === "success" && <section className="rqSosSuccess"><CheckCircle2 size={42}/><h1>SOS Report Submitted</h1><p>Your report has been recorded in this demonstration system. This does not contact official emergency services.</p><div><span>Your Report Reference</span><strong>{reference}</strong></div><Button variant="outline" onClick={() => { if (reference) { void navigator.clipboard?.writeText(reference); setCopied(true); setTimeout(() => setCopied(false), 2500); } }}>{copied ? "Copied!" : "Copy Reference Number"}</Button><Button className="rqSosPrimary" onClick={reset}>Submit Another Report</Button></section>}
     </div></main></div></div>;
 }

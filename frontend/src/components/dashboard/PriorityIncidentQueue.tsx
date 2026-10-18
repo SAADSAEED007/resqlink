@@ -96,6 +96,9 @@ export function PriorityIncidentQueue({
 
                     <h3>
                       <span>{incidentTitle(inc)}</span>
+                      <span className="text-[11px] font-mono text-[var(--command-muted)] ml-1.5 font-normal">
+                        ({inc.reportReference || `RESQ-${inc._id.slice(-6).toUpperCase()}`})
+                      </span>
                       <ArrowUpRight size={15} aria-hidden="true" className="shrink-0 text-[var(--command-muted)]" />
                     </h3>
 

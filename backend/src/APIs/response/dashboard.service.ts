@@ -17,10 +17,12 @@ import {
     TrendPointDaily
 } from './types'
 import { CustomError } from '../../utils/errors'
+import { formatReportReferenceFallback } from './response.service'
 
 
 export interface RawIncidentItem {
     _id: unknown
+    reportReference?: string
     reporterName?: string
     emergencyType?: EmergencyType
     priorityLevel?: Priority
@@ -64,6 +66,7 @@ export interface PopulatedTeamRef {
 
 export interface PopulatedIncidentRef {
     _id?: unknown
+    reportReference?: string
     reporterName?: string
     emergencyType?: EmergencyType
     status?: IncidentStatus
@@ -155,7 +158,9 @@ export function calculateTrends(incidents: Array<{ createdAt?: Date | string; pr
     })
     for (const inc of incidents) {
         if (!inc.createdAt) continue
-        const date = new Date(inc.createdAt).toISOString().slice(0, 10)
+        const d = new Date(inc.createdAt)
+        if (isNaN(d.getTime())) continue
+        const date = d.toISOString().slice(0, 10)
         const bucket = last30Days.find((item) => item.date === date)
         if (!bucket) continue
         bucket.count++
@@ -186,6 +191,7 @@ export function buildActivityTimeline(
                 status: inc.status,
                 metadata: {
                     incidentId: String(inc._id),
+                    reportReference: inc.reportReference || formatReportReferenceFallback(inc._id),
                     reporterName: inc.reporterName || 'Anonymous',
                     emergencyType: inc.emergencyType || 'OTHER',
                     peopleAffected: inc.peopleAffected || 1
@@ -205,6 +211,7 @@ export function buildActivityTimeline(
                         actor: ov.coordinatorId ? { id: String(ov.coordinatorId), role: 'coordinator' } : undefined,
                         metadata: {
                             incidentId: String(inc._id),
+                            reportReference: inc.reportReference || formatReportReferenceFallback(inc._id),
                             previousPriority: ov.previousPriority || 'UNKNOWN',
                             newPriority: ov.newPriority || 'UNKNOWN',
                             reason: ov.reason || ''
@@ -225,6 +232,7 @@ export function buildActivityTimeline(
                 actor: inc.verification.reviewedBy ? { id: String(inc.verification.reviewedBy), role: 'coordinator' } : undefined,
                 metadata: {
                     incidentId: String(inc._id),
+                    reportReference: inc.reportReference || formatReportReferenceFallback(inc._id),
                     verificationStatus: inc.verification.status || '',
                     requiresManualReview: inc.verification.requiresManualReview,
                     reviewNotes: inc.verification.reviewNotes || ''
@@ -248,6 +256,7 @@ export function buildActivityTimeline(
                         actor: sh.changedBy ? { id: String(sh.changedBy), role: 'coordinator' } : undefined,
                         metadata: {
                             incidentId: String(inc._id),
+                            reportReference: inc.reportReference || formatReportReferenceFallback(inc._id),
                             previousStatus: sh.previousStatus,
                             newStatus: sh.newStatus,
                             notes: sh.notes || ''
@@ -274,6 +283,7 @@ export function buildActivityTimeline(
                 metadata: {
                     assignmentId: String(asg._id),
                     incidentId: incObj?._id ? String(incObj._id) : String(asg.incidentId),
+                    reportReference: incObj?.reportReference || (incObj?._id ? formatReportReferenceFallback(incObj._id) : undefined),
                     teamId: teamObj?._id ? String(teamObj._id) : String(asg.teamId),
                     notes: asg.notes || ''
                 }
@@ -289,6 +299,7 @@ export function buildActivityTimeline(
                 metadata: {
                     assignmentId: String(asg._id),
                     incidentId: incObj?._id ? String(incObj._id) : String(asg.incidentId),
+                    reportReference: incObj?.reportReference || (incObj?._id ? formatReportReferenceFallback(incObj._id) : undefined),
                     teamId: teamObj?._id ? String(teamObj._id) : String(asg.teamId)
                 }
             })
@@ -495,12 +506,12 @@ export async function getDashboardActivity(query?: ActivityQuery): Promise<{ ite
         Incident.find(incidentFilter)
             .sort({ createdAt: -1, _id: 1 })
             .limit(limit)
-            .select('_id reporterName emergencyType priorityLevel priorityScore status peopleAffected priorityOverrides verification statusHistory createdAt')
+            .select('_id reportReference reporterName emergencyType priorityLevel priorityScore status peopleAffected priorityOverrides verification statusHistory createdAt')
             .lean(),
         Assignment.find(assignmentFilter)
             .sort({ assignedAt: -1, _id: 1 })
             .limit(limit)
-            .populate('incidentId', 'reporterName emergencyType status priorityLevel')
+            .populate('incidentId', 'reporterName emergencyType status priorityLevel reportReference')
             .populate('teamId', 'name teamCode status')
             .lean()
     ])
@@ -514,7 +525,7 @@ export async function getIncidentActivity(
     query?: IncidentActivityQuery
 ): Promise<{ incidentId: string; items: ActivityItem[]; total: number }> {
     const incident = await Incident.findById(id)
-        .select('_id reporterName emergencyType priorityLevel priorityScore status peopleAffected priorityOverrides verification statusHistory createdAt isSimulated')
+        .select('_id reportReference reporterName emergencyType priorityLevel priorityScore status peopleAffected priorityOverrides verification statusHistory createdAt isSimulated')
         .lean()
 
     if (!incident) {
@@ -523,7 +534,7 @@ export async function getIncidentActivity(
 
     const assignments = await Assignment.find({ incidentId: incident._id })
         .populate('teamId', 'name teamCode status')
-        .populate('incidentId', 'reporterName emergencyType status priorityLevel')
+        .populate('incidentId', 'reporterName emergencyType status priorityLevel reportReference')
         .lean()
 
     const limit = query?.limit || 50
