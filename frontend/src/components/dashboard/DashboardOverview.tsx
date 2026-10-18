@@ -174,23 +174,8 @@ export function DashboardOverview() {
           loading={loading && !isDemoMode}
         />
 
-        {isDemoMode ? (
-          <IncidentTrends loading={false} />
-        ) : (
-          <section className="rqCommandCard rqCommandEmpty">
-            <h2>Incident Trends</h2>
-            <p>Historical trend data is not available from the current API.</p>
-          </section>
-        )}
-
-        {isDemoMode ? (
-          <RecentActivity loading={false} />
-        ) : (
-          <section className="rqCommandCard rqCommandEmpty">
-            <h2>Recent Activity &amp; Assignments</h2>
-            <p>An activity feed is not available from the current API.</p>
-          </section>
-        )}
+        <IncidentTrends loading={loading && !isDemoMode} realData={!isDemoMode} refreshAt={lastUpdated} />
+        <RecentActivity loading={loading && !isDemoMode} realData={!isDemoMode} refreshAt={lastUpdated} />
       </section>
 
       {selectedTeam && (
