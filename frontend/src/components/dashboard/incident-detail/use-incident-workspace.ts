@@ -25,9 +25,8 @@ export function useIncidentWorkspace(id: string) {
   const active = useRef(false);
   const generation = useRef(0);
   const validId = /^[a-f\d]{24}$/i.test(id);
-  const isDemoRef = id === "INC-2024-0814-001" || id.startsWith("INC-");
-  const isSimulatedTarget = isDemoMode && !validId;
-  const demo = useMemo(() => isSimulatedTarget ? dashboard.demo.incidents.find(record => record._id === id || (id === "INC-2024-0814-001" && record._id === dashboard.demo.incidents[0]?._id)) || null : null, [isSimulatedTarget, dashboard.demo.incidents, id]);
+  const isSimulatedTarget = isDemoMode;
+  const demo = useMemo(() => isDemoMode ? dashboard.demo.incidents.find(record => record._id === id) || null : null, [isDemoMode, dashboard.demo.incidents, id]);
 
   const loadRecommendations = useCallback(async (record: Incident, signal?: AbortSignal) => {
     if (isSimulatedTarget || record.isSimulated) {
@@ -65,12 +64,12 @@ export function useIncidentWorkspace(id: string) {
       if (running || lock.current || document.hidden) return;
       running = true;
       try {
-        if (!validId && !isSimulatedTarget) throw new ApiError("Invalid incident reference.", 400);
-        const record = isSimulatedTarget ? demo : await incidents.get(id, controller.signal);
+        if (!isDemoMode && !validId) throw new ApiError("Invalid incident reference.", 400);
+        const record = isDemoMode ? demo : await incidents.get(id, controller.signal);
         if (!record) throw new ApiError("Incident not found.", 404);
         if (
           !record._id ||
-          (record._id !== id && !(isDemoMode && id === "INC-2024-0814-001")) ||
+          record._id !== id ||
           !["CRITICAL", "HIGH", "MEDIUM", "LOW"].includes(record.priorityLevel) ||
           (record.description != null && typeof record.description !== "string") ||
           !["PENDING", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CANCELLED"].includes(record.status)
@@ -104,7 +103,7 @@ export function useIncidentWorkspace(id: string) {
       clearTimeout(timer);
       document.removeEventListener("visibilitychange", visible);
     };
-  }, [id, isDemoMode, demo, validId, isDemoRef, isSimulatedTarget, attempt, loadRecommendations]);
+  }, [id, isDemoMode, demo, validId, isSimulatedTarget, attempt, loadRecommendations]);
 
   async function mutate(task: () => Promise<{ _id: string }>, success: string, simulation?: DemoAction) {
     if (lock.current || !incident || (!isDemoMode && incident.isSimulated) || (uncertain && !acknowledged)) return false;

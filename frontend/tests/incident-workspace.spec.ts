@@ -169,6 +169,7 @@ test("demo route remains read-only and does not request recommendations for simu
   await expect(page.locator(".rqDetailMedia img")).toBeVisible();
   await expect(page.getByRole("button", { name: "Assign Team", exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Record verification", exact: true })).toHaveCount(0);
+  expect(api.reads.filter(path => path.endsWith(`/incidents/${MOCK_INCIDENTS[0]._id}`))).toHaveLength(0);
   expect(api.reads.filter(path => path.endsWith("/recommendations"))).toHaveLength(0);
   expect(api.writes).toHaveLength(0);
 });
