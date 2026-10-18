@@ -62,15 +62,15 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Coordinators use authenticated API records by default. Demo mode is an
-  // explicit, clearly labeled preview selected with ?demo=true or the toggle.
+  // Demo mode is the intentional fresh-session default for judge demonstrations.
+  // The query parameter remains available for explicit links and testing.
   const [isDemoMode, setIsDemoMode] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       if (params.get("demo") === "false") return false;
       if (params.get("demo") === "true") return true;
     }
-    return false;
+    return true;
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(

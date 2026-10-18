@@ -34,23 +34,16 @@ export function DashboardOverview() {
 
   return (
     <div className="space-y-4">
-      <div className="rqCommandMode" role="status">
-        <span>
-          <strong>{isDemoMode ? "Demonstration Mode" : "API records"}</strong>{" "}
-          &middot;{" "}
-          {isDemoMode
-            ? "Showing simulated emergency response data"
-            : "Loaded API records / refreshes every 7 seconds"}
-        </span>
-        <div>
-          <small>
-            {!isDemoMode && lastUpdated
-              ? `Updated ${new Date(lastUpdated).toLocaleTimeString()}`
-              : ""}
-          </small>
-          <button onClick={() => setIsDemoMode(!isDemoMode)}>
-            {isDemoMode ? "Connect to API" : "Use demo data"}
-          </button>
+      <section className={`rqCommandMode ${isDemoMode ? "is-demo" : "is-real"}`} aria-label="Data mode">
+        <div className="rqDataModeCopy">
+          <span className="rqDataModeState">{isDemoMode ? "Demo Mode Active" : error ? "Real Data Unavailable" : lastUpdated ? "Real Data Connected" : "Connecting to Real Data"}</span>
+          <p>{isDemoMode ? "Simulated Data · Viewing sample incidents, rescue teams, and operational records." : lastUpdated ? `Last successful refresh ${new Date(lastUpdated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · Refreshes every 7 seconds.` : "Fetching authenticated operational records…"}</p>
+        </div>
+        <div className="rqDataModeActions">
+          <div className="rqDataModeSelector" role="group" aria-label="Choose dashboard data mode">
+            <button className={isDemoMode ? "is-selected" : ""} aria-pressed={isDemoMode} onClick={() => setIsDemoMode(true)}>Demo Mode</button>
+            <button className={!isDemoMode ? "is-selected" : ""} aria-pressed={!isDemoMode} onClick={() => setIsDemoMode(false)}>Real Data</button>
+          </div>
           <button
             aria-label="Refresh data"
             title={isDemoMode ? "Demo data is a fixed snapshot" : "Refresh data"}
@@ -63,7 +56,7 @@ export function DashboardOverview() {
             />
           </button>
         </div>
-      </div>
+      </section>
 
       {/* Error State Banner if live API fails */}
       {error && !isDemoMode && (
