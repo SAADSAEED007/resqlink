@@ -33,9 +33,11 @@ export function useDistrictMonitoring() {
   useEffect(() => {
     const controller = new AbortController();
     void districtWeather
-      .overview(controller.signal)
+      .overview(controller.signal, attempt > 0)
       .then((data) => {
         setOverview(data);
+        // Refresh the selected evidence from the same snapshot as the KPIs.
+        setDetail(null);
         setError("");
       })
       .catch((err) => {

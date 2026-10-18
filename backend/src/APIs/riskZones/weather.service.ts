@@ -31,7 +31,10 @@ export function coordinates(lat: unknown, lon: unknown) {
 }
 export function normalizeWeather(input: unknown, now = Date.now()) {
     const checked = providerSchema.validate(input)
-    if (checked.error) throw new CustomError('Weather provider returned incomplete data', 502)
+    if (checked.error) {
+        console.warn('weather.validation_failed', { path: checked.error.details[0].path.join('.'), type: checked.error.details[0].type })
+        throw new CustomError('Weather provider returned incomplete data', 502)
+    }
     const data = checked.value as {
         latitude: number
         longitude: number
@@ -103,33 +106,43 @@ const pending = new Map<string, Promise<Forecast>>()
 export function clearWeatherCache() {
     cache.clear()
     pending.clear()
+    rateLimitedUntil = 0
 }
-export async function forecast(lat: unknown, lon: unknown): Promise<Forecast> {
+export async function forecast(lat: unknown, lon: unknown, refresh = false): Promise<Forecast> {
     const point = coordinates(lat, lon),
         key = `${point.latitude.toFixed(3)},${point.longitude.toFixed(3)}`
     const old = cache.get(key)
-    if (old && old.expires > Date.now()) return { ...old.value, freshness: 'cached' }
+    if (!refresh && old && old.expires > Date.now()) return { ...old.value, freshness: 'cached' }
     const running = pending.get(key)
     if (running) return running
     const task: Promise<Forecast> = (async (): Promise<Forecast> => {
+        // Register the pending promise before any synchronous cooldown failure.
+        await Promise.resolve()
         try {
+            if (Date.now() < rateLimitedUntil) throw new CustomError('Weather provider rate limited; retry later', 503)
             const query = new URLSearchParams({
                 latitude: point.latitude.toFixed(3),
                 longitude: point.longitude.toFixed(3),
                 timezone: 'Asia/Karachi',
                 timeformat: 'unixtime',
+                temperature_unit: 'celsius',
+                wind_speed_unit: 'kmh',
+                precipitation_unit: 'mm',
                 forecast_days: '4',
                 current: 'temperature_2m,weather_code,wind_speed_10m',
                 hourly: 'precipitation,precipitation_probability,wind_speed_10m',
                 daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max'
             })
-            const response = await fetch(`https://api.open-meteo.com/v1/forecast?${query}`, { signal: AbortSignal.timeout(8000) })
-            if (!response.ok) throw new CustomError('Weather provider unavailable', 503)
+            const response = await fetchWeather(`https://api.open-meteo.com/v1/forecast?${query}`)
             const value = normalizeWeather(await response.json())
             if (cache.size >= 500) cache.delete(cache.keys().next().value as string)
             cache.set(key, { value, expires: Date.now() + 900000 })
             return value
         } catch (error) {
+            console.warn('weather.forecast_failed', {
+                coordinates: key,
+                error: error instanceof CustomError ? error.message : error instanceof Error ? error.name : 'UnknownError'
+            })
             if (old && Date.now() - Date.parse(old.value.retrievedAt) < 3600000) return { ...old.value, freshness: 'stale' }
             if (error instanceof CustomError) throw error
             throw new CustomError('Weather provider unavailable; retry later', 503)
@@ -140,3 +153,36 @@ export async function forecast(lat: unknown, lon: unknown): Promise<Forecast> {
     pending.set(key, task)
     return task
 }
+
+// Two attempts at most; each bounded to five seconds so the three-worker
+// seven-district overview completes within the browser's 35-second deadline.
+async function fetchWeather(url: string): Promise<Response> {
+    for (let attempt = 0; attempt < 2; attempt++) {
+        let response: Response
+        try {
+            response = await fetch(url, { signal: AbortSignal.timeout(5000) })
+        } catch (error) {
+            console.warn('weather.transport_failed', {
+                attempt: attempt + 1,
+                error: error instanceof Error ? error.name : 'UnknownError',
+                code: (error as { cause?: { code?: string } })?.cause?.code
+            })
+            if (attempt === 0) continue
+            throw new CustomError('Weather provider connection failed or timed out', 503)
+        }
+        if (response.ok) return response
+        console.warn('weather.provider_http', { status: response.status, attempt: attempt + 1 })
+        // Do not immediately retry a rate-limited provider. Subsequent requests
+        // must honor its Retry-After window, including manual refreshes.
+        if (response.status === 429) {
+            const header = response.headers?.get('retry-after')
+            const seconds = header ? Number(header) : NaN
+            const until = Number.isFinite(seconds) ? Date.now() + seconds * 1000 : Date.parse(header || '')
+            rateLimitedUntil = Math.max(Date.now() + 60000, Number.isFinite(until) ? until : 0)
+            throw new CustomError('Weather provider rate limited; retry later', 503)
+        }
+        if (response.status < 500 || attempt === 1) throw new CustomError(`Weather provider HTTP ${response.status}`, 503)
+    }
+    throw new CustomError('Weather provider unavailable', 503)
+}
+let rateLimitedUntil = 0

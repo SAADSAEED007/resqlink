@@ -189,9 +189,15 @@ export function RiskZonesWorkspace() {
                 ? "Forecast retrieval in progress"
                 : `${unavailable} data unavailable`}{" "}
               ·{" "}
-              {model.overview
-                ? `Updated ${date(model.overview.retrievedAt)}`
-                : "Waiting for provider"}
+              {model.records.some((item) => item.weather)
+                ? `Last forecast update ${date(
+                    model.records
+                      .filter((item) => item.weather)
+                      .map((item) => item.weather!.retrievedAt)
+                      .sort()
+                      .at(-1),
+                  )} (Asia/Karachi)`
+                : "No successful forecast update"}
             </span>
           </div>
           {model.error && (
