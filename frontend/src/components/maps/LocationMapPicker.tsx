@@ -65,20 +65,30 @@ export function LocationMapPicker({
   const { map, ready, status, retry } = useMapBase(container, true);
   const markerRef = useRef<LeafletMarker | null>(null);
 
-  const initialValKey = JSON.stringify(value);
-  const [candidate, setCandidate] = useState<SelectedLocation | null>(() => {
-    return validCoordinates(value)
-      ? {
-          latitude: Number(value.latitude.toFixed(6)),
-          longitude: Number(value.longitude.toFixed(6)),
-          address: value.address,
-        }
-      : null;
-  });
+  // Stable refs for initialization parameters to prevent unwanted effect re-runs
+  const initialCenterRef = useRef(initialCenter);
+  const initialZoomRef = useRef(initialZoom);
 
-  // Track candidate across renders
+  // Maintain stable serialized source value
+  const valueKey = JSON.stringify(value);
+  const sourceRef = useRef(valueKey);
+  useEffect(() => {
+    sourceRef.current = valueKey;
+  }, [valueKey]);
+
+  // Draft state representing user's active manual map selection
+  const [userSelection, setUserSelection] = useState<SelectedLocation | null>(null);
+
+  // Candidate is either user's active map choice, or initial valid value
+  const candidate: SelectedLocation | null =
+    userSelection || (validCoordinates(value) ? value : null);
   const candidateKey = JSON.stringify(candidate);
+  const currentCandidateRef = useRef(candidate);
+  useEffect(() => {
+    currentCandidateRef.current = candidate;
+  }, [candidate]);
 
+  // Single Leaflet initialization effect — runs ONCE when map is ready
   useEffect(() => {
     if (!ready || !map.current) return;
     let active = true;
@@ -88,7 +98,8 @@ export function LocationMapPicker({
       if (!active || !map.current) return;
       const instance = map.current;
 
-      const initialPoint = JSON.parse(initialValKey) as SelectedLocation | null;
+      // Set initial view centered on candidate point if provided, else regional default
+      const initialPoint = JSON.parse(sourceRef.current) as SelectedLocation | null;
       if (validCoordinates(initialPoint)) {
         instance.setView(
           [initialPoint.latitude, initialPoint.longitude],
@@ -96,9 +107,12 @@ export function LocationMapPicker({
           { animate: false }
         );
       } else {
-        instance.setView(initialCenter, initialZoom, { animate: false });
+        instance.setView(initialCenterRef.current, initialZoomRef.current, {
+          animate: false,
+        });
       }
 
+      // Create persistent marker
       const marker = L.marker([0, 0], {
         draggable: true,
         title: "Selected team base location",
@@ -107,23 +121,32 @@ export function LocationMapPicker({
       });
       markerRef.current = marker;
 
-      const setPoint = (latlng: import("leaflet").LatLng) => {
+      // If a candidate point is already known on mount, place and show marker immediately
+      const currentPoint = currentCandidateRef.current;
+      if (validCoordinates(currentPoint)) {
+        marker.setLatLng([currentPoint.latitude, currentPoint.longitude]);
+        if (!instance.hasLayer(marker)) {
+          marker.addTo(instance);
+        }
+      }
+
+      const choosePoint = (latlng: import("leaflet").LatLng) => {
         const wrapped = latlng.wrap();
         const nextLoc: SelectedLocation = {
           latitude: Number(wrapped.lat.toFixed(6)),
           longitude: Number(wrapped.lng.toFixed(6)),
         };
         if (validCoordinates(nextLoc)) {
-          setCandidate(nextLoc);
+          setUserSelection(nextLoc);
         }
       };
 
       const handleMapClick = (event: import("leaflet").LeafletMouseEvent) => {
-        setPoint(event.latlng);
+        choosePoint(event.latlng);
       };
 
       const handleMarkerDrag = () => {
-        setPoint(marker.getLatLng());
+        choosePoint(marker.getLatLng());
       };
 
       instance.on("click", handleMapClick);
@@ -141,9 +164,9 @@ export function LocationMapPicker({
       active = false;
       cleanup?.();
     };
-  }, [map, ready, initialValKey, initialCenter, initialZoom]);
+  }, [map, ready]);
 
-  // Sync marker position when candidate changes
+  // Stable sync effect: keeps marker position synchronized with candidate state
   useEffect(() => {
     if (!ready || !map.current) return;
     let active = true;
@@ -166,6 +189,7 @@ export function LocationMapPicker({
     };
   }, [candidateKey, map, ready]);
 
+  // Quick shortcut: use current map center as candidate position
   const handleUseCenter = () => {
     if (!map.current) return;
     const center = map.current.getCenter().wrap();
@@ -174,12 +198,15 @@ export function LocationMapPicker({
       longitude: Number(center.lng.toFixed(6)),
     };
     if (validCoordinates(nextLoc)) {
-      setCandidate(nextLoc);
+      setUserSelection(nextLoc);
     }
   };
 
+  // Button disabled state strictly checks if candidate is valid
+  const canConfirm = ready && !!candidate && validCoordinates(candidate);
+
   const handleConfirm = () => {
-    if (candidate && validCoordinates(candidate)) {
+    if (canConfirm && candidate) {
       onConfirm(candidate);
     }
   };
@@ -260,7 +287,8 @@ export function LocationMapPicker({
         <button
           type="button"
           className="rtPickerBtn rtPickerBtnPrimary"
-          disabled={!candidate}
+          disabled={!canConfirm}
+          aria-disabled={!canConfirm}
           onClick={handleConfirm}
         >
           <Check size={15} />
