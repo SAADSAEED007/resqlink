@@ -4,6 +4,8 @@
 
 Built from `origin/dev` at `60ae95a`, including merged Smart SOS Triage (#53) and animated SOS UX (#54). The open notifications API PR #24 is a separate dependency and was not imported. The current shell bell counts critical incidents; this patch improves that badge without changing its data source or notification APIs.
 
+During final QA, public report references (#55, `b09c4f4`) merged into dev. That commit was merged into this feature branch; the directory conflict was resolved by preserving server-side search/pagination and adding public-reference matching to the full demo filter. The new SOS report-reference submission and display are retained.
+
 All changes are frontend-only. Authentication, public SOS payloads, backend endpoints, transaction services, database schemas, WeatherAPI, and Groq behavior are preserved. Public SOS continues using its existing API regardless of dashboard mode.
 
 ## Bug tracking
@@ -43,6 +45,18 @@ Focused configuration: `frontend/playwright.qa.config.ts`, isolated server at lo
 Browser coverage includes combined demo filters/counts, server-side real search, explicit default Demo Mode, priority review, verification, selecting an alternative eligible team, assignment and lifecycle progression, cross-screen assignment/team state, availability labels and updates, drawer wheel scrolling and body-lock restoration, real assignment confirmation and rejected mutation, optional SOS payloads, GPS, map confirmation/reopening, Edit Report recovery, translations, and responsive/reduced-motion checks.
 
 Build and final focused results are recorded in the PR. Full lint has a pre-existing `react-hooks/set-state-in-effect` error in `risk-zones/DistrictWeatherPanels.tsx:36`; that protected module is unchanged. Backend checks are unnecessary because no backend files changed. Real-data browser tests use isolated API fixtures; production persistence and real notification PR #24 are not claimed as validated.
+
+Final results on the merged branch:
+
+- `npm run typecheck`: passed (run sequentially after browser development server stopped).
+- `npx next build --webpack`: passed, all 12 static pages generated. Webpack supports the existing external dependency junction used by this isolated worktree.
+- `$env:QA_PRODUCTION='true'; npx playwright test --config playwright.qa.config.ts`: **12 passed in 57.6 seconds**, running against the production build.
+- `npm run lint`: one pre-existing error in `DistrictWeatherPanels.tsx:36`; no QA-change lint errors. Focused lint on the shared context, simulation, directory, drawer, incident hook, and assignment hook passed.
+- `git diff --check`: passed; merge conflicts resolved.
+
+Screenshot artifacts from the passing run: `combined-filters.png`, `availability-dialog.png`, `demo-assigned.png`, `demo-resolved.png`, `sos-location-confirmed.png`, `sos-390.png`, and `sos-1440.png` under `frontend/test-results/`.
+
+Worktree: `D:\Hacakthon\.worktrees\final-qa`. Branch: `fix/final-qa-regressions-and-demo-workflows`. Main implementation commit: `aab2fee`; compatibility merge of current dev: `194276e`. The PR is intended for review against `dev`, without automatic merge.
 
 Screenshots are saved under `frontend/test-results/` by the focused browser tests; they are local QA artifacts, not shipped assets.
 

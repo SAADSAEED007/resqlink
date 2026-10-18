@@ -4,6 +4,16 @@ import {filterDemoIncidents} from '../src/components/dashboard/incident-filters'
 import {MOCK_INCIDENTS,MOCK_RESCUE_TEAMS} from '../src/components/dashboard/mock-data';
 import type {Incident,RescueTeam} from '../src/types/api';
 
+test('switching modes isolates records, preserves simulated changes, and reset restores the fixture',async({page})=>{
+  const writes=await auth(page);await page.goto('/dashboard/rescue-teams');
+  await page.locator('.rtDirectoryRow').filter({hasText:'Golf-7'}).click();await page.getByRole('button',{name:'Set Offline',exact:true}).click();await page.getByRole('dialog').getByRole('button',{name:'Set Offline',exact:true}).click();await expect(page.getByRole('button',{name:'Set Available',exact:true})).toBeVisible();
+  await page.getByRole('link',{name:'Overview',exact:true}).click();await page.getByRole('button',{name:'Real Data',exact:true}).click();await expect(page.getByText('Real Data Connected',{exact:true})).toBeVisible();await expect(page.locator('.rqCommandIncident')).toHaveCount(0);
+  await page.getByRole('button',{name:'Demo Mode',exact:true}).click();await expect(page.locator('.rqCommandIncident')).toHaveCount(9);
+  await page.getByRole('link',{name:'Rescue Teams',exact:true}).click();await expect(page.locator('.rtDirectoryRow').filter({hasText:'Golf-7'})).toContainText('Offline');
+  await page.getByRole('link',{name:'Overview',exact:true}).click();page.once('dialog',dialog=>dialog.accept());await page.getByRole('button',{name:'Reset Demo',exact:true}).click();
+  await page.getByRole('link',{name:'Rescue Teams',exact:true}).click();await expect(page.locator('.rtDirectoryRow').filter({hasText:'Golf-7'})).toContainText('Available');expect(writes).toHaveLength(0);
+});
+
 async function auth(page:Page) {
   const writes:string[]=[];
   await page.route('http://localhost:4000/v1/**',r=>r.fulfill({json:{success:true,data:{_id:'012345678901234567890123',name:'QA Coordinator',role:'admin',email:'qa@example.com'}}}));
@@ -52,6 +62,7 @@ test('default demo permits full incident workflow, updates assignments and teams
   const selectedName=(await select.locator('option:checked').innerText()).split('(')[0].trim();
   await page.getByRole('button',{name:'Assign Team',exact:true}).click();await page.getByRole('dialog').getByRole('button',{name:'Confirm assignment',exact:true}).click();
   await expect(page.locator('.rqAssignedSummary')).toBeVisible();
+  await page.screenshot({path:'test-results/demo-assigned.png',fullPage:true});
   for(const status of ['IN_PROGRESS','RESOLVED']) {await page.getByLabel('New incident status',{exact:true}).selectOption(status);await page.getByRole('button',{name:'Confirm status change',exact:true}).click();await page.getByRole('dialog').getByRole('button',{name:'Confirm change',exact:true}).click();}
   await expect(page.locator('.rqStatusNode.is-current')).toContainText('RESOLVED');
   await page.screenshot({path:'test-results/demo-resolved.png',fullPage:true});
@@ -85,12 +96,13 @@ test('real assignment waits for backend confirmation and rejected priority does 
 test('availability confirmations have readable labels and mutate simulation only',async({page})=>{
   const writes=await auth(page);await page.goto('/dashboard/rescue-teams');await expect(page.getByRole('heading',{name:'Rescue Team Management'})).toBeVisible();
   await page.locator('.rtDirectoryRow').filter({hasText:'Golf-7'}).click();await page.getByRole('button',{name:'Set Offline',exact:true}).click();
-  const confirm=page.getByRole('dialog').getByRole('button',{name:'Set Offline',exact:true});await expect(confirm).toBeVisible();await confirm.click();await expect(page.getByRole('button',{name:'Set Available',exact:true})).toBeVisible();
+  const confirm=page.getByRole('dialog').getByRole('button',{name:'Set Offline',exact:true});await expect(confirm).toBeVisible();await page.screenshot({path:'test-results/availability-dialog.png'});await confirm.click();await expect(page.getByRole('button',{name:'Set Available',exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Set Available',exact:true}).click();await page.getByRole('dialog').getByRole('button',{name:'Set Available',exact:true}).click();await expect(page.getByRole('button',{name:'Set Offline',exact:true})).toBeVisible();expect(writes).toHaveLength(0);
 });
 test('directory combined filters and count are consistent in demo, real search is server-side',async({page})=>{
   await auth(page);await page.goto('/dashboard/incidents');await page.getByRole('textbox',{name:'Search incidents'}).fill('flood');
   await page.getByLabel('Filter by status').selectOption('PENDING');await page.getByLabel('Filter by priority').selectOption('CRITICAL');await page.getByLabel('Filter by verification').selectOption('VERIFIED');await expect(page.locator('.rqIncidentRow')).toHaveCount(0);await expect(page.locator('.rqIncidentPagination')).toContainText('0 records');
+  await page.screenshot({path:'test-results/combined-filters.png',fullPage:true});
   const requests:string[]=[];page.on('request',r=>{if(r.url().includes('/api/incidents?')) requests.push(r.url());});
   await page.goto('/dashboard/incidents?demo=false');await page.getByRole('textbox',{name:'Search incidents'}).fill('evac');await expect.poll(()=>requests.some(url=>url.includes('search=evac')&&url.includes('isSimulated=false'))).toBe(true);
 });

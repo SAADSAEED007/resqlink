@@ -7,6 +7,7 @@ test('map selection survives safety responses and optional details stay intact',
   await map.click({position:{x:100,y:100}});
   await page.getByRole('button',{name:'Confirm selected location',exact:true}).click();
   await expect(page.getByRole('status')).toHaveText('Location selected on map');
+  await page.screenshot({path:'test-results/sos-location-confirmed.png',fullPage:true});
   await page.getByRole('radio',{name:'Yes, immediate danger',exact:true}).check();
   await expect(page.getByRole('button',{name:'Confirm selected location',exact:true})).not.toBeVisible();
   await page.getByText('Choose on Map',{exact:true}).click();
@@ -56,7 +57,7 @@ test('minimal and danger reports preserve the existing payload and successful re
     if(danger) await page.getByRole('radio',{name:'Yes, immediate danger',exact:true}).check();
     await page.getByRole('button',{name:'Share My Location',exact:true}).click(); await expect(page.getByRole('status')).toHaveText('Location captured');
     await page.getByRole('button',{name:'Send SOS Report',exact:true}).click(); await page.getByRole('button',{name:'Send SOS Report',exact:true}).click();
-    await expect(page.getByRole('heading',{name:'Emergency report recorded',exact:true})).toBeVisible();
+    await expect(page.getByRole('heading',{name:'SOS Report Submitted',exact:true})).toBeVisible();
     expect(payloads.at(-1)).toMatchObject({emergencyType:'FLOOD',safetyAnswer:danger?'YES':'UNANSWERED',location:{latitude:24.9065,longitude:67.1608}});
     expect(payloads.at(-1)).not.toHaveProperty('reporterName'); expect(payloads.at(-1)).not.toHaveProperty('peopleAffected');
   }
