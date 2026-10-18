@@ -1,0 +1,1205 @@
+/* ==========================================================================
+   RESQLINK — INCIDENT MANAGEMENT OPERATIONAL DIRECTORY STYLES
+   Designed for High-Scan Emergency Operations & Commander Workspaces
+   ========================================================================== */
+
+.rqIncidentPage {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 4px 0 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* --------------------------------------------------------------------------
+   1. PAGE HEADER
+   -------------------------------------------------------------------------- */
+.rqIncidentPageHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding-bottom: 4px;
+}
+
+.rqIncidentEyebrowRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.rqIncidentEyebrow {
+  color: var(--command-blue);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.rqEyebrowBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 1px 7px;
+  border-radius: 9999px;
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--command-blue);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.rqCommand[data-theme="dark"] .rqEyebrowBadge {
+  background: rgba(38, 132, 255, 0.15);
+  border-color: rgba(38, 132, 255, 0.3);
+}
+
+.rqIncidentHeading {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  color: var(--command-ink);
+  margin: 0 0 4px;
+  line-height: 1.2;
+}
+
+.rqIncidentSubtitle {
+  font-size: 13px;
+  color: var(--command-muted);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.rqIncidentActionsBlock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  padding-top: 4px;
+}
+
+.rqUpdateStamp {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--command-muted);
+  display: inline-flex;
+  align-items: center;
+  background: var(--command-surface);
+  border: 1px solid var(--command-border);
+  padding: 5px 10px;
+  border-radius: 8px;
+}
+
+.rqRefreshBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--command-ink);
+  background: var(--command-surface);
+  border: 1px solid var(--command-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.rqRefreshBtn:hover:not(:disabled) {
+  border-color: var(--command-blue);
+  color: var(--command-blue);
+  background: var(--command-soft);
+  transform: translateY(-1px);
+}
+
+.rqRefreshBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   2. DEMO / REAL MODE BANNER
+   -------------------------------------------------------------------------- */
+.rqIncidentNotice {
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rqDemoBanner {
+  background: rgba(37, 99, 235, 0.05);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  color: var(--command-ink);
+}
+
+.rqCommand[data-theme="dark"] .rqDemoBanner {
+  background: rgba(38, 132, 255, 0.09);
+  border-color: rgba(38, 132, 255, 0.28);
+}
+
+.rqDemoBannerContent,
+.rqRealNoticeContent {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 320px;
+}
+
+.rqDemoBannerIconWrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--command-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rqDemoBannerText,
+.rqRealNoticeText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.rqDemoTitle,
+.rqRealTitle {
+  font-size: 12px;
+  font-weight: 750;
+  color: var(--command-ink);
+  letter-spacing: -0.01em;
+}
+
+.rqDemoSubtitle,
+.rqRealSubtitle {
+  font-size: 11.5px;
+  color: var(--command-muted);
+}
+
+.rqDemoPreviewBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 11.5px;
+  font-weight: 650;
+  border-radius: 7px;
+  background: var(--command-surface);
+  border: 1px solid rgba(37, 99, 235, 0.3);
+  color: var(--command-blue);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.rqDemoPreviewBtn:hover {
+  background: var(--command-blue);
+  color: #fff;
+  border-color: var(--command-blue);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+.rqRealNotice {
+  background: rgba(5, 150, 105, 0.06);
+  border: 1px solid rgba(5, 150, 105, 0.22);
+}
+
+.rqCommand[data-theme="dark"] .rqRealNotice {
+  background: rgba(22, 214, 154, 0.09);
+  border-color: rgba(22, 214, 154, 0.25);
+}
+
+.rqRealNoticeIndicator {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rqLivePulseDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--command-green);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2);
+  animation: rqLivePulse 2s infinite ease-in-out;
+}
+
+@keyframes rqLivePulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.5); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(5, 150, 105, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
+}
+
+/* --------------------------------------------------------------------------
+   3. KPI METRICS CARDS
+   -------------------------------------------------------------------------- */
+.rqIncidentMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.rqKpiCard {
+  background: var(--command-surface);
+  border: 1px solid var(--command-border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  position: relative;
+  overflow: hidden;
+}
+
+.rqKpiCard:hover {
+  border-color: var(--command-blue);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.rqKpiIconSquare {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rqKpiIconSquare.accent-blue {
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--command-blue);
+}
+
+.rqKpiIconSquare.accent-amber {
+  background: rgba(180, 83, 9, 0.1);
+  color: var(--command-amber);
+}
+
+.rqKpiIconSquare.accent-red {
+  background: rgba(225, 29, 56, 0.1);
+  color: var(--command-red);
+}
+
+.rqKpiIconSquare.accent-green {
+  background: rgba(5, 150, 105, 0.1);
+  color: var(--command-green);
+}
+
+.rqCommand[data-theme="dark"] .rqKpiIconSquare.accent-blue {
+  background: rgba(38, 132, 255, 0.18);
+  color: var(--command-blue);
+}
+.rqCommand[data-theme="dark"] .rqKpiIconSquare.accent-amber {
+  background: rgba(245, 158, 11, 0.18);
+  color: var(--command-amber);
+}
+.rqCommand[data-theme="dark"] .rqKpiIconSquare.accent-red {
+  background: rgba(255, 70, 85, 0.18);
+  color: var(--command-red);
+}
+.rqCommand[data-theme="dark"] .rqKpiIconSquare.accent-green {
+  background: rgba(22, 214, 154, 0.18);
+  color: var(--command-green);
+}
+
+.rqKpiBody {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.rqKpiLabel {
+  font-size: 10.5px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--command-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rqKpiValue {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--command-ink);
+  line-height: 1.15;
+  margin: 2px 0 1px;
+}
+
+.rqKpiSub {
+  font-size: 11px;
+  color: var(--command-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --------------------------------------------------------------------------
+   4. FILTER TOOLBAR
+   -------------------------------------------------------------------------- */
+.rqIncidentFilters {
+  background: var(--command-surface);
+  border: 1px solid var(--command-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.rqSearchWrap {
+  flex: 2 1 270px;
+  position: relative;
+  min-width: 220px;
+}
+
+.rqSearchLabel {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--command-border);
+  border-radius: 8px;
+  background: var(--command-soft);
+  color: var(--command-muted);
+  transition: all 0.15s ease-in-out;
+  cursor: text;
+}
+
+.rqSearchLabel:focus-within {
+  border-color: var(--command-blue);
+  background: var(--command-surface);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  color: var(--command-blue);
+}
+
+.rqSearchIcon {
+  flex-shrink: 0;
+}
+
+.rqSearchInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font-size: 12.5px;
+  color: var(--command-ink);
+  outline: none;
+}
+
+.rqSearchInput::placeholder {
+  color: var(--command-muted);
+  opacity: 0.85;
+}
+
+.rqSearchClearBtn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--command-border);
+  color: var(--command-muted);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.rqSearchClearBtn:hover {
+  background: var(--command-muted);
+  color: #fff;
+}
+
+.rqFilterControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex: 3 1 480px;
+}
+
+.rqSelectWrapper {
+  position: relative;
+  flex: 1 1 120px;
+  min-width: 110px;
+}
+
+.rqSelect {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 28px 0 10px;
+  border: 1px solid var(--command-border);
+  border-radius: 8px;
+  background: var(--command-soft);
+  color: var(--command-ink);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: all 0.15s ease-in-out;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+.rqSelect:focus {
+  outline: none;
+  border-color: var(--command-blue);
+  background-color: var(--command-surface);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.rqClearFiltersBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--command-border);
+  border-radius: 8px;
+  background: var(--command-soft);
+  color: var(--command-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  flex-shrink: 0;
+}
+
+.rqClearFiltersBtn:hover {
+  background: var(--command-surface);
+  border-color: var(--command-muted);
+  color: var(--command-ink);
+}
+
+/* --------------------------------------------------------------------------
+   5. DIRECTORY SECTION HEADER
+   -------------------------------------------------------------------------- */
+.rqDirectoryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 2px 0;
+}
+
+.rqDirectoryTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rqDirectoryTitle {
+  font-size: 15px;
+  font-weight: 750;
+  letter-spacing: -0.015em;
+  color: var(--command-ink);
+  margin: 0;
+}
+
+.rqDirectoryCountBadge {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--command-muted);
+  background: var(--command-surface);
+  border: 1px solid var(--command-border);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.rqDirectoryRange {
+  font-size: 11.5px;
+  color: var(--command-muted);
+}
+
+/* --------------------------------------------------------------------------
+   6. INCIDENT LIST & CARDS (PRIMARY FIX)
+   -------------------------------------------------------------------------- */
+.rqIncidentList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
+.rqIncidentRow.rqIncidentCard {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  width: 100%;
+  padding: 13px 16px;
+  text-align: left;
+  border: 1px solid var(--command-border);
+  border-radius: 12px;
+  background: var(--command-surface);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  color: inherit;
+  font-family: inherit;
+  position: relative;
+}
+
+.rqIncidentRow.rqIncidentCard:hover {
+  border-color: var(--command-blue);
+  background: var(--command-soft);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -3px rgba(37, 99, 235, 0.08);
+}
+
+.rqIncidentRow.rqIncidentCard:focus-visible {
+  outline: 2px solid var(--command-blue);
+  outline-offset: 2px;
+}
+
+/* Visual thumbnail inside card */
+.rqIncidentCardVisual {
+  width: 74px;
+  height: 74px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rqIncidentCardVisual .rqIncidentVisual {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.rqCommand[data-theme="dark"] .rqIncidentCardVisual .rqIncidentVisual {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.rqIncidentCardVisual .rqIncidentVisual > svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* Card body */
+.rqIncidentCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* Header line inside card */
+.rqIncidentCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rqIncidentCardTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.rqIncidentCardTitle {
+  font-size: 15px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: var(--command-ink);
+  margin: 0;
+  line-height: 1.25;
+}
+
+.rqIncidentRefPill {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: var(--command-soft);
+  color: var(--command-muted);
+  border: 1px solid var(--command-border);
+  letter-spacing: 0.02em;
+}
+
+.rqIncidentCardBadges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Priority badge */
+.rqPriorityBadge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+}
+
+.rqPriorityBadge.critical {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.rqPriorityBadge.high {
+  background: #fffbeb;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.rqPriorityBadge.medium {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.rqPriorityBadge.low {
+  background: #f8fafc;
+  color: #475569;
+  border-color: #e2e8f0;
+}
+
+.rqCommand[data-theme="dark"] .rqPriorityBadge.critical {
+  background: rgba(239, 68, 68, 0.16);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.rqCommand[data-theme="dark"] .rqPriorityBadge.high {
+  background: rgba(245, 158, 11, 0.16);
+  color: #fcd34d;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.rqCommand[data-theme="dark"] .rqPriorityBadge.medium {
+  background: rgba(59, 130, 246, 0.16);
+  color: #93c5fd;
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+.rqCommand[data-theme="dark"] .rqPriorityBadge.low {
+  background: rgba(100, 116, 139, 0.16);
+  color: #cbd5e1;
+  border-color: rgba(100, 116, 139, 0.35);
+}
+
+/* Location line */
+.rqIncidentCardLocation {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  color: var(--command-muted);
+  min-width: 0;
+}
+
+.rqLocationPinIcon {
+  color: var(--command-blue);
+  flex-shrink: 0;
+}
+
+.rqLocationText {
+  font-weight: 500;
+  color: var(--command-ink);
+  opacity: 0.88;
+}
+
+/* Meta line */
+.rqIncidentCardMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 2px;
+}
+
+.rqIncidentMetaChips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Status badge */
+.rqStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2.5px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--command-border);
+  background: var(--command-soft);
+  color: var(--command-ink);
+  letter-spacing: 0.02em;
+}
+
+.rqStatusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.rqStatus-pending {
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+.rqStatus-assigned {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.25);
+}
+
+.rqStatus-in_progress {
+  color: #0284c7;
+  background: rgba(2, 132, 199, 0.08);
+  border-color: rgba(2, 132, 199, 0.25);
+}
+
+.rqStatus-resolved {
+  color: #059669;
+  background: rgba(5, 150, 105, 0.08);
+  border-color: rgba(5, 150, 105, 0.25);
+}
+
+.rqStatus-cancelled {
+  color: #64748b;
+  background: rgba(100, 116, 139, 0.08);
+  border-color: rgba(100, 116, 139, 0.25);
+}
+
+.rqCommand[data-theme="dark"] .rqStatus-pending {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.rqCommand[data-theme="dark"] .rqStatus-assigned {
+  color: #60a5fa;
+  background: rgba(37, 99, 235, 0.15);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.rqCommand[data-theme="dark"] .rqStatus-in_progress {
+  color: #38bdf8;
+  background: rgba(2, 132, 199, 0.15);
+  border-color: rgba(2, 132, 199, 0.3);
+}
+
+.rqCommand[data-theme="dark"] .rqStatus-resolved {
+  color: #34d399;
+  background: rgba(5, 150, 105, 0.15);
+  border-color: rgba(5, 150, 105, 0.3);
+}
+
+.rqCommand[data-theme="dark"] .rqStatus-cancelled {
+  color: #94a3b8;
+  background: rgba(100, 116, 139, 0.15);
+  border-color: rgba(100, 116, 139, 0.3);
+}
+
+/* Verification badge */
+.rqVerifyBadge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10.5px;
+  font-weight: 650;
+  padding: 2.5px 7px;
+  border-radius: 6px;
+  border: 1px solid var(--command-border);
+  background: var(--command-soft);
+  color: var(--command-muted);
+}
+
+.rqVerify-verified {
+  color: #059669;
+  background: rgba(5, 150, 105, 0.06);
+  border-color: rgba(5, 150, 105, 0.2);
+}
+
+.rqCommand[data-theme="dark"] .rqVerify-verified {
+  color: #34d399;
+  background: rgba(5, 150, 105, 0.12);
+  border-color: rgba(5, 150, 105, 0.28);
+}
+
+.rqVerify-needs_review {
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.06);
+  border-color: rgba(217, 119, 6, 0.2);
+}
+
+.rqCommand[data-theme="dark"] .rqVerify-needs_review {
+  color: #fbbf24;
+  background: rgba(217, 119, 6, 0.12);
+  border-color: rgba(217, 119, 6, 0.28);
+}
+
+.rqVerify-flagged_duplicate {
+  color: #7c3aed;
+  background: rgba(124, 58, 237, 0.06);
+  border-color: rgba(124, 58, 237, 0.2);
+}
+
+/* Timestamp chip */
+.rqTimeChip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--command-muted);
+}
+
+/* Card Action Area (Right) */
+.rqIncidentCardAction {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--command-blue);
+  background: rgba(37, 99, 235, 0.06);
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  padding: 5px 11px;
+  border-radius: 7px;
+  transition: all 0.15s ease-in-out;
+  flex-shrink: 0;
+}
+
+.rqIncidentRow.rqIncidentCard:hover .rqIncidentCardAction {
+  background: var(--command-blue);
+  color: #fff;
+  border-color: var(--command-blue);
+}
+
+.rqActionArrow {
+  transition: transform 0.15s ease-in-out;
+}
+
+.rqIncidentRow.rqIncidentCard:hover .rqActionArrow {
+  transform: translateX(3px);
+}
+
+/* --------------------------------------------------------------------------
+   7. PAGINATION FOOTER
+   -------------------------------------------------------------------------- */
+.rqIncidentPagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 12px 16px;
+  background: var(--command-surface);
+  border: 1px solid var(--command-border);
+  border-radius: 10px;
+  font-size: 12px;
+  color: var(--command-muted);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.rqIncidentPagination span {
+  font-weight: 500;
+}
+
+.rqPaginationActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rqPaginationBtn {
+  min-height: 34px;
+  padding: 0 13px;
+  border: 1px solid var(--command-border);
+  border-radius: 7px;
+  background: var(--command-surface);
+  color: var(--command-ink);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease-in-out;
+}
+
+.rqPaginationBtn:hover:not(:disabled) {
+  border-color: var(--command-blue);
+  color: var(--command-blue);
+  background: var(--command-soft);
+}
+
+.rqPaginationBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   8. LOADING, EMPTY & ERROR STATES
+   -------------------------------------------------------------------------- */
+.rqIncidentLoading {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rqIncidentSkeletonCard {
+  background: var(--command-surface);
+  border: 1px solid var(--command-border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.rqSkeletonThumb {
+  width: 74px;
+  height: 74px;
+  border-radius: 10px;
+  background: var(--command-soft);
+  flex-shrink: 0;
+}
+
+.rqSkeletonBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rqSkeletonLine {
+  background: var(--command-soft);
+  border-radius: 6px;
+}
+
+.rqIncidentEmpty {
+  background: var(--command-surface);
+  border: 1px dashed var(--command-border);
+  border-radius: 14px;
+  padding: 48px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.rqEmptyIconWrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--command-soft);
+  color: var(--command-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.rqEmptyHeading {
+  font-size: 16px;
+  font-weight: 750;
+  color: var(--command-ink);
+  margin: 0;
+}
+
+.rqEmptyDesc {
+  font-size: 13px;
+  color: var(--command-muted);
+  max-width: 420px;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.rqEmptyClearBtn {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  background: var(--command-blue);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 650;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.rqEmptyClearBtn:hover {
+  opacity: 0.9;
+}
+
+.rqIncidentError {
+  background: rgba(225, 29, 56, 0.05);
+  border: 1px solid rgba(225, 29, 56, 0.25);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  color: var(--command-ink);
+}
+
+.rqErrorContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 240px;
+}
+
+.rqErrorContent strong {
+  font-size: 13px;
+  color: var(--command-red);
+}
+
+.rqErrorContent p {
+  font-size: 12px;
+  color: var(--command-muted);
+  margin: 0;
+}
+
+.rqRetryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 7px;
+  background: var(--command-surface);
+  border: 1px solid rgba(225, 29, 56, 0.35);
+  color: var(--command-red);
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.rqRetryBtn:hover {
+  background: var(--command-red);
+  color: #fff;
+}
+
+/* --------------------------------------------------------------------------
+   9. RESPONSIVE BREAKPOINTS
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .rqIncidentMetrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .rqIncidentPageHead {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+  .rqIncidentActionsBlock {
+    justify-content: space-between;
+  }
+  .rqSearchWrap {
+    flex: 1 1 100%;
+  }
+  .rqFilterControls {
+    flex: 1 1 100%;
+  }
+  .rqSelectWrapper {
+    flex: 1 1 calc(50% - 6px);
+  }
+  .rqIncidentRow.rqIncidentCard {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 12px;
+    padding: 12px;
+  }
+  .rqIncidentCardVisual {
+    width: 64px;
+    height: 64px;
+  }
+  .rqIncidentCardAction {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .rqIncidentMetrics {
+    grid-template-columns: 1fr;
+  }
+  .rqSelectWrapper {
+    flex: 1 1 100%;
+  }
+  .rqClearFiltersBtn {
+    width: 100%;
+    justify-content: center;
+  }
+  .rqIncidentRow.rqIncidentCard {
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px;
+  }
+  .rqIncidentCardVisual {
+    width: 52px;
+    height: 52px;
+  }
+  .rqIncidentPagination {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  .rqPaginationActions {
+    justify-content: center;
+  }
+}
