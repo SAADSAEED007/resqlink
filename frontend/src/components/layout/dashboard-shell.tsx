@@ -83,7 +83,11 @@ export function DashboardShell({ children }: { children: ReactNode }) {
     },
   ];
 
-  const identity = user?.name?.trim() || user?.email?.trim() || "Coordinator";
+  const identity =
+    (user as { displayName?: string } | null)?.displayName?.trim() ||
+    user?.name?.trim() ||
+    user?.email?.trim() ||
+    "Coordinator";
   const initials = identity
     .split(/[\s@._-]+/)
     .filter(Boolean)
