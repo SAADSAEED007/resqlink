@@ -26,8 +26,8 @@ export function useIncidentWorkspace(id: string) {
   const generation = useRef(0);
   const validId = /^[a-f\d]{24}$/i.test(id);
   const isDemoRef = id === "INC-2024-0814-001" || id.startsWith("INC-");
-  const isSimulatedTarget = isDemoMode;
-  const demo = useMemo(() => isDemoMode ? dashboard.demo.incidents.find(record => record._id === id || (id === "INC-2024-0814-001" && record._id === dashboard.demo.incidents[0]?._id)) || null : null, [isDemoMode, dashboard.demo.incidents, id]);
+  const isSimulatedTarget = isDemoMode && !validId;
+  const demo = useMemo(() => isSimulatedTarget ? dashboard.demo.incidents.find(record => record._id === id || (id === "INC-2024-0814-001" && record._id === dashboard.demo.incidents[0]?._id)) || null : null, [isSimulatedTarget, dashboard.demo.incidents, id]);
 
   const loadRecommendations = useCallback(async (record: Incident, signal?: AbortSignal) => {
     if (isSimulatedTarget || record.isSimulated) {

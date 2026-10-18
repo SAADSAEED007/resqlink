@@ -1,0 +1,599 @@
+.rqNotificationBellContainer {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.rqNotificationBellBtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--command-border);
+  background: var(--command-surface);
+  color: var(--command-ink);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.rqNotificationBellBtn:hover {
+  background: var(--command-soft);
+  border-color: #94a3b8;
+}
+
+.rqNotificationBellBtn:focus-visible {
+  outline: 2px solid var(--command-blue);
+  outline-offset: 2px;
+}
+
+.rqNotificationBadge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--command-red, #e11d38);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(225, 29, 56, 0.4);
+  pointer-events: none;
+}
+
+.rqNotificationPopover {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 380px;
+  max-width: calc(100vw - 24px);
+  background: var(--command-surface);
+  border: 1px solid var(--command-border);
+  border-radius: 14px;
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.18), 0 4px 12px rgba(15, 23, 42, 0.08);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: rqNotifSlideDown 0.18s ease-out;
+}
+
+@keyframes rqNotifSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rqNotificationHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--command-border);
+  background: var(--command-surface);
+}
+
+.rqNotificationHeaderInfo h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--command-ink);
+  letter-spacing: -0.01em;
+}
+
+.rqNotificationHeaderInfo p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--command-muted);
+}
+
+.rqNotificationHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rqNotificationMarkAllBtn {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: var(--command-blue);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.12s;
+}
+
+.rqNotificationMarkAllBtn:hover:not(:disabled) {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.rqNotificationMarkAllBtn:disabled {
+  color: var(--command-muted);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rqNotificationCloseBtn {
+  background: none;
+  border: none;
+  padding: 4px;
+  border-radius: 6px;
+  color: var(--command-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rqNotificationCloseBtn:hover {
+  background: var(--command-soft);
+  color: var(--command-ink);
+}
+
+.rqNotificationList {
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 4px 0;
+  margin: 0;
+  list-style: none;
+}
+
+.rqNotificationList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.rqNotificationList::-webkit-scrollbar-thumb {
+  background: var(--command-border);
+  border-radius: 3px;
+}
+
+.rqNotificationItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  border-bottom: 1px solid var(--command-border);
+  transition: background 0.12s;
+  position: relative;
+}
+
+.rqNotificationItem:last-child {
+  border-bottom: none;
+}
+
+.rqNotificationItem:hover {
+  background: var(--command-soft);
+}
+
+.rqNotificationItem.unread {
+  background: rgba(37, 99, 235, 0.04);
+}
+
+.rqNotificationItem.unread:hover {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.rqNotificationIconWrapper {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.rqNotificationIconWrapper.severity-CRITICAL {
+  background: rgba(225, 29, 56, 0.12);
+  color: var(--command-red);
+}
+
+.rqNotificationIconWrapper.severity-HIGH {
+  background: rgba(180, 83, 9, 0.12);
+  color: var(--command-amber);
+}
+
+.rqNotificationIconWrapper.severity-MEDIUM {
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--command-blue);
+}
+
+.rqNotificationIconWrapper.severity-LOW,
+.rqNotificationIconWrapper.severity-INFO {
+  background: rgba(100, 116, 139, 0.12);
+  color: var(--command-muted);
+}
+
+.rqNotificationContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.rqNotificationTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.rqNotificationTitle {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--command-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rqNotificationTime {
+  font-size: 10px;
+  color: var(--command-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.rqNotificationMessage {
+  font-size: 11px;
+  color: var(--command-muted);
+  margin: 0 0 6px 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.rqNotificationFooterRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rqNotificationSeverityBadge {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.rqNotificationSeverityBadge.CRITICAL {
+  background: rgba(225, 29, 56, 0.15);
+  color: var(--command-red);
+}
+
+.rqNotificationSeverityBadge.HIGH {
+  background: rgba(180, 83, 9, 0.15);
+  color: var(--command-amber);
+}
+
+.rqNotificationSeverityBadge.MEDIUM {
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--command-blue);
+}
+
+.rqNotificationSeverityBadge.LOW,
+.rqNotificationSeverityBadge.INFO {
+  background: rgba(100, 116, 139, 0.12);
+  color: var(--command-muted);
+}
+
+.rqNotificationUnreadDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--command-blue);
+  flex-shrink: 0;
+}
+
+.rqNotificationStateMsg {
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--command-muted);
+}
+
+.rqNotificationStateMsg p {
+  margin: 6px 0 0;
+  font-size: 12px;
+}
+
+.rqNotificationStateMsg strong {
+  color: var(--command-ink);
+  font-size: 13px;
+  display: block;
+}
+
+.rqNotificationRetryBtn {
+  margin-top: 10px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--command-surface);
+  border: 1px solid var(--command-border);
+  border-radius: 6px;
+  color: var(--command-ink);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.rqNotificationRetryBtn:hover {
+  background: var(--command-soft);
+}
+
+.rqNotificationFooterNav {
+  padding: 10px 16px;
+  border-top: 1px solid var(--command-border);
+  background: var(--command-soft);
+  text-align: center;
+}
+
+.rqNotificationFooterLink {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--command-blue);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rqNotificationFooterLink:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .rqNotificationPopover {
+    position: fixed;
+    top: 64px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-width: none;
+  }
+}
+
+/* Floating Emergency SOS Notification Popup */
+.rqEmergencyToastContainer {
+  position: fixed;
+  top: 72px;
+  right: 20px;
+  z-index: 1050;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  pointer-events: none;
+}
+
+.rqEmergencyToast {
+  pointer-events: auto;
+  background: var(--command-surface);
+  border: 1px solid var(--command-border);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16), 0 2px 6px rgba(15, 23, 42, 0.08);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: rqEmergencyToastSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes rqEmergencyToastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rqEmergencyToast {
+    animation: none;
+  }
+}
+
+.rqEmergencyToast.severity-CRITICAL {
+  border-left: 4px solid var(--command-red, #e11d38);
+}
+
+.rqEmergencyToast.severity-HIGH {
+  border-left: 4px solid var(--command-amber, #d97706);
+}
+
+.rqEmergencyToast.severity-MEDIUM,
+.rqEmergencyToast.severity-LOW,
+.rqEmergencyToast.severity-INFO {
+  border-left: 4px solid var(--command-blue, #2563eb);
+}
+
+.rqEmergencyToastHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rqEmergencyToastMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.rqEmergencyToastIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rqEmergencyToast.severity-CRITICAL .rqEmergencyToastIcon {
+  background: rgba(225, 29, 56, 0.14);
+  color: var(--command-red, #e11d38);
+}
+
+.rqEmergencyToast.severity-HIGH .rqEmergencyToastIcon {
+  background: rgba(217, 119, 6, 0.14);
+  color: var(--command-amber, #d97706);
+}
+
+.rqEmergencyToast.severity-MEDIUM .rqEmergencyToastIcon,
+.rqEmergencyToast.severity-LOW .rqEmergencyToastIcon,
+.rqEmergencyToast.severity-INFO .rqEmergencyToastIcon {
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--command-blue, #2563eb);
+}
+
+.rqEmergencyToastTitleGroup {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rqEmergencyToastTitleGroup strong {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--command-ink);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rqEmergencyToastBadges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+.rqToastRealBadge {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(225, 29, 56, 0.15);
+  color: var(--command-red, #e11d38);
+  border: 1px solid rgba(225, 29, 56, 0.3);
+}
+
+.rqToastRefBadge {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--command-muted);
+  font-family: ui-monospace, monospace;
+}
+
+.rqEmergencyToastDismiss {
+  background: none;
+  border: none;
+  padding: 4px;
+  border-radius: 6px;
+  color: var(--command-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.12s;
+}
+
+.rqEmergencyToastDismiss:hover {
+  background: var(--command-soft);
+  color: var(--command-ink);
+}
+
+.rqEmergencyToastBody {
+  font-size: 12px;
+  color: var(--command-muted);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.rqEmergencyToastActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.rqEmergencyToastReviewBtn {
+  background: var(--command-blue, #2563eb);
+  color: #ffffff;
+  border: none;
+  border-radius: 7px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.rqEmergencyToastReviewBtn:hover {
+  background: #1d4ed8;
+}
+
+.rqEmergencyToastReviewBtn:focus-visible {
+  outline: 2px solid var(--command-blue);
+  outline-offset: 2px;
+}
+
+.rqEmergencyToast.severity-CRITICAL .rqEmergencyToastReviewBtn {
+  background: var(--command-red, #e11d38);
+}
+
+.rqEmergencyToast.severity-CRITICAL .rqEmergencyToastReviewBtn:hover {
+  background: #be123c;
+}
+
+@media (max-width: 640px) {
+  .rqEmergencyToastContainer {
+    top: 68px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-width: none;
+}

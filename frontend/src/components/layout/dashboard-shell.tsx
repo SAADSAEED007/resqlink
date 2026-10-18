@@ -18,12 +18,12 @@ import {
   ClipboardList,
   MapPin,
   Search,
-  Bell,
   LogOut,
   X,
 } from "lucide-react";
 import "./command-center.css";
 import { useDashboardTheme } from "./dashboard-theme";
+import { NotificationBell } from "./NotificationBell";
 
 export function DashboardShell({ children }: { children: ReactNode }) {
   const { theme, toggleTheme } = useDashboardTheme();
@@ -36,14 +36,12 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const [confirm, setConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [showAlerts, setShowAlerts] = useState(false);
 
   const { user, logout, status } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const toast = useToast();
-  const { searchQuery, setSearchQuery, setSelectedIncident, incidents } =
-    useDashboard();
+  const { searchQuery, setSearchQuery } = useDashboard();
 
   async function signOut() {
     setBusy(true);
@@ -59,12 +57,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
     }
   }
 
-  const criticalIncidents = incidents.filter(
-    (i) =>
-      i.priorityLevel === "CRITICAL" &&
-      i.status !== "RESOLVED" &&
-      i.status !== "CANCELLED",
-  );
 
   const navItems = [
     { label: "Overview", href: "/dashboard", icon: Home, active: true },
@@ -226,59 +218,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                 <Sun size={18} aria-hidden="true" />
               )}
             </button>
-            <div className="rqCommandAlerts">
-              <button
-                className="rqCommandIcon"
-                title="Emergency alerts"
-                aria-label="Open emergency alerts"
-                aria-expanded={showAlerts}
-                onClick={() => setShowAlerts(!showAlerts)}
-              >
-                <Bell size={19} />
-                {criticalIncidents.length > 0 && (
-                  <sup aria-label={`${criticalIncidents.length} critical alerts`}>{criticalIncidents.length > 99 ? "99+" : criticalIncidents.length}</sup>
-                )}
-              </button>
-              {showAlerts && (
-                <section
-                  className="rqCommandAlertPanel"
-                  aria-label="Critical alerts"
-                  onKeyDown={(e) => {
-                    if (e.key === "Escape") setShowAlerts(false);
-                  }}
-                >
-                  <div>
-                    <strong>
-                      Critical alerts ({criticalIncidents.length})
-                    </strong>
-                    <button
-                      aria-label="Close alerts"
-                      onClick={() => setShowAlerts(false)}
-                    >
-                      <X size={18} />
-                    </button>
-                  </div>
-                  {criticalIncidents.length === 0 ? (
-                    <p>No unresolved critical alerts.</p>
-                  ) : (
-                    criticalIncidents.map((inc) => (
-                      <button
-                        key={inc._id}
-                        onClick={() => {
-                          setSelectedIncident(inc);
-                          setShowAlerts(false);
-                        }}
-                      >
-                        {inc.description}
-                        <small>
-                          {inc.location?.address || "Location unverified"}
-                        </small>
-                      </button>
-                    ))
-                  )}
-                </section>
-              )}
-            </div>
+            <NotificationBell />
             {status === "loading" ? (
               <div className="rqCommandProfileLoading" aria-label="Loading account profile">
                 <span className="rqCommandAvatar" aria-hidden="true" />

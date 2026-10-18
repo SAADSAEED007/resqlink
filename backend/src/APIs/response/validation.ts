@@ -1,7 +1,7 @@
 import Joi from 'joi'
 import { CustomError } from '../../utils/errors'
 import { validateSchema } from '../../utils/joi-validate'
-import { EMERGENCY_TYPES, WATER_LEVELS, PRIORITIES, INCIDENT_STATUSES, VERIFICATION_STATUSES, CAPABILITIES, TEAM_STATUSES } from './types'
+import { EMERGENCY_TYPES, WATER_LEVELS, PRIORITIES, INCIDENT_STATUSES, VERIFICATION_STATUSES, CAPABILITIES, TEAM_STATUSES, NOTIFICATION_TYPES } from './types'
 // Reject control characters deliberately to keep submitted text safe and predictable.
 
 const text = (max: number) =>
@@ -126,6 +126,15 @@ export const activityQuerySchema = Joi.object({
     limit: Joi.number().integer().min(1).max(100).default(20),
     isSimulated: Joi.boolean(),
     incidentId: Joi.string().hex().length(24)
+})
+export const notificationQuerySchema = Joi.object({
+    ...paging,
+    unreadOnly: Joi.boolean(),
+    type: Joi.string().valid(...NOTIFICATION_TYPES),
+    isSimulated: Joi.boolean()
+})
+export const notificationFilterQuerySchema = Joi.object({
+    isSimulated: Joi.boolean()
 })
 export const incidentActivityQuerySchema = Joi.object({
     limit: Joi.number().integer().min(1).max(100).default(50),

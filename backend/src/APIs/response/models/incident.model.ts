@@ -1,4 +1,4 @@
-import { Schema, model, InferSchemaType } from 'mongoose'
+import { Schema, model, InferSchemaType, Types } from 'mongoose'
 import { EMERGENCY_TYPES, WATER_LEVELS, PRIORITIES, CONFIDENCES, INCIDENT_STATUSES, VERIFICATION_STATUSES } from '../types'
 
 export const locationSchema = new Schema(
@@ -93,5 +93,7 @@ schema.index({ status: 1, priorityScore: -1, createdAt: 1, _id: 1 })
 schema.index({ 'verification.status': 1, createdAt: -1 })
 schema.index({ updatedAt: -1 })
 schema.index({ emergencyType: 1, status: 1, priorityScore: -1 })
-export type IncidentRecord = InferSchemaType<typeof schema>
+export type IncidentRecord = InferSchemaType<typeof schema> & {
+    _id: Types.ObjectId
+}
 export default model('Incident', schema)
