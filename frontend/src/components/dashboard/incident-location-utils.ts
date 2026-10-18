@@ -63,8 +63,8 @@ export function getIncidentLocationInfo(incident: Incident): IncidentLocationInf
   if (hasCoords) {
     return {
       status: "AWAITING_VERIFICATION",
-      label: "Location reported — awaiting verification",
-      subtext: "Map position is available but has not been coordinator-verified.",
+      label: "Reported location — awaiting verification",
+      subtext: "This reported map position has not been independently confirmed.",
       hasCoordinates: true,
       coordinatesText: `${coords!.latitude.toFixed(4)}, ${coords!.longitude.toFixed(4)}`,
       addressText,
@@ -75,7 +75,7 @@ export function getIncidentLocationInfo(incident: Incident): IncidentLocationInf
   if (hasAddress) {
     return {
       status: "LANDMARK_PENDING",
-      label: "Landmark provided — map position pending",
+      label: "Landmark provided — map location pending",
       subtext: "Address provided without GPS coordinates.",
       hasCoordinates: false,
       addressText,
@@ -85,7 +85,7 @@ export function getIncidentLocationInfo(incident: Incident): IncidentLocationInf
   // CASE 4: No useful location
   return {
     status: "UNKNOWN",
-    label: "Location unknown — follow-up needed",
+    label: "Location unavailable",
     subtext: "No coordinates or landmark provided.",
     hasCoordinates: false,
   };
