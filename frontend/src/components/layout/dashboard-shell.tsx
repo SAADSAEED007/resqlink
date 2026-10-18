@@ -236,7 +236,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               >
                 <Bell size={19} />
                 {criticalIncidents.length > 0 && (
-                  <sup>{criticalIncidents.length}</sup>
+                  <sup aria-label={`${criticalIncidents.length} critical alerts`}>{criticalIncidents.length > 99 ? "99+" : criticalIncidents.length}</sup>
                 )}
               </button>
               {showAlerts && (

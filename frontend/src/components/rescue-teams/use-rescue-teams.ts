@@ -4,7 +4,7 @@ import { teams as teamApi } from "@/lib/api/teams";
 import { ApiError, errorMessage } from "@/lib/api/client";
 import type { Capability, Paginated, RescueTeam, TeamStatus } from "@/types/api";
 import { useDashboard } from "@/components/dashboard/dashboard-context";
-import { MOCK_RESCUE_TEAMS } from "@/components/dashboard/mock-data";
+
 
 function validTeam(team: RescueTeam | undefined): team is RescueTeam {
   // Keep an otherwise valid team visible when its base is missing; map adapters
@@ -14,7 +14,7 @@ function validTeam(team: RescueTeam | undefined): team is RescueTeam {
 
 export function useRescueTeams() {
   const dashboard = useDashboard();
-  const { isDemoMode } = dashboard;
+  const { isDemoMode, demo } = dashboard;
   const [data, setData] = useState<Paginated<RescueTeam>>({ items: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 0 } });
   const [counts, setCounts] = useState<number[] | null>(null);
   const [countError, setCountError] = useState("");
@@ -36,9 +36,9 @@ export function useRescueTeams() {
       try {
         let next: Paginated<RescueTeam>;
         if (isDemoMode) {
-          const filtered = MOCK_RESCUE_TEAMS.filter(team => (!status || team.status === status) && (!capability || team.capabilities.includes(capability)) && (!query || `${team.name} ${team.teamCode}`.toLowerCase().includes(query.toLowerCase())));
+          const filtered = demo.teams.filter(team => (!status || team.status === status) && (!capability || team.capabilities.includes(capability)) && (!query || `${team.name} ${team.teamCode}`.toLowerCase().includes(query.toLowerCase())));
           next = { items: filtered.slice((page - 1) * 20, page * 20), pagination: { page, limit: 20, total: filtered.length, totalPages: Math.ceil(filtered.length / 20) } };
-          setCounts([MOCK_RESCUE_TEAMS.length, ...["AVAILABLE", "BUSY", "OFFLINE"].map(value => MOCK_RESCUE_TEAMS.filter(team => team.status === value).length)]);
+          setCounts([demo.teams.length, ...["AVAILABLE", "BUSY", "OFFLINE"].map(value => demo.teams.filter(team => team.status === value).length)]);
         } else {
           next = await teamApi.list({ page, limit: 20, status: status || undefined, capability: capability || undefined, search: query || undefined, isSimulated: false }, controller.signal);
           if (!Array.isArray(next?.items) || !next.pagination || !Number.isFinite(next.pagination.total) || next.items.some(team => !validTeam(team))) throw new ApiError("Invalid team response. Please retry.", 0, "protocol");
@@ -56,14 +56,14 @@ export function useRescueTeams() {
     timer = setTimeout(() => void load(), 0);
     document.addEventListener("visibilitychange", visible);
     return () => { controller.abort(); clearTimeout(timer); document.removeEventListener("visibilitychange", visible); };
-  }, [page, status, capability, query, attempt, isDemoMode]);
+  }, [page, status, capability, query, attempt, isDemoMode, demo.teams]);
   useEffect(() => {
     if (!selectedId) return;
     const controller = new AbortController(); let running = false; let timer: ReturnType<typeof setTimeout>;
     async function load() {
       if (running || lock.current || document.hidden) return; running = true;
       try {
-        const record = isDemoMode ? MOCK_RESCUE_TEAMS.find(team => team._id === selectedId) : await teamApi.get(selectedId, controller.signal);
+        const record = isDemoMode ? demo.teams.find(team => team._id === selectedId) : await teamApi.get(selectedId, controller.signal);
         if (!validTeam(record) || record._id !== selectedId) throw new ApiError("Team profile unavailable.", 404);
         if (!controller.signal.aborted) { setProfile(record); setProfileError(""); }
       } catch (failure) { if (!controller.signal.aborted) setProfileError(errorMessage(failure)); }
@@ -72,9 +72,10 @@ export function useRescueTeams() {
     const visible = () => { clearTimeout(timer); if (!document.hidden) void load(); };
     timer = setTimeout(() => void load(), 0); document.addEventListener("visibilitychange", visible);
     return () => { controller.abort(); clearTimeout(timer); document.removeEventListener("visibilitychange", visible); };
-  }, [selectedId, attempt, isDemoMode]);
-  async function mutate(task: () => Promise<RescueTeam>, success: string) {
-    if (lock.current || isDemoMode || uncertain) return false;
+  }, [selectedId, attempt, isDemoMode, demo.teams]);
+  async function mutate(task: () => Promise<RescueTeam>, success: string, simulation?: import("@/components/dashboard/demo-environment").DemoAction) {
+    if (lock.current || uncertain) return false;
+    if (isDemoMode) {lock.current=true; try {if(!simulation) throw new Error("This demo action is not supported."); dashboard.demoAction(simulation);setMessage("Team state updated in simulation.");setMutationError("");return true;}catch(error){setMutationError(error instanceof Error ? error.message : "Simulation failed.");return false;}finally{lock.current=false;}}
     lock.current = true; setBusy(true); setMutationError(""); setMessage("");
     try {
       const result = await task(); if (!result?._id || !/^[a-f\d]{24}$/i.test(result._id)) throw new ApiError("Invalid server confirmation", 0, "protocol");

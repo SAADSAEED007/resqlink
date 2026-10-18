@@ -1,4 +1,7 @@
 "use client";
+import { useDashboard } from "@/components/dashboard/dashboard-context";
+import { eligibleDemoTeam } from "@/components/dashboard/demo-environment";
+import { filterDemoIncidents } from "@/components/dashboard/incident-filters";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { incidents, type IncidentQuery } from "@/lib/api/incidents";
 import { assignments } from "@/lib/api/assignments";
@@ -13,13 +16,14 @@ import type {
 import { recordId, todayRange, type AssignmentRecord } from "./assignment-data";
 
 export function useAssignmentWorkspace(demo: boolean) {
+  const environment = useDashboard();
   const [filters, setFilters] = useState<IncidentQuery>({
     page: 1,
     sort: "priority",
   });
   const [history, setHistory] = useState(false),
     [assignmentPage, setAssignmentPage] = useState(1);
-  const [snapshot, setSnapshot] = useState<{
+  const [apiSnapshot, setSnapshot] = useState<{
     queue: Paginated<Incident>;
     records: Paginated<AssignmentRecord>;
     activity: AssignmentRecord[];
@@ -29,7 +33,7 @@ export function useAssignmentWorkspace(demo: boolean) {
     kind: "incident" | "assignment";
     id: string;
   } | null>(null);
-  const [detail, setDetail] = useState<{
+  const [apiDetail, setDetail] = useState<{
     incident: Incident;
     assignment?: AssignmentRecord;
     recommendations?: Recommendations;
@@ -159,6 +163,17 @@ export function useAssignmentWorkspace(demo: boolean) {
     };
   }, [filters, history, assignmentPage, attempt, demo]);
 
+  const demoAssignments: AssignmentRecord[] = environment.demo.assignments.map(row => ({...row, incidentId:environment.demo.incidents.find(i=>i._id===row.incidentId)||null, teamId:environment.demo.teams.find(t=>t._id===row.teamId)||null}));
+  const queue = filterDemoIncidents(environment.demo.incidents, {search:filters.search,status:"PENDING",priority:filters.priorityLevel,verification:filters.verificationStatus,sort:filters.sort}).filter(i=>!i.assignedTeam);
+  const demoRecords = demoAssignments.filter(a=>a.status===(history?"COMPLETED":"ACTIVE"));
+  const snapshot = demo ? {
+    queue:{items:queue.slice(((filters.page||1)-1)*6,(filters.page||1)*6),pagination:{page:filters.page||1,limit:6,total:queue.length,totalPages:Math.max(1,Math.ceil(queue.length/6))}},
+    records:{items:demoRecords.slice((assignmentPage-1)*5,assignmentPage*5),pagination:{page:assignmentPage,limit:5,total:demoRecords.length,totalPages:Math.max(1,Math.ceil(demoRecords.length/5))}},
+    activity:demoAssignments, metrics:[queue.length,demoAssignments.filter(a=>a.status==="ACTIVE").length,queue.filter(i=>i.priorityLevel==="CRITICAL").length,demoAssignments.filter(a=>a.status==="COMPLETED").length]
+  } : apiSnapshot;
+  const demoAssignment = selection?.kind==="assignment" ? demoAssignments.find(a=>a._id===selection.id) : undefined;
+  const demoIncident = environment.demo.incidents.find(i=>i._id===(demoAssignment?recordId(demoAssignment.incidentId):selection?.id));
+  const detail = demo ? demoIncident ? {incident:demoIncident,assignment:demoAssignment,recommendations:{manualSelectionRequired:true as const,distanceType:"APPROXIMATE_STRAIGHT_LINE_KM" as const,message:"Eligible simulated teams",items:environment.demo.teams.filter(t=>eligibleDemoTeam(demoIncident,t)).map(team=>({team,approximateDistanceKm:0,capacityWarning:null}))}} : null : apiDetail;
   const loadDetail = useCallback(
     async (target: NonNullable<typeof selection>, signal?: AbortSignal) => {
       const version = ++detailVersion.current;
@@ -211,7 +226,7 @@ export function useAssignmentWorkspace(demo: boolean) {
   function select(kind: "incident" | "assignment", id: string) {
     if (locked.current) return;
     setSelection({ kind, id });
-    setLoadingDetail(true);
+    setLoadingDetail(!demo);
     setDetailError("");
     setDetail(null);
     setSelectedTeam("");
@@ -219,7 +234,13 @@ export function useAssignmentWorkspace(demo: boolean) {
     setMessage("");
   }
   async function mutate(action: "assign" | "IN_PROGRESS" | "RESOLVED") {
-    if (!detail || locked.current || uncertain || demo) return false;
+    if (!detail || locked.current || uncertain) return false;
+    if (demo) {
+      locked.current=true;
+      try { const saved = environment.demoAction(action==="assign" ? {type:"assign",incidentId:detail.incident._id,teamId:selectedTeam} : {type:"status",incidentId:detail.incident._id,status:action}); if(action==="assign") {setSelection({kind:"assignment",id:saved._id});setHistory(false);setAssignmentPage(1);setNotes("");} setMessage("Simulation updated successfully."); return true; }
+      catch(error) {setMessage(error instanceof Error?error.message:"Simulation failed.");return false;}
+      finally {locked.current=false;}
+    }
     locked.current = true;
     setBusy(true);
     setMessage("");
@@ -298,7 +319,7 @@ export function useAssignmentWorkspace(demo: boolean) {
       (item) =>
         item.team.status === "AVAILABLE" &&
         !item.team.currentIncident &&
-        !item.team.isSimulated,
+        (demo || !item.team.isSimulated),
     ) ?? [];
   const mapTeams: RescueTeam[] = eligible.map((item) => item.team);
   const assignedTeam = detail?.assignment?.teamId;

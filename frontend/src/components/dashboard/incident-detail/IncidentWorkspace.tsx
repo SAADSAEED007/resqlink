@@ -9,7 +9,7 @@ import {
   CheckCircle2,
   ChevronRight,
   MapPin,
-  MoreHorizontal,
+  RefreshCw,
   Send,
   Share2,
   ShieldCheck,
@@ -21,6 +21,7 @@ import { incidents } from "@/lib/api/incidents";
 import { assignments as assignmentApi } from "@/lib/api/assignments";
 import { ConfirmationDialog } from "@/components/ui";
 import { incidentTitle } from "../incident-visual";
+import { useDashboard } from "../dashboard-context";
 import { useIncidentWorkspace } from "./use-incident-workspace";
 import {
   IncidentInformationCard,
@@ -49,7 +50,8 @@ type Confirmation = {
 
 export function IncidentWorkspace() {
   const { id } = useParams<{ id: string }>();
-  return <IncidentWorkspaceContent key={id} id={id} />;
+  const { isDemoMode } = useDashboard();
+  return <IncidentWorkspaceContent key={`${id}-${isDemoMode}`} id={id} />;
 }
 
 function IncidentWorkspaceContent({ id }: { id: string }) {
@@ -97,7 +99,8 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
     );
   }
 
-  const readOnly = isDemoMode || incident.isSimulated;
+  const incidentId = incident._id;
+  const readOnly = !isDemoMode && incident.isSimulated;
   const isAssigned = incident.status !== "PENDING" || !!incident.assignedTeam;
   const canAdjust = !readOnly && !["RESOLVED", "CANCELLED"].includes(incident.status);
 
@@ -110,18 +113,17 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
 
   const availableTeams = [
     ...recommendedTeams,
-    ...model.teams,
+    ...(isDemoMode ? model.teams.filter(team => recItems.some(item => item.team._id === team._id)) : []),
   ].filter(
     (team, index, all) =>
       all.findIndex((item) => item._id === team._id) === index &&
-      (team.status === "AVAILABLE" || isDemoMode) &&
+      (team.status === "AVAILABLE") &&
       !team.currentIncident,
   );
 
   const effectiveTeamId = teamId || availableTeams[0]?._id || "";
   const chosenTeam =
-    availableTeams.find((team) => team._id === effectiveTeamId) ||
-    availableTeams[0];
+    availableTeams.find((team) => team._id === effectiveTeamId);
 
   const assignedTeam = model.teams.find(
     (team) => team._id === incident.assignedTeam,
@@ -144,6 +146,7 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
     void model.mutate(
       () => incidents.updateVerification(id, decision, notes),
       "Verification review recorded.",
+      { type: "verify", incidentId, status: decision, notes },
     );
   }
 
@@ -160,18 +163,21 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
       success = await model.mutate(
         () => assignmentApi.create({ incidentId: id, teamId: chosenTeam._id }),
         "Team assignment recorded in ResQLink. Field status updated.",
+        { type: "assign", incidentId, teamId: chosenTeam._id },
       );
     }
     if (confirm.kind === "status" && allowed.includes(status as IncidentStatus)) {
       success = await model.mutate(
         () => incidents.updateStatus(id, status as IncidentStatus),
         "Incident status updated.",
+        { type: "status", incidentId, status: status as IncidentStatus },
       );
     }
     if (confirm.kind === "priority" && canAdjust) {
       success = await model.mutate(
         () => incidents.overridePriority(id, priority, normalized(reason)),
         "Coordinator priority override recorded.",
+        { type: "priority", incidentId, priority, reason: normalized(reason) },
       );
     }
     if (success) {
@@ -192,9 +198,9 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
   return (
     <article className="rqIncidentWorkspace">
       {/* Read-Only Demo Mode Banner */}
-      {readOnly && (
+      {(isDemoMode || readOnly) && (
         <div className="rqDemoBanner" role="status" style={{ background: "rgba(38,132,255,0.12)", border: "1px solid rgba(38,132,255,0.3)", color: "var(--navy-blue)", padding: "8px 14px", borderRadius: 8, marginBottom: 12, fontWeight: 600 }}>
-          Simulation / Prototype · Read-only incident
+          Demo Mode · Simulated records and actions
         </div>
       )}
 
@@ -241,7 +247,7 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
               onClick={() => model.reload()}
               title="Refresh"
             >
-              <MoreHorizontal size={17} />
+              <RefreshCw size={17} />
             </button>
           </div>
         </div>
@@ -259,7 +265,7 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
           <span className="rqMetaBullet">•</span>
           <span className="rqMetaItem">Source: {incident.reporterName || "Direct portal"}</span>
           <span className="rqMetaBullet">•</span>
-          <span className="rqMetaItem rqHeroVerification">{verification?.status?.replaceAll("_", " ") || "VERIFIED"}</span>
+          <span className="rqMetaItem rqHeroVerification">{verification?.status?.replaceAll("_", " ") || "Verification not recorded"}</span>
         </div>
       </header>
 
@@ -418,6 +424,7 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
                         <button
                           type="button"
                           className={`rqTeamRow ${isSelected ? "is-selected" : ""}`}
+                          aria-pressed={isSelected}
                           onClick={() => setTeamId(team._id)}
                           style={{ width: "100%", textAlign: "left", background: "none", border: "1px solid var(--navy-subsurface-border)" }}
                         >
@@ -432,7 +439,7 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
                           </div>
                           <div className="rqTeamMetrics">
                             <span className="rqTeamDistance">
-                              <MapPin size={11} /> {item.approximateDistanceKm.toFixed(1)} km
+                              <MapPin size={11} /> {isDemoMode ? "Demo team" : `${item.approximateDistanceKm.toFixed(1)} km`}
                             </span>
                             {item.capacityWarning && (
                               <span className="rqCapacityWarningTag" title={item.capacityWarning}>
@@ -467,10 +474,10 @@ function IncidentWorkspaceContent({ id }: { id: string }) {
               </div>
               <div className="rqAssignedDetails">
                 <strong className="rqAssignedTitle">
-                  Assigned to: {assignedTeam?.name || "Dispatched Rescue Team"}
+                  {['RESOLVED','CANCELLED'].includes(incident.status) ? 'Incident closed' : `Assigned to: ${assignedTeam?.name || "Recorded rescue team"}`}
                 </strong>
                 <span className="rqAssignedSub">
-                  Lifecycle status: <strong>{incident.status.replaceAll("_", " ")}</strong>. Active operations in progress.
+                  Lifecycle status: <strong>{incident.status.replaceAll("_", " ")}</strong>. {['RESOLVED','CANCELLED'].includes(incident.status) ? 'No active response assignment.' : 'Response assignment recorded.'}
                 </span>
               </div>
               {assignedTeam?.location?.address && (
