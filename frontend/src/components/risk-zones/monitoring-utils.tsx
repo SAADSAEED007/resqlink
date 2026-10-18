@@ -1,5 +1,10 @@
 import { Cloud, CloudRain, CloudSun, Sun, Wind } from "lucide-react";
-import type { AttentionLevel } from "@/types/risk-zones";
+import type { AttentionLevel, CommunityWeather } from "@/types/risk-zones";
+export const freshnessLabels = { fresh: "Forecast current", cached: "Cached forecast", stale: "Delayed forecast", unavailable: "Weather unavailable" };
+export function Freshness({ weather }: { weather?: CommunityWeather | null }) {
+  const state: keyof typeof freshnessLabels = weather?.freshness || "unavailable";
+  return <span className={`siFreshness ${state}`}><i aria-hidden="true" />{freshnessLabels[state]}</span>;
+}
 export const attentionLabels: Record<AttentionLevel, string> = {
   ROUTINE: "Routine",
   ELEVATED: "Elevated",

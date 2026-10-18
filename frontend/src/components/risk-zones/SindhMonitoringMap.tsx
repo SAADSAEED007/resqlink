@@ -44,7 +44,9 @@ export function SindhMonitoringMap({
         item.weather?.next24Hours.precipitationMm,
         item.weather?.retrievedAt,
         item.weather?.current.temperatureC,
+        item.weather?.current.condition,
         item.weather?.provider,
+        item.weather?.freshness,
       ]),
   );
   useEffect(() => {
@@ -73,6 +75,8 @@ export function SindhMonitoringMap({
         AttentionLevel | undefined,
         number | undefined,
         string | undefined,
+        string | undefined,
+        string | undefined,
         number | undefined,
         string | undefined,
       ][];
@@ -85,16 +89,39 @@ export function SindhMonitoringMap({
         rain,
         retrievedAt,
         temperatureC,
+        condition,
         provider,
+        freshness,
       ] of records) {
         const level = status || "DATA_UNAVAILABLE";
         const content = document.createElement("div");
-        content.textContent = `${name} · ${attentionLabels[level]} · ${typeof temperatureC !== "number" ? "Temperature unavailable" : `${temperatureC}°C`} · ${typeof rain !== "number" ? "Forecast unavailable" : `${rain} mm / next 24h`} · ${provider || "No weather source"} · ${retrievedAt ? new Date(retrievedAt).toLocaleString("en-PK", { timeZone: "Asia/Karachi" }) : "Not retrieved"} (Asia/Karachi). Representative town point.`;
+        content.className = "siMapPopup";
+        const title = document.createElement("strong");
+        title.textContent = name;
+        const badge = document.createElement("span");
+        badge.className = `siMapPopupBadge ${level.toLowerCase()}`;
+        badge.textContent = attentionLabels[level];
+        const readings = document.createElement("div");
+        readings.className = "siMapPopupReadings";
+        const current = document.createElement("span");
+        const currentValue = document.createElement("b");
+        currentValue.textContent =
+          typeof temperatureC === "number" ? `${temperatureC}°C` : "—";
+        current.append(currentValue, condition || "Current weather");
+        const forecast = document.createElement("span");
+        const forecastValue = document.createElement("b");
+        forecastValue.textContent = typeof rain === "number" ? `${rain} mm` : "—";
+        forecast.append(forecastValue, "Forecast / 24h");
+        readings.append(current, forecast);
+        const source = document.createElement("small");
+        source.textContent = `${freshness || "unavailable"} · ${provider || "No weather source"} · ${retrievedAt ? new Date(retrievedAt).toLocaleString("en-PK", { timeZone: "Asia/Karachi" }) : "Not retrieved"} PKT`;
+        const note = document.createElement("small");
+        note.textContent = "Representative town point; not a hazard boundary.";
         const review = document.createElement("button");
         review.type = "button";
         review.textContent = "Review District";
         review.addEventListener("click", () => select.current(id));
-        content.append(document.createElement("br"), review);
+        content.append(title, badge, readings, source, note, review);
         const marker = L.circleMarker([latitude, longitude], {
           radius: focused.current === id ? 13 : 9,
           color: "#fff",

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { ClipboardCheck, UsersRound, House, FileCheck2, ListChecks, ArrowUpRight, ShieldCheck } from "lucide-react";
 import { districtWeather } from "@/lib/api/district-weather";
 import { riskZones } from "@/lib/api/risk-zones";
 import { teams } from "@/lib/api/teams";
@@ -13,7 +14,13 @@ import {
   type PreparednessAction,
 } from "@/types/risk-zones";
 import type { RescueTeam } from "@/types/api";
-import { date, human } from "./monitoring-utils";
+import { Attention, Freshness, date, human } from "./monitoring-utils";
+const recommendations = {
+  ROUTINE: "The available forecast is below the configured rainfall attention thresholds. Continue monitoring and review local reports as needed.",
+  ELEVATED: "The forecast meets an elevated monitoring threshold. Consider a local field assessment and review resource readiness.",
+  URGENT_REVIEW: "Forecast evidence meets an urgent-review threshold. Validate local conditions and review preparedness options promptly.",
+  DATA_UNAVAILABLE: "Current weather evidence is unavailable for classification. Check the last valid update and existing community reports before drawing conclusions.",
+};
 
 const labels: Record<PreparednessAction, string> = {
   CONTINUE_MONITORING: "Continue monitoring",
@@ -50,6 +57,7 @@ export function PreparednessActions({
   const lock = useRef(false),
     alive = useRef(true);
   const requestId = useRef<string | null>(null);
+  const [reading, setReading] = useState(false);
   useEffect(() => {
     alive.current = true;
     return () => {
@@ -69,6 +77,9 @@ export function PreparednessActions({
         })
         .catch((err) => {
           if (!controller.signal.aborted) setError(errorMessage(err));
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setReading(false);
         });
     } else if (mode === "assessment") {
       void riskZones
@@ -88,6 +99,9 @@ export function PreparednessActions({
         })
         .catch((err) => {
           if (!controller.signal.aborted) setError(errorMessage(err));
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setReading(false);
         });
     } else if (mode === "decision") {
       void districtWeather
@@ -97,12 +111,16 @@ export function PreparednessActions({
         })
         .catch((err) => {
           if (!controller.signal.aborted) setError(errorMessage(err));
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setReading(false);
         });
     }
     return () => controller.abort();
   }, [mode, district.id, district.name]);
   function changeMode(value: typeof mode) {
     if (busy) return;
+    if (value !== mode) setReading(true);
     setMode(value);
     setError("");
     setMessage("");
@@ -196,55 +214,55 @@ export function PreparednessActions({
   return (
     <section
       className="siCard siPreparedness"
-      aria-label="Recommended Preparedness Actions"
+      aria-label="Coordinator Action Panel"
     >
       <header>
-        <h2>Recommended Preparedness Actions</h2>
+        <h2><ClipboardCheck size={17} />Coordinator Action Panel</h2>
+        <Attention level={district.attention?.level || "DATA_UNAVAILABLE"} />
       </header>
       <div className="siDetailBody">
-        <p>
-          <strong>{district.name}</strong> ·{" "}
-          {district.attention?.reasons[0] || "Review available evidence."}
-        </p>
-        <p className="siFootnote">
-          Human-led review. Forecast attention is not a confirmed emergency.
-          Viewing resources does not reserve or dispatch them.
-        </p>
+        <div className="siActionSummary"><span className="siEyebrow">{district.name} · Weather-informed readiness</span><h3>Current assessment</h3><p>{recommendations[district.attention?.level || "DATA_UNAVAILABLE"]}</p><div className="siActionFreshness"><Freshness weather={district.weather} />{district.weather && <time dateTime={district.weather.retrievedAt}>Fetched {date(district.weather.retrievedAt)} PKT</time>}</div></div>
         <div className="siPreparednessButtons">
           <button
-            className="siSecondary"
+            className="siActionFeatured"
+            aria-label="Create Field Assessment"
             disabled={busy}
             onClick={() => changeMode("assessment")}
           >
-            Create Field Assessment
+            <span className="siActionIcon"><ClipboardCheck size={23} /></span><span><small>{district.attention?.level === "ROUTINE" ? "Optional next step" : district.attention?.level === "DATA_UNAVAILABLE" ? "Human verification" : "Recommended next step"}</small><strong>Create Field Assessment</strong><span>{district.attention?.level === "DATA_UNAVAILABLE" ? "Review existing reports, then request ground verification if needed." : "Request human verification of local ground conditions."}</span></span><ArrowUpRight size={17} />
           </button>
+          <div className="siActionGrid">
           <button
-            className="siSecondary"
+            className="siActionCard"
+            aria-label="Review Available Teams"
             disabled={busy}
             onClick={() => changeMode("teams")}
           >
-            Review Available Teams
+            <UsersRound size={20} /><span><strong>Review Available Teams</strong><small>Check response readiness</small></span><ArrowUpRight size={14} />
           </button>
-          <button className="siSecondary" onClick={onShelters}>
-            View Nearby Shelters
+          <button className="siActionCard" aria-label="View Nearby Shelters" onClick={onShelters}>
+            <House size={20} /><span><strong>View Nearby Shelters</strong><small>Inspect stored resources</small></span><ArrowUpRight size={14} />
           </button>
           <button
-            className="siSecondary"
+            className="siActionCard"
+            aria-label="Record Coordinator Decision"
             disabled={busy}
             onClick={() => changeMode("decision")}
           >
-            Record Coordinator Decision
+            <FileCheck2 size={20} /><span><strong>Record Decision</strong><small>Save human review</small></span><ArrowUpRight size={14} />
           </button>
-          <Link className="siSecondary" href="/dashboard/incidents">
-            View Incident Directory
+          <Link className="siActionCard" aria-label="View Incident Directory" href="/dashboard/incidents">
+            <ListChecks size={20} /><span><strong>View Incidents</strong><small>Review reported emergencies</small></span><ArrowUpRight size={14} />
           </Link>
+          </div>
         </div>
+        <p className="siHumanApproval"><ShieldCheck size={14} />Human confirmation required. Reviewing resources does not dispatch or reserve them.</p>
+        {reading && <p className="siReadStatus" role="status">Loading {mode === "teams" ? "available teams" : mode === "assessment" ? "community records" : "recorded decisions"}…</p>}
         {mode === "teams" && (
           <div aria-label="Available preparedness teams">
-            <h3>Available teams</h3>
+            <h3>Available teams across the service area</h3>
             <p className="siFootnote">
-              Up to 100 stored available teams across the service area; this is
-              not a nearest-team ranking.
+              Not sorted by travel time or proximity. Up to 100 stored available teams are shown.
             </p>
             {teamRows.length ? (
               teamRows.map((team) => (
@@ -262,7 +280,7 @@ export function PreparednessActions({
                 </div>
               ))
             ) : (
-              <p>No available real team records have loaded.</p>
+              !reading && !error && <p>No available team records were returned. Check Team Management for other statuses.</p>
             )}
             <Link href="/dashboard/rescue-teams">
               Open Rescue Team Management
@@ -277,9 +295,9 @@ export function PreparednessActions({
               Dispatched state. This does not dispatch a rescue team. Up to 100
               matching community records are listed.
             </p>
-            {!zones.length && (
+            {!zones.length && !reading && !error && (
               <p>
-                No matching real community records have loaded.{" "}
+                No matching community records were returned.{" "}
                 <button className="siTextButton" onClick={onCommunities}>
                   Open Community Assessments
                 </button>{" "}
@@ -386,7 +404,7 @@ export function PreparednessActions({
                 </div>
               ))
             ) : (
-              <p>No saved decisions have loaded for this district.</p>
+              !reading && !error && <p>No saved decisions were returned for this district.</p>
             )}
           </div>
         )}
