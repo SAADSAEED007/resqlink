@@ -167,9 +167,10 @@
 .rtPickerBtn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 550; cursor: pointer; transition: all 0.15s ease; }
 .rtPickerBtnSecondary { background: var(--command-soft); color: var(--command-ink); border: 1px solid var(--command-border); }
 .rtPickerBtnSecondary:hover { background: var(--command-border); }
-.rtPickerBtnPrimary { background: #2563eb; color: #ffffff; border: 1px solid #1d4ed8; }
+.rtPickerBtnPrimary { background: #2563eb; color: #ffffff; border: 1px solid #1d4ed8; opacity: 1; }
+.rtPickerBtnPrimary:not(:disabled) { background: #2563eb; color: #ffffff; opacity: 1; cursor: pointer; box-shadow: 0 1px 3px rgba(37, 99, 235, 0.25); }
 .rtPickerBtnPrimary:hover:not(:disabled) { background: #1d4ed8; }
-.rtPickerBtnPrimary:disabled { opacity: 0.5; cursor: not-allowed; }
+.rtPickerBtnPrimary:disabled { opacity: 0.45 !important; cursor: not-allowed !important; filter: grayscale(40%); }
 .rtPickerMarkerIcon { background: transparent; border: none; }
 .rtPickerPinWrapper { display: flex; align-items: center; justify-content: center; }
 .rtMapLoadingPlaceholder { display: flex; align-items: center; justify-content: center; height: 200px; background: var(--command-soft); color: var(--command-muted); border-radius: 8px; }
