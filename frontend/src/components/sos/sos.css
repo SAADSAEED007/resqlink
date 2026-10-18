@@ -1023,6 +1023,13 @@
 .rqVoiceDisabled { min-height: 56px; width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 0; color: #59687a; text-align: left; font-size: 1rem; cursor: not-allowed; }
 .rqVoiceDisabled small { margin-left: auto; font-size: .82rem; color: #7d8794; }
 .rqQuickCorrected .rqQuickSend { min-height: 64px; font-size: 1.12rem; font-weight: 750; border-radius: 10px; }
+.rqSafetyCheck { margin: 18px 0; padding: 16px; border: 1px solid var(--sos-line); border-radius: 12px; background: #fffaf0; }
+.rqSafetyCheck legend { padding: 0 6px; color: var(--sos-ink); font-weight: 750; }
+.rqSafetyCheck p, .rqSafetyCheck small { color: var(--sos-muted); }
+.rqSafetyCheck strong { display:block; margin:10px 0; line-height:1.45; }
+.rqSafetyCheck > div { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-bottom:9px; }
+.rqSafetyCheck button { min-height:44px; padding:8px; border:1px solid var(--sos-line); border-radius:8px; background:var(--sos-white); color:var(--sos-ink); font-weight:650; }
+.rqSafetyCheck button[aria-pressed="true"] { border-color:var(--sos-red); background:#fff1f2; box-shadow:0 0 0 1px var(--sos-red); }
 .rqQuickCorrected .rqSosPrototype { font-size: .85rem; line-height: 1.55; }
 .rqQuickCorrected[dir="rtl"] .rqSosLanguage { margin-left: 0; margin-right: auto; }
 .rqQuickCorrected[dir="rtl"] .rqQuickLandmark, .rqQuickCorrected[dir="rtl"] .rqQuickDetails label { text-align: right; }

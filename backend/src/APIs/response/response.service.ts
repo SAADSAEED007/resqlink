@@ -6,6 +6,7 @@ import { IncidentInput, TeamInput, TeamUpdateInput, TeamQuery, IncidentStatus, P
 import { assertAssignable, assertTransition, calculatePriority, distanceKm, isCapable } from './priority.service'
 import { detectPotentialDuplicates, evaluateVerification, DuplicateCandidate } from './verification.service'
 import { CustomError } from '../../utils/errors'
+import { triageIncident } from './incident-triage.service'
 
 export interface Page {
     page: number
@@ -51,10 +52,19 @@ export async function createIncident(input: IncidentInput) {
     const candidates = await Incident.find(candidateFilter).select('_id emergencyType location reporterPhone createdAt isSimulated status').lean()
     const duplicateCheck = detectPotentialDuplicates(input, candidates as DuplicateCandidate[])
     const verification = evaluateVerification(input, duplicateCheck)
+    const triage = triageIncident(input)
+    const priority = calculatePriority(input)
+    if (triage.suggestedPriority === 'CRITICAL') {
+        priority.priorityLevel = 'CRITICAL'
+        priority.priorityScore = Math.max(priority.priorityScore, 75)
+        priority.priorityReasons.unshift('Preliminary critical suggestion: reporter indicated possible immediate danger; coordinator review required')
+    }
 
     return Incident.create({
         ...input,
-        ...calculatePriority(input),
+        ...priority,
+        immediateDanger: triage.immediateDangerReported,
+        triage,
         locationVerificationRequired: !input.location,
         verification
     })
@@ -306,6 +316,11 @@ export async function overridePriority(id: string, priorityLevel: Priority, reas
         })
         incident.priorityLevel = priorityLevel
         incident.priorityScore = score
+        if (incident.triage) {
+            incident.triage.status = 'COORDINATOR_REVIEWED'
+            incident.triage.reviewedAt = new Date()
+            incident.triage.reviewedBy = new mongoose.Types.ObjectId(coordinatorId)
+        }
         // Original risk reasons/confidence stay intact; audit holds manual rationale.
         await incident.save({ session })
         return incident

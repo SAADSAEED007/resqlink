@@ -278,6 +278,11 @@
 .rqCommandMode.is-real { background:#f0fdf4; border-color:#bbf7d0; }
 .rqCommandMode.is-real .rqDataModeSelector { border-color:#bbf7d0; }
 @media (max-width: 650px) { .rqCommandMode { align-items:flex-start; flex-direction:column; } .rqDataModeActions { width:100%; justify-content:space-between; } }
+.rqTriageAssessment { margin:12px 16px 0; padding:12px; border:1px solid #f6bf69; border-radius:9px; background:#fffbeb; color:var(--command-ink); }
+.rqTriageAssessment > div { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.rqTriageAssessment span { color:#92400e; font-size:10px; font-weight:700; text-transform:uppercase; }
+.rqTriageAssessment p { margin:6px 0 0; color:var(--command-muted); font-size:11px; line-height:1.4; }
+.rqCommand[data-theme="dark"] .rqTriageAssessment { background:#422f13; border-color:#855f20; }
 .rqCommand .rqCommandMetric {
   height: 100px;
   padding: 16px;
