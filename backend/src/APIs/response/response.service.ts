@@ -284,13 +284,9 @@ export async function assignTeam(input: { incidentId: string; teamId: string; no
 
     return assignment
 }
-<<<<<<< HEAD
-export async function changeStatus(id: string, status: IncidentStatus) {
-    const incident = await transactional(async (session) => {
-=======
+
 export async function changeStatus(id: string, status: IncidentStatus, coordinatorId?: string) {
-    return transactional(async (session) => {
->>>>>>> bebda05de0707b921b17159ab4f4321db0ba83d2
+    const incident = await transactional(async (session) => {
         const incident = await Incident.findById(id).session(session)
         if (!incident) throw new CustomError('Incident not found', 404)
         assertTransition(incident.status, status)
