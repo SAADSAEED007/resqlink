@@ -1,39 +1,84 @@
 # ResQLink
 
-Intelligent Disaster Response & Rescue Coordination Platform for Code Connect Hackathon 2026. This repository establishes the foundation for a four-person team working toward a 36-hour MVP. Backend core provides incident intake, prototype priority scoring, rescue teams, transactional assignments, and approximate team recommendations. The frontend remains a minimal placeholder.
+<p align="center"><img src="frontend/public/images/ResQLink%20Shield%20Brand%20Logo.png" alt="ResQLink shield logo" width="104" /></p>
+<p align="center"><strong>Intelligent Disaster Response & Rescue Coordination Platform</strong></p>
 
-## Stack and structure
+ResQLink brings public emergency reporting, coordinator review, rescue-team coordination, and weather-informed preparedness into one operational workspace. Built by **Team Zyphora** for **CODE//CONNECT '26**.
 
-- Frontend: Next.js App Router, React, TypeScript, Tailwind CSS, ESLint; npm.
-- Backend: imported Express/TypeScript MERN base server, Mongoose, Joi, JWT, bcrypt, Winston, Resend; npm.
-- Database: MongoDB, with Atlas suitable for hosted environments.
+<p align="center"><a href="https://resqlink-drab.vercel.app">Live application</a> · <a href="#getting-started">Local setup</a> · <a href="docs/architecture.md">Architecture</a> · <a href="docs/demo-guide.md">Judge demo guide</a></p>
 
-```text
-frontend/                 Independent Next.js application
-  src/app/                Layout, styles, minimal home page
-  .env.example
-backend/                  Existing Base-Server-MERN application
-  src/APIs/               Controllers, services, repositories, models
-  src/bootstrap/          Database and rate-limiter initialization
-  src/config/             Environment configuration
-  src/middlewares/        Authentication, errors, rate limiting
-  src/__tests__/          Inherited unit tests
-  scripts/                Inherited migration utilities
-  .env.example
-  README.md               Original upstream documentation
-  LICENSE                 Upstream ISC license
-  docker/                 Existing upstream assets; not required for setup
-docs/
-  architecture.md
-  api-contracts.md
-.env.example              Reference only; not loaded by either app
-.gitignore
-README.md
+> ResQLink is a hackathon prototype for coordination and decision support—not an official emergency dispatch service. Reports, weather signals, and preliminary urgency assessments require human review.
+
+## Overview
+
+Emergency response information can arrive through disconnected channels while coordinators need one view of reports, urgency, verification, available teams, assignments, and contextual weather signals. ResQLink supports a human-led workflow:
+
+**Report → Review → Prioritize → Assign → Track → Resolve**
+
+It records operational decisions; it does not autonomously dispatch responders or replace emergency authorities.
+
+## Try ResQLink
+
+**Live application:** [resqlink-drab.vercel.app](https://resqlink-drab.vercel.app)<br>
+**API health:** [resqlink-backend-3agc.onrender.com/v1/health](https://resqlink-backend-3agc.onrender.com/v1/health)
+
+- **Citizen portal:** use [Report an Emergency](https://resqlink-drab.vercel.app/sos). The public SOS flow accepts an emergency category, description, location selection, and immediate-danger answer without an account; it returns a report reference such as `RESQ-000123` after a successful submission.
+- **Coordinator Command Center:** authorized coordinators can sign in to review incidents, teams, assignments, and preparedness information. Credentials are intentionally not published here.
+- **Demo Mode:** the dashboard starts with fictional, in-browser records. Simulated status, verification, priority, assignment, and team-availability actions do not write to the production database and reset on a fresh session.
+- **Real Data Mode:** retrieves saved backend records for authorized coordinators. Actions in this mode can persist, so it should be used responsibly.
+
+For a safe walkthrough, see the [judge demo guide](docs/demo-guide.md). Do not submit test SOS reports or modify prepared records during evaluation.
+
+## Core features
+
+| Area | What is implemented |
+| --- | --- |
+| Public SOS reporting | A no-account SOS form with category, description, map/location input, immediate-danger answer, confirmation, and generated report reference. |
+| Preliminary triage | Deterministic rule-based triage highlights a reported immediate threat and preserves uncertain or unanswered safety signals for review. It is not an AI dispatch system or emergency verification. |
+| Incident command | Search; status, priority, and verification filtering; sorted queues; incident detail; status history; human verification; and auditable priority overrides. |
+| Rescue coordination | Team management, capability/location-based recommendations, recorded assignments, and lifecycle changes. Distance is an approximate straight-line calculation—not routing or travel-time optimization. |
+| Demo / Real separation | Fictional client-side scenarios are isolated from authenticated real-data API operations. |
+| Community preparedness | Seven configured Sindh monitoring locations, WeatherAPI-backed forecast evidence when configured, review thresholds, and optional Groq-generated preparedness summaries. These are prototype decision-support signals, not official warnings or flood prediction. |
+
+## How ResQLink works
+
+1. A citizen submits an SOS report through the public form.
+2. The backend validates the report, records a reference, applies preliminary rules, and flags possible duplicate or incomplete information for review.
+3. A coordinator reviews the report, verification state, priority, and status history.
+4. The coordinator chooses an eligible team after reviewing capability, availability, capacity warnings, and approximate distance.
+5. The platform records the assignment and lifecycle changes. Resolving or cancelling an incident releases its active assigned team.
+
+No mobile dispatch delivery, push notification, official authority integration, road routing, or automatic emergency action is implied by an assignment record.
+
+## System architecture
+
+```mermaid
+flowchart TD
+    Citizen[Citizen / Public SOS] --> Frontend[Next.js frontend]
+    Coordinator[Coordinator Command Center] --> Frontend
+    Frontend -->|/api and /v1| API[Express + TypeScript API]
+    API --> Mongo[(MongoDB / Mongoose)]
+    API --> Triage[Rule-based SOS triage]
+    API --> Weather[WeatherAPI forecast evidence]
+    API --> Groq[Groq preparedness summary]
 ```
 
-## Local setup
+Weather and Groq integrations are optional server-side configuration. The API preserves coordinator control over incident, verification, assignment, and preparedness decisions. More detail is in [docs/architecture.md](docs/architecture.md).
 
-Use Node.js 24 LTS and npm. Run each app in its own terminal. On Windows, use `npm.cmd` if PowerShell blocks `npm.ps1`; changing execution policy is unnecessary.
+## Technology stack
+
+| Layer | Verified technologies |
+| --- | --- |
+| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS 4, Leaflet, Recharts |
+| Backend | Node.js, Express 4, TypeScript, Mongoose, Joi, JWT, Helmet, CORS |
+| Data | MongoDB / MongoDB Atlas-compatible deployment |
+| External intelligence | WeatherAPI.com forecast data; optional Groq analysis |
+| Quality tooling | ESLint, Jest, Playwright, Prettier, TypeScript |
+| Deployment | Vercel frontend; Render backend (live URLs above) |
+
+## Getting started
+
+Prerequisites: a current Node.js LTS release, npm, and a MongoDB replica set or Atlas cluster for lifecycle mutations. Run frontend and backend commands in separate terminals.
 
 ```bash
 git clone https://github.com/SAADSAEED007/resqlink.git
@@ -41,105 +86,82 @@ cd resqlink
 git switch dev
 ```
 
-The initial foundation is submitted on `feature/initialize-monorepo`; until its PR is merged, switch to that branch to use it.
-
-Frontend:
-
 ```bash
+# terminal 1: frontend
 cd frontend
 npm ci
 cp .env.example .env.local
 npm run dev
-```
 
-Open http://localhost:3000. In PowerShell replace `cp` with `Copy-Item` if preferred.
-
-Backend, in a second terminal:
-
-```bash
+# terminal 2: backend
 cd backend
 npm ci
 cp .env.example .env
-# Configure the values below before starting.
 npm run start:dev
 ```
 
-The API server uses port 4000 to avoid colliding with Next.js. Run commands from their respective application directories. Do not run the inherited backend setup CLI: it manages Git and is intended for standalone upstream projects. The inherited Husky prepare script may report that it cannot find a Git directory from backend/; root Git hooks are intentionally not installed.
+Open `http://localhost:3000`. The backend defaults to port `4000`. On Windows PowerShell, use `Copy-Item` in place of `cp` if preferred.
 
-## Environment configuration
+### Environment configuration
 
-The root example is a reference. Next.js loads frontend/.env.local; dotenv-flow loads backend/.env and environment-specific overrides. Never commit actual environment files.
+Service-specific examples are intentionally kept with the applications:
 
-| Variable | Location | Purpose |
-| --- | --- | --- |
-| NEXT_PUBLIC_API_URL | frontend | Public API base URL, initially http://localhost:4000/api; used by core API clients |
-| NODE_ENV | backend | development locally, production when hosted |
-| ENV | backend | development or production; controls inherited logging and error behavior |
-| PORT | backend | 4000 locally; hosting provider may supply it |
-| SERVER_URL | backend | Backend public origin, used in inherited email links |
-| FRONTEND_URL | backend | Exact allowed browser origin for credentialed CORS |
-| DATABASE_URL | backend | Required MongoDB connection string; also used by logging and rate limiting |
-| EMAIL_SERVICE_API_KEY | backend | Optional Resend API key; email sending is skipped with a warning when unset |
-| ACCESS_TOKEN_SECRET | backend | Required independent random secret for inherited access tokens |
-| REFRESH_TOKEN_SECRET | backend | Required independent random secret for inherited refresh tokens |
-| MIGRATE_MONGO_URI | backend | MongoDB URI for optional inherited migration CLI |
-| MIGRATE_AUTOSYNC | backend | Optional migration setting; false in template |
-| SALT_ROUNDS | backend | Inherited template variable; hashing currently uses fixed cost 10 |
+| File | Purpose |
+| --- | --- |
+| [`backend/.env.example`](backend/.env.example) | Database connection, token secrets, CORS origin, optional email, WeatherAPI, Groq, and prototype review thresholds. |
+| [`frontend/.env.example`](frontend/.env.example) | Public build-time API and authentication base URLs only. |
 
-For Atlas, create a cluster and database user, configure network access for your machine or backend host, and put the provided connection string in DATABASE_URL. URL-encode special characters in the password. Alternatively, install MongoDB locally and supply your own local URI. No database or account is provisioned by this setup.
+Copy each file locally and supply your own values. Never commit `.env`, `.env.local`, database URLs, API keys, JWT secrets, or credentials. `NEXT_PUBLIC_*` values are visible in the browser, so secrets must never be placed there.
 
-Generate each JWT secret separately with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` and save it only in backend/.env or hosting settings. Email is disabled until you uncomment EMAIL_SERVICE_API_KEY and supply a Resend key from your own account. The inherited sender is onboarding@resend.dev; verify a sender/domain and review account restrictions before using email beyond development. No email or database credentials are supplied.
+`WEATHERAPI_KEY` enables the configured weather provider. `GROQ_API_KEY` is needed only for the optional preparedness-summary action. `DEMO_MODE=true` and a separate `DEMO_DATABASE_URL` are required before the backend's opt-in `npm run seed:demo` command will run; do not use it against production data.
 
-## Validation
+## Project structure
 
-```bash
-cd frontend
-npm run lint
-npm run typecheck
-npm run build
+```text
+backend/                 Express API, Mongoose models, services, Jest tests
+  src/APIs/response/     SOS intake, triage, incidents, teams, assignments
+  src/APIs/weather/      District monitoring and preparedness decisions
+  src/APIs/riskZones/    Community risk-zone records and assessments
+frontend/                Next.js public portal and coordinator workspace
+  src/app/sos/           Public SOS route
+  src/app/dashboard/     Incident, team, assignment, and risk-zone views
+docs/                    Architecture, API contracts, demo and engineering notes
 ```
+
+The [API contracts](docs/api-contracts.md) document the implemented endpoints and access requirements. Public access is limited to `POST /api/incidents`; coordinator routes require authenticated admin access.
+
+## Testing and verification
 
 ```bash
 cd backend
 npm run build
-npm run lint
-npm run format:check
 npm test -- --runInBand
+
+cd ../frontend
+npm run typecheck
+npm run lint
+npm run build
 ```
 
-Seedocs/verification.md for the setup run's actual results and inherited failures. Existing boilerplate tests and routes are not proof of completed ResQLink features.
+Some integration tests require an isolated `TEST_DATABASE_URL`; builds may require local environment values. See [docs/verification.md](docs/verification.md) for historical verification notes rather than treating them as a live deployment guarantee.
 
-## Git workflow
+## Current limitations and future scope
 
-- main: stable releases only.
-- dev: integration branch; merge reviewed feature PRs here.
-- feature/*: create from the latest dev, one task per branch.
+- ResQLink is not connected to emergency authorities, team mobile devices, SMS/WhatsApp, or push dispatch.
+- SOS triage and weather thresholds are preliminary decision support; they are neither clinically validated nor official government warning systems.
+- Rescue recommendations use capability checks and straight-line distance, not real-time traffic, routing, or responder telemetry.
+- Weather monitoring covers seven configured representative Sindh districts and depends on provider availability; it is not comprehensive regional sensing or flood detection.
+- Real-data operations require authorized coordinator access and a transaction-capable MongoDB deployment.
 
-```bash
-git switch dev
-git pull --ff-only origin dev
-git switch -c feature/your-task
-# Make and validate your changes.
-git add <specific-files>
-git commit -m "feat: describe your change"
-git push -u origin feature/your-task
-```
+Potential future work includes field-team mobile workflows, controlled notification delivery, low-connectivity reporting, stronger anti-abuse controls, broader geospatial coverage, and official authority integrations—subject to appropriate governance.
 
-Open a GitHub Pull Request with base `dev`. The Tech Lead reviews and merges. Promote validated dev releases to main through a PR. Never force-push shared branches. Configure GitHub branch protection/rulesets for main and dev to require PR review; branch naming alone does not enforce review.
+## Team Zyphora
 
-## Deployment overview (nothing deployed)
+| Member | Role |
+| --- | --- |
+| Saad | Team Lead |
+| Saba | Backend Development |
+| Kulsoom | Frontend Development |
+| Hafsah | Quality Assurance |
 
-- Vercel: choose frontend as the project root, use the Next.js preset, and configure NEXT_PUBLIC_API_URL to the hosted backend URL plus /api before building. Public Next.js variables are embedded at build time; rebuild after changes.
-- Render or Railway: choose backend as the service root, install development dependencies for TypeScript compilation (`npm ci --include=dev`), build with `npm run build`, and start with `npm run serve`. Set ENV=production, NODE_ENV=production, SERVER_URL, FRONTEND_URL, DATABASE_URL, and both token secrets; email key is optional. Use the provider's PORT.
-- MongoDB Atlas: configure the database user and network access for the backend host. The backend also stores logs and rate-limit state in MongoDB. Local log files are ephemeral on hosting platforms.
-- Existing backend Docker assets are preserved for provenance but are not needed for this workflow. No Docker or CI/CD additions were made.
-
-Before public launch, review the inherited authentication, email sender, CORS, and health behavior with the team. Use docs/api-contracts.md for implemented core APIs and frontend integration.
-
-Provider references: [Next.js CLI](https://nextjs.org/docs/app/api-reference/cli/create-next-app), [Vercel monorepo roots](https://vercel.com/docs/monorepos), [Render Express deployment](https://render.com/docs/deploy-node-express-app), [MongoDB setup](https://www.mongodb.com/docs/get-started/).
-
-Backend core API contracts, coordinator setup, seed safeguards, and frontend integration are documented in [docs/api-contracts.md](docs/api-contracts.md). Demo seed: set DEMO_MODE=true, NODE_ENV=development, and a separate DEMO_DATABASE_URL ending in _demo, then run npm run seed:demo from backend. Core coordinator operations require an existing admin account; no authorization bypass is provided.
-
-## Frontend foundation
-
-The shared UI, coordinator login, typed API client, and teammate integration guide are in [docs/frontend-foundation.md](docs/frontend-foundation.md). Dashboard and SOS feature routes currently contain honest placeholders. Start the frontend with `cd frontend` then `npm run dev`; configure both public API URLs using `frontend/.env.example`.
+**Built for CODE//CONNECT '26.**
