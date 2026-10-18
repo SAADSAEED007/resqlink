@@ -7,6 +7,7 @@ import {
   RefreshCw,
   CloudSun,
   ArrowUpRight,
+  ShieldCheck,
 } from "lucide-react";
 import type { MonitoredDistrict, CommunityAnalysis } from "@/types/risk-zones";
 import { districtWeather } from "@/lib/api/district-weather";
@@ -51,7 +52,7 @@ export function DistrictAiPanel({
       if (alive.current)
         setError(
           err instanceof ApiError && [502, 503].includes(err.status)
-            ? "AI provider unavailable. Check the backend Groq key/model configuration and retry; no analysis has been generated."
+            ? "AI provider unavailable. Check the backend Groq key/model configuration and retry; no updated analysis has been generated."
             : errorMessage(err),
         );
     } finally {
@@ -71,66 +72,48 @@ export function DistrictAiPanel({
         </span>
       </header>
       <div className="siAiBody">
-        <div className="siAiIntro">
-          <BrainCircuit size={20} />
-          <h3>Risk Analysis &amp; Recommendations</h3>
-        </div>
-        <p className="siMuted">
-          {district?.name || "Select a district"} ° Evidence-led preparedness
-        </p>
-        {!analysis && (
-          <div className="siReason">
-            <h3>Weather Evidence Summary</h3>
-            <p>
-              {district?.weather
-                ? `${district.weather.provider}: ${district.weather.next24Hours.precipitationMm} mm forecast precipitation. Observation ${date(district.weather.current.time)}; fetched ${date(district.weather.retrievedAt)} (${human(district.weather.freshness)}).`
-                : "Current weather evidence is unavailable. Assessments and resources can still be reviewed."}
-            </p>
-            <h3>Why this attention level</h3>
-            <p>
-              {district?.attention?.reasons.join(" ") ||
-                "No classification is available."}
-            </p>
-            <p className="siFootnote">
-              Deterministic rule explanation. Community findings require review
-              in Local Assessments. Confirm shelter readiness, review actual
-              available teams and record your decision below.
-            </p>
-          </div>
-        )}
+        <section className="siAutomatedAssessment" aria-label="Automated Weather Assessment">
+          <div className="siSectionHeading"><ShieldCheck size={16} /><h3>Automated Weather Assessment</h3></div>
+          <div className="siAssessmentIdentity"><strong>{district?.name || "Select a district"}</strong><Attention level={district?.attention?.level || "DATA_UNAVAILABLE"} /></div>
+          <span className="siEyebrow">Deterministic prototype rules · Not AI-generated</span>
+          {district?.weather ? <div className="siEvidenceValues"><span><b>{district.weather.next24Hours.precipitationMm} mm</b>Forecast / 24h</span><span><b>{district.weather.next24Hours.maxProbabilityPercent}%</b>Max rain chance</span><span><b>{district.weather.current.windKmh} km/h</b>Current wind</span></div> : <p>Current weather evidence is unavailable. Assessments and resources can still be reviewed.</p>}
+          <p>{district?.attention?.reasons.join(" ") || "No monitoring level can be assigned without valid evidence."}</p>
+          <details><summary>Rule evidence &amp; limitations</summary>
+            {district?.weather && <p>{district.weather.provider} · Fetched {date(district.weather.retrievedAt)} PKT. Interval: {date(district.weather.next24Hours.start)} to {date(district.weather.next24Hours.end)} PKT.</p>}
+            {district?.attention?.policy && <p>Elevated: ≥ {district.attention.policy.elevatedRainMm} mm. Urgent review: ≥ {district.attention.policy.urgentRainMm} mm. {district.attention.policy.disclaimer}</p>}
+            {district?.attention?.missingEvidence?.map(text => <p key={text}>{text}</p>)}
+          </details>
+        </section>
+        <section className="siGroqSection" aria-label="Groq AI Preparedness Analysis" aria-busy={busy}>
+        <div className="siSectionHeading"><BrainCircuit size={16} /><h3>Groq AI Preparedness Analysis</h3></div>
         {!district?.aiConfigured ? (
           <div className="siEmptyCompact siAiStatus">
             <BrainCircuit size={26} />
             <h3>AI analysis is not configured.</h3>
-            <p>
-              Groq API key is not configured on the backend. District monitoring
-              works independently.
-            </p>
+            <p>Weather monitoring and coordinator actions work independently.</p>
           </div>
         ) : !analysis ? (
           <div className="siEmptyCompact siAiStatus">
             <Lightbulb size={25} />
             <p>
-              Generate a summary from the actual forecast and matching local
-              assessment records.
+              {available ? "Generate a district-specific explanation from the forecast and matching local assessments." : "A current forecast is required for AI guidance. Review existing local reports in the meantime."}
             </p>
           </div>
         ) : (
           <>
+            <p className="siGeneratedMeta">{district?.name} · Generated <time dateTime={analysis.value.generatedAt}>{date(analysis.value.generatedAt)} PKT</time></p>
             <div className="siAnalysisSummary">
-              <Attention
-                level={district.attention?.level || "DATA_UNAVAILABLE"}
-              />
+              <h4>Weather Evidence</h4>
               <p>{analysis.value.summary}</p>
               {analysis.version !== version && (
                 <p role="status">
-                  Forecast evidence changed. Generate an updated analysis.
+                  Forecast evidence changed. This is the previous analysis; generate an updated result.
                 </p>
               )}
             </div>
             <h3>
               <Lightbulb size={17} />
-              Key Insights
+              Why It Matters
             </h3>
             <ul>
               {analysis.value.keyInsights.map((item, i) => (
@@ -142,15 +125,12 @@ export function DistrictAiPanel({
             </ul>
             <h3>
               <ListChecks size={17} />
-              Preparedness Checklist
+              Recommended Human Actions
             </h3>
             <ul className="siActionsList">
               {analysis.value.preparednessActions.map((item, i) => (
                 <li key={i}>
-                  <label>
-                    <input type="checkbox" />
-                    {item.action}
-                  </label>
+                  <strong>{item.action}</strong>
                   <small>{item.reason}</small>
                 </li>
               ))}
@@ -166,7 +146,7 @@ export function DistrictAiPanel({
               </details>
             )}
             <details>
-              <summary>Sources &amp; limitations</summary>
+              <summary>Evidence sources &amp; limitations</summary>
               {analysis.value.evidence?.map((fact) => (
                 <p key={fact.id}>
                   <strong>{fact.id}</strong>: {fact.text}
@@ -195,10 +175,8 @@ export function DistrictAiPanel({
           <RefreshCw size={16} className={busy ? "siSpin" : ""} />
           {busy ? "Analyzing forecast evidence…" : "Generate Updated Analysis"}
         </button>
-        <p className="siFootnote">
-          AI-assisted preparedness guidance. Human review required. This is not
-          an official disaster warning.
-        </p>
+        {error && available && <p className="siFootnote">Use Generate Updated Analysis to retry. The automated assessment remains available.</p>}
+        </section>
       </div>
     </section>
   );

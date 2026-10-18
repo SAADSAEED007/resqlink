@@ -16,6 +16,7 @@ import {
 import { useDistrictMonitoring } from "./use-district-monitoring";
 import { CommunityAssessments } from "./CommunityAssessments";
 import { PreparednessActions } from "./PreparednessActions";
+import { WeatherMonitoringStatus } from "./WeatherMonitoringStatus";
 import { DistrictDetails, type DistrictTab } from "./DistrictDetails";
 import {
   DistrictAiPanel,
@@ -26,6 +27,7 @@ import {
   WeatherIcon,
   attentionLabels,
   date,
+  Freshness,
 } from "./monitoring-utils";
 import type { AttentionLevel } from "@/types/risk-zones";
 import "./sindh-intelligence.css";
@@ -102,6 +104,7 @@ export function RiskZonesWorkspace() {
           {model.refreshing ? "Fetching forecasts…" : "Refresh Weather"}
         </button>
       </header>
+      <WeatherMonitoringStatus records={model.records} loading={model.refreshing} />
       <div
         className="siMainTabs"
         role="tablist"
@@ -145,7 +148,7 @@ export function RiskZonesWorkspace() {
                 name: "Monitored Districts",
                 icon: Globe2,
                 tone: "blue",
-                caption: "Verified monitoring locations",
+                caption: "Configured monitoring locations",
               },
               {
                 name: "Urgent Review",
@@ -184,22 +187,14 @@ export function RiskZonesWorkspace() {
             <span>
               <Info size={13} />
               {model.overview?.coverage ||
-                "Verified seven-district subset · Remaining Sindh districts are not configured."}
+                "Seven configured representative points · Remaining Sindh districts are not configured."}
             </span>
             <span>
               {model.refreshing
                 ? "Forecast retrieval in progress"
                 : `${unavailable} data unavailable`}{" "}
               ·{" "}
-              {model.records.some((item) => item.weather)
-                ? `Last forecast update ${date(
-                    model.records
-                      .filter((item) => item.weather)
-                      .map((item) => item.weather!.retrievedAt)
-                      .sort()
-                      .at(-1),
-                  )} (Asia/Karachi)`
-                : "No successful forecast update"}
+              {model.records.some((item) => item.weather) ? "Location timestamps shown below" : "No successful forecast update"}
             </span>
           </div>
           {model.overview?.provider?.configured === false && (
@@ -264,7 +259,7 @@ export function RiskZonesWorkspace() {
                   <div className="siEmptyCompact" role="status">
                     {model.error
                       ? "Monitoring registry is unavailable."
-                      : "Loading verified monitoring locations…"}
+                      : "Loading configured monitoring locations…"}
                   </div>
                 ) : !model.visible.length ? (
                   <div className="siEmptyCompact">
@@ -295,31 +290,24 @@ export function RiskZonesWorkspace() {
                         />
                       </i>
                       <div>
-                        <strong>{item.name}</strong>
+                        <div className="siDirectoryTitle"><strong>{item.name}</strong><Attention level={item.attention?.level || "DATA_UNAVAILABLE"} /></div>
                         <small>
                           <MapPin size={11} />
                           {item.monitoringLocation}
                         </small>
                         <span className="siRowStats">
-                          {item.weather?.current.condition
-                            ? `${item.weather.current.condition} · `
-                            : ""}
                           {item.weather
-                            ? `${item.weather.next24Hours.precipitationMm} mm / 24h · ${item.weather.next24Hours.maxProbabilityPercent}% max probability`
+                            ? `${item.weather.current.temperatureC}°C · ${item.weather.next24Hours.precipitationMm} mm / 24h`
                             : model.refreshing
                               ? "Retrieving forecast…"
                               : "Forecast unavailable"}
                         </span>
+                        {item.weather && <small className="siCondition">{item.weather.current.condition || "Forecast available"} · {item.weather.next24Hours.maxProbabilityPercent}% max rain chance</small>}
                         <small className="siRetrieved">
-                          {item.weather
-                            ? `${item.weather.freshness} · ${date(item.weather.retrievedAt)}`
-                            : "No current provider evidence"}
+                          <Freshness weather={item.weather} />{item.weather && <time dateTime={item.weather.retrievedAt} title={date(item.weather.retrievedAt)}>{date(item.weather.retrievedAt)} PKT</time>}
                         </small>
                       </div>
                       <div className="siRowEnd">
-                        <Attention
-                          level={item.attention?.level || "DATA_UNAVAILABLE"}
-                        />
                         <ChevronRight size={16} />
                       </div>
                     </button>
