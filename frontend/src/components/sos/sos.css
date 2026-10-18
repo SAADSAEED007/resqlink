@@ -1024,6 +1024,33 @@
 .rqVoiceDisabled small { margin-left: auto; font-size: .82rem; color: #7d8794; }
 .rqQuickCorrected .rqQuickSend { min-height: 64px; font-size: 1.12rem; font-weight: 750; border-radius: 10px; }
 .rqSafetyCheck { margin: 18px 0; padding: 16px; border: 1px solid var(--sos-line); border-radius: 12px; background: #fffaf0; }
+.rqQuickCorrected { font-family:Arial,"Noto Sans Arabic",sans-serif; }
+.rqQuickCorrected .rqSosLanguage button { color:#164e88; }
+.rqQuickCorrected .rqSosLanguage button[aria-pressed="true"] { color:#fff; }
+.rqSafetyInline { margin:24px 0; padding:18px 0; border:0; border-block:1px solid var(--sos-line); min-width:0; animation:rqSafetyReveal 200ms ease-out; }
+.rqSafetyInline legend { font-size:1.05rem; font-weight:750; color:var(--sos-ink); padding:0 8px 0 0; }
+.rqSafetyOptional { color:var(--sos-muted); font-size:.8rem; }
+.rqSafetyQuestion { margin:12px 0; line-height:1.5; font-weight:600; }
+.rqSafetyOptions { display:grid; gap:8px; }
+.rqSafetyOptions label { display:flex; align-items:center; gap:12px; min-height:52px; padding:12px; border:1px solid var(--sos-line); border-radius:9px; cursor:pointer; background:var(--sos-white); transition:border-color 140ms,background 140ms; }
+.rqSafetyOptions label:has(input:checked) { background:#fff5f5; border-color:var(--sos-red); }
+.rqSafetyOptions input { width:18px; height:18px; accent-color:var(--sos-red); flex-shrink:0; }
+.rqSafetyOptions label:focus-within { outline:3px solid #2563eb; outline-offset:3px; }
+.rqSafetyHelper { display:flex; align-items:start; justify-content:space-between; gap:12px; margin-top:12px; }
+.rqSafetyHelper small { color:var(--sos-muted); line-height:1.5; }
+.rqSafetyHelper button { flex-shrink:0; min-height:44px; padding:4px; color:var(--sos-blue); text-decoration:underline; font-size:.8rem; }
+.rqQuickCorrected .rqQuickTypes button { transition:border-color 140ms,background 140ms,transform 140ms; }
+.rqQuickCorrected .rqQuickTypes button:active { transform:scale(.985); }
+.rqQuickCorrected .rqQuickTypes button:focus-visible,.rqQuickCorrected summary:focus-visible,.rqQuickSend:focus-visible { outline:3px solid #2563eb; outline-offset:3px; }
+.rqQuickCorrected .rqQuickTypes button.selected > svg:first-child { transform:scale(1.04); }
+.rqQuickMessage,.rqQuickDetails[open] > div,.rqQuickMap[open] > div { animation:rqSafetyReveal 180ms ease-out; }
+.rqQuickSend { transition:background 140ms,box-shadow 140ms,transform 140ms; }
+.rqQuickSend:active { transform:scale(.99); }
+.rqQuickCorrected .rqVoiceDisabled { opacity:.65; font-size:.8rem; }
+.rqQuickCorrected .rqVoiceDisabled svg { width:18px; }
+@keyframes rqSafetyReveal { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+@media(max-width:599px) { .rqQuickCorrected .rqQuickTypes button { min-height:108px; } .rqQuickCorrected .rqQuickTypes button svg { width:30px;height:30px; } }
+@media(prefers-reduced-motion:reduce) { .rqQuickCorrected *, .rqQuickCorrected *::before,.rqQuickCorrected *::after { animation:none!important; transition:none!important; transform:none!important; } }
 .rqSafetyCheck legend { padding: 0 6px; color: var(--sos-ink); font-weight: 750; }
 .rqSafetyCheck p, .rqSafetyCheck small { color: var(--sos-muted); }
 .rqSafetyCheck strong { display:block; margin:10px 0; line-height:1.45; }
