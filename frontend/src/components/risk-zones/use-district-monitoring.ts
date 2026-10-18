@@ -33,11 +33,9 @@ export function useDistrictMonitoring() {
   useEffect(() => {
     const controller = new AbortController();
     void districtWeather
-      .overview(controller.signal, attempt > 0)
+      .overview(controller.signal)
       .then((data) => {
         setOverview(data);
-        // Refresh the selected evidence from the same snapshot as the KPIs.
-        setDetail(null);
         setError("");
       })
       .catch((err) => {
@@ -48,7 +46,12 @@ export function useDistrictMonitoring() {
       });
     return () => controller.abort();
   }, [attempt]);
+  const selectedVersion = overview?.items.find((item) => item.id === selectedId)
+    ?.weather?.retrievedAt;
   useEffect(() => {
+    // Overview populates the shared server cache before detail requests start.
+    // Browsing/refreshing unchanged evidence does not request detail again.
+    if (!selectedVersion) return;
     const controller = new AbortController();
     void districtWeather
       .get(selectedId, controller.signal)
@@ -60,7 +63,7 @@ export function useDistrictMonitoring() {
         if (!controller.signal.aborted) setDetailError(errorMessage(err));
       });
     return () => controller.abort();
-  }, [selectedId, attempt]);
+  }, [selectedId, selectedVersion]);
   useEffect(() => {
     const interval = setInterval(
       () => {
@@ -76,10 +79,18 @@ export function useDistrictMonitoring() {
   const records = (registry.length ? registry : overview?.items || []).map(
     (item) => overview?.items.find((value) => value.id === item.id) || item,
   );
-  const selected =
-    detail?.id === selectedId
-      ? detail
-      : records.find((item) => item.id === selectedId) || null;
+  const current = records.find((item) => item.id === selectedId) || null;
+  const selected = current
+    ? {
+        ...current,
+        weather:
+          current.weather &&
+          detail?.id === selectedId &&
+          detail.weather?.retrievedAt === current.weather.retrievedAt
+            ? { ...current.weather, hourly: detail.weather.hourly }
+            : current.weather,
+      }
+    : null;
   const visible = records.filter(
     (item) =>
       (!search ||

@@ -94,6 +94,7 @@ export function RiskZonesWorkspace() {
         <button
           className="siPrimary"
           disabled={model.refreshing}
+          title="Checks the shared forecast cache. Provider requests respect cache expiry and cooldown."
           onClick={model.refresh}
         >
           <RefreshCw size={16} className={model.refreshing ? "siSpin" : ""} />
@@ -200,6 +201,17 @@ export function RiskZonesWorkspace() {
                 : "No successful forecast update"}
             </span>
           </div>
+          {model.overview?.provider?.state === "COOLDOWN" && (
+            <p className="siError" role="status">
+              {model.overview.provider.reason === "RATE_LIMITED"
+                ? "Weather provider rate limited."
+                : "Weather provider temporarily unavailable."}{" "}
+              Refresh respects provider cooldown. Next provider check is allowed
+              after {date(model.overview.provider.retryAt)} (Asia/Karachi).{" "}
+              Cached forecasts retain their original timestamps; stale forecasts
+              are not used for attention classification.
+            </p>
+          )}
           {model.error && (
             <p className="siError" role="alert">
               {model.error}{" "}

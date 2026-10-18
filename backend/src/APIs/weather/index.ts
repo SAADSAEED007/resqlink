@@ -31,7 +31,7 @@ router.get(
     '/districts/overview',
     asyncHandler(async (req, res) => {
         res.setHeader('Cache-Control', 'no-store')
-        httpResponse(res, req, 200, 'District forecast overview', await overview(req.query.refresh === 'true'))
+        httpResponse(res, req, 200, 'District forecast overview', await overview())
     })
 )
 router.param('districtId', (_req, _res, next, id: string) => {

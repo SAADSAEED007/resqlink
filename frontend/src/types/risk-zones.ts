@@ -155,6 +155,12 @@ export interface MonitoredDistrict {
   model?: string;
 }
 export interface MonitoringOverview {
+  provider?: {
+    state: "READY" | "COOLDOWN";
+    reason: "RATE_LIMITED" | "UNAVAILABLE" | null;
+    retryAt: string | null;
+    cacheTtlSeconds: number;
+  };
   items: MonitoredDistrict[];
   datasetVersion: string;
   coverage: string;

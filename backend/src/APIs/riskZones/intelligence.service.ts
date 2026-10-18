@@ -2,7 +2,7 @@ import { createHash } from 'crypto'
 import Joi from 'joi'
 import { CustomError } from '../../utils/errors'
 import { ICommunityRiskZone } from './types'
-import { forecast, Forecast } from './weather.service'
+import { forecast, getCachedForecast, Forecast } from './weather.service'
 import { getRiskZone } from './risk-zones.service'
 
 export const reviewLevels = ['ROUTINE_MONITORING', 'ELEVATED_ATTENTION', 'URGENT_HUMAN_REVIEW', 'INSUFFICIENT_DATA'] as const
@@ -37,12 +37,14 @@ export function review(zone: ICommunityRiskZone, weather: Forecast | null) {
         disclaimer: 'Prototype decision support. Review labels are not calibrated flood forecasts or official warnings.'
     }
 }
-export async function context(id: string) {
+export async function context(id: string, cacheOnly = false) {
     const zone = await getRiskZone(id)
     let weather: Forecast | null = null
     let weatherError = ''
     try {
-        weather = await forecast(zone.approximateLocation.latitude, zone.approximateLocation.longitude)
+        weather = cacheOnly
+            ? getCachedForecast(zone.approximateLocation.latitude, zone.approximateLocation.longitude)
+            : await forecast(zone.approximateLocation.latitude, zone.approximateLocation.longitude)
     } catch (error) {
         weatherError = error instanceof CustomError ? error.message : 'Weather unavailable'
     }
@@ -109,7 +111,7 @@ export function clearAnalysisCache() {
 }
 export async function analyze(id: string) {
     if (!process.env.GROQ_API_KEY) throw new CustomError('AI analysis is not configured.', 503)
-    const data = await context(id)
+    const data = await context(id, true)
     return generateAnalysis({
         id,
         facts: evidence(data.zone, data.weather),

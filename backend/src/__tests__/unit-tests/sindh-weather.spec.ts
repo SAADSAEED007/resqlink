@@ -1,7 +1,7 @@
 jest.mock('../../handlers/logger', () => ({ __esModule: true, default: { info: jest.fn(), error: jest.fn(), warn: jest.fn() } }))
 import { districts, district } from '../../APIs/weather/districts'
 import { attention } from '../../APIs/weather/attention'
-import { forecast, normalizeWeather, coordinates, clearWeatherCache } from '../../APIs/riskZones/weather.service'
+import { forecast, normalizeWeather, coordinates, clearWeatherCache, weatherProviderStatus } from '../../APIs/riskZones/weather.service'
 import { evidence, generateAnalysis, clearAnalysisCache } from '../../APIs/riskZones/intelligence.service'
 import { overview } from '../../APIs/weather/monitoring.service'
 import { ICommunityRiskZone } from '../../APIs/riskZones/types'
@@ -76,19 +76,22 @@ describe('verified monitoring registry', () => {
     })
 })
 describe('forecast normalization and cache', () => {
-    test('explicit refresh bypasses successful cache and coalesces concurrent refreshes', async () => {
+    test('repeated browsing and refresh checks cannot bypass successful cache', async () => {
         const fetcher = jest.fn(() => response(fixture()))
         global.fetch = fetcher
         await forecast(25.4, 68.4)
-        await Promise.all([forecast(25.4, 68.4, true), forecast(25.4, 68.4, true)])
-        expect(fetcher).toHaveBeenCalledTimes(2)
+        await Promise.all([forecast(25.4, 68.4), forecast(25.4, 68.4)])
+        expect(fetcher).toHaveBeenCalledTimes(1)
     })
-    test('transient upstream failure retries once and recovers', async () => {
+    test('transient failure waits for shared backoff instead of retrying immediately', async () => {
         const fetcher = jest
             .fn()
             .mockImplementationOnce(() => response({}, 503))
             .mockImplementationOnce(() => response(fixture()))
         global.fetch = fetcher
+        await expect(forecast(25.4, 68.4)).rejects.toMatchObject({ statusCode: 503 })
+        expect(fetcher).toHaveBeenCalledTimes(1)
+        jest.spyOn(Date, 'now').mockReturnValue(Date.parse(weatherProviderStatus().retryAt!) + 1)
         expect((await forecast(25.4, 68.4)).current.temperatureC).toBe(29)
         expect(fetcher).toHaveBeenCalledTimes(2)
     })
@@ -96,12 +99,12 @@ describe('forecast normalization and cache', () => {
         const fetcher = jest.fn().mockResolvedValue({ ok: false, status: 429, headers: new Headers({ 'Retry-After': '120' }) })
         global.fetch = fetcher
         await expect(forecast(25.4, 68.4)).rejects.toThrow('rate limited')
-        await expect(forecast(26, 68, true)).rejects.toThrow('rate limited')
+        await expect(forecast(26, 68)).rejects.toThrow('rate limited')
         expect(fetcher).toHaveBeenCalledTimes(1)
         const now = Date.now()
         jest.spyOn(Date, 'now').mockReturnValue(now + 121000)
         fetcher.mockImplementation(() => response(fixture()))
-        await expect(forecast(26, 68, true)).resolves.toHaveProperty('provider', 'Open-Meteo')
+        await expect(forecast(26, 68)).resolves.toHaveProperty('provider', 'Open-Meteo')
     })
     test('aggregates only next 24 hourly periods and preserves mm versus probability', () => {
         const raw = fixture()
@@ -144,25 +147,37 @@ describe('forecast normalization and cache', () => {
         global.fetch = jest.fn(() => response(fixture()))
         await forecast(25.4, 68.4)
         const now = Date.now()
-        jest.spyOn(Date, 'now').mockReturnValue(now + 16 * 60000)
+        jest.spyOn(Date, 'now').mockReturnValue(now + 21 * 60000)
         global.fetch = jest.fn(() => response({}, 500))
         expect((await forecast(25.4, 68.4)).freshness).toBe('stale')
     })
-    test('district overview survives one unavailable forecast and bounds concurrency', async () => {
+    test('seven-location batch maps shuffled location IDs and isolates malformed districts', async () => {
         let active = 0,
             max = 0
-        global.fetch = jest.fn(async (url) => {
+        const fetcher = jest.fn(async () => {
             active++
             max = Math.max(max, active)
             await new Promise((resolve) => setTimeout(resolve, 2))
             active--
-            return response(fixture(), String(url).includes('25.397') ? 500 : 200)
+            return response(
+                districts
+                    .map((_record, index) => ({
+                        ...fixture(),
+                        location_id: index,
+                        current: index === 0 ? null : { ...fixture().current, temperature_2m: 20 + index }
+                    }))
+                    .reverse()
+            )
         })
+        global.fetch = fetcher
         const result = await overview()
         expect(result.items).toHaveLength(7)
         expect(result.unavailable).toBe(1)
         expect(result.items.find((item) => item.id === 'hyderabad')?.attention.level).toBe('DATA_UNAVAILABLE')
-        expect(max).toBeLessThanOrEqual(3)
+        expect(max).toBe(1)
+        expect(fetcher).toHaveBeenCalledTimes(1)
+        expect(result.items[1].weather?.current.temperatureC).toBe(21)
+        expect(result.items[6].weather?.current.temperatureC).toBe(26)
     })
 })
 describe('transparent attention rules', () => {
