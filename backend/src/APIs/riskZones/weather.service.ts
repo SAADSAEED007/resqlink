@@ -31,10 +31,7 @@ export function coordinates(lat: unknown, lon: unknown) {
 }
 export function normalizeWeather(input: unknown, now = Date.now()) {
     const checked = providerSchema.validate(input)
-    if (checked.error) {
-        console.warn('weather.validation_failed', { path: checked.error.details[0].path.join('.'), type: checked.error.details[0].type })
-        throw new CustomError('Weather provider returned incomplete data', 502)
-    }
+    if (checked.error) throw new CustomError('Weather provider returned incomplete data', 502)
     const data = checked.value as {
         latitude: number
         longitude: number
@@ -101,88 +98,215 @@ export function normalizeWeather(input: unknown, now = Date.now()) {
     }
 }
 export type Forecast = ReturnType<typeof normalizeWeather>
-const cache = new Map<string, { value: Forecast; expires: number }>()
-const pending = new Map<string, Promise<Forecast>>()
-export function clearWeatherCache() {
-    cache.clear()
-    pending.clear()
-    rateLimitedUntil = 0
+export const WEATHER_CACHE_TTL_MS = 20 * 60000
+export const WEATHER_STALE_MAX_AGE_MS = 60 * 60000
+const MAX_CACHE = 500
+type Point = ReturnType<typeof coordinates>
+interface Job {
+    key: string
+    point: Point
+    promise: Promise<Forecast>
+    resolve: (value: Forecast) => void
+    reject: (error: CustomError) => void
 }
-export async function forecast(lat: unknown, lon: unknown, refresh = false): Promise<Forecast> {
-    const point = coordinates(lat, lon),
-        key = `${point.latitude.toFixed(3)},${point.longitude.toFixed(3)}`
-    const old = cache.get(key)
-    if (!refresh && old && old.expires > Date.now()) return { ...old.value, freshness: 'cached' }
-    const running = pending.get(key)
-    if (running) return running
-    const task: Promise<Forecast> = (async (): Promise<Forecast> => {
-        // Register the pending promise before any synchronous cooldown failure.
-        await Promise.resolve()
-        try {
-            if (Date.now() < rateLimitedUntil) throw new CustomError('Weather provider rate limited; retry later', 503)
-            const query = new URLSearchParams({
-                latitude: point.latitude.toFixed(3),
-                longitude: point.longitude.toFixed(3),
-                timezone: 'Asia/Karachi',
-                timeformat: 'unixtime',
-                temperature_unit: 'celsius',
-                wind_speed_unit: 'kmh',
-                precipitation_unit: 'mm',
-                forecast_days: '4',
-                current: 'temperature_2m,weather_code,wind_speed_10m',
-                hourly: 'precipitation,precipitation_probability,wind_speed_10m',
-                daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max'
-            })
-            const response = await fetchWeather(`https://api.open-meteo.com/v1/forecast?${query}`)
-            const value = normalizeWeather(await response.json())
-            if (cache.size >= 500) cache.delete(cache.keys().next().value as string)
-            cache.set(key, { value, expires: Date.now() + 900000 })
-            return value
-        } catch (error) {
-            console.warn('weather.forecast_failed', {
-                coordinates: key,
-                error: error instanceof CustomError ? error.message : error instanceof Error ? error.name : 'UnknownError'
-            })
-            if (old && Date.now() - Date.parse(old.value.retrievedAt) < 3600000) return { ...old.value, freshness: 'stale' }
-            if (error instanceof CustomError) throw error
-            throw new CustomError('Weather provider unavailable; retry later', 503)
-        } finally {
-            pending.delete(key)
-        }
-    })()
-    pending.set(key, task)
-    return task
-}
+const cache = new Map<string, Forecast>()
+const pending = new Map<string, Job>()
+const queue = new Map<string, Job>()
+const invalidUntil = new Map<string, number>()
+let timer: ReturnType<typeof setTimeout> | undefined
+let running = false
+let controller: AbortController | undefined
+let generation = 0
+let lastAttempt = 0
+let cooldownUntil = 0
+let failures = 0
+let rateLimited = false
 
-// Two attempts at most; each bounded to five seconds so the three-worker
-// seven-district overview completes within the browser's 35-second deadline.
-async function fetchWeather(url: string): Promise<Response> {
-    for (let attempt = 0; attempt < 2; attempt++) {
-        let response: Response
-        try {
-            response = await fetch(url, { signal: AbortSignal.timeout(5000) })
-        } catch (error) {
-            console.warn('weather.transport_failed', {
-                attempt: attempt + 1,
-                error: error instanceof Error ? error.name : 'UnknownError',
-                code: (error as { cause?: { code?: string } })?.cause?.code
-            })
-            if (attempt === 0) continue
-            throw new CustomError('Weather provider connection failed or timed out', 503)
-        }
-        if (response.ok) return response
-        console.warn('weather.provider_http', { status: response.status, attempt: attempt + 1 })
-        // Do not immediately retry a rate-limited provider. Subsequent requests
-        // must honor its Retry-After window, including manual refreshes.
-        if (response.status === 429) {
-            const header = response.headers?.get('retry-after')
-            const seconds = header ? Number(header) : NaN
-            const until = Number.isFinite(seconds) ? Date.now() + seconds * 1000 : Date.parse(header || '')
-            rateLimitedUntil = Math.max(Date.now() + 60000, Number.isFinite(until) ? until : 0)
-            throw new CustomError('Weather provider rate limited; retry later', 503)
-        }
-        if (response.status < 500 || attempt === 1) throw new CustomError(`Weather provider HTTP ${response.status}`, 503)
-    }
-    throw new CustomError('Weather provider unavailable', 503)
+function logWeather(event: string, details: Record<string, unknown>) {
+    // Render must receive these bounded provider-transition events on stdout.
+    // eslint-disable-next-line no-console
+    console.warn(event, details)
 }
-let rateLimitedUntil = 0
+function keyFor(point: Point) {
+    return `${point.latitude.toFixed(3)},${point.longitude.toFixed(3)}`
+}
+export function weatherProviderStatus() {
+    const cooling = Date.now() < cooldownUntil
+    return {
+        state: cooling ? ('COOLDOWN' as const) : ('READY' as const),
+        reason: cooling ? (rateLimited ? ('RATE_LIMITED' as const) : ('UNAVAILABLE' as const)) : null,
+        retryAt: cooling ? new Date(cooldownUntil).toISOString() : null,
+        cacheTtlSeconds: WEATHER_CACHE_TTL_MS / 1000
+    }
+}
+export function getCachedForecast(lat: unknown, lon: unknown): Forecast | null {
+    const key = keyFor(coordinates(lat, lon))
+    const value = cache.get(key)
+    if (!value) return null
+    const age = Date.now() - Date.parse(value.retrievedAt)
+    if (age >= WEATHER_STALE_MAX_AGE_MS) {
+        cache.delete(key)
+        return null
+    }
+    return { ...value, freshness: age < WEATHER_CACHE_TTL_MS ? 'cached' : 'stale' }
+}
+function unavailable() {
+    return new CustomError(rateLimited ? 'Weather provider rate limited; retry later' : 'Weather provider temporarily unavailable; retry later', 503)
+}
+function finish(job: Job, value?: Forecast, error = unavailable()) {
+    if (pending.get(job.key) === job) pending.delete(job.key)
+    if (value) job.resolve(value)
+    else {
+        const old = getCachedForecast(job.point.latitude, job.point.longitude)
+        if (old) job.resolve({ ...old, freshness: 'stale' })
+        else job.reject(error)
+    }
+}
+export function clearWeatherCache() {
+    generation++
+    clearTimeout(timer)
+    timer = undefined
+    controller?.abort()
+    for (const job of pending.values()) job.reject(new CustomError('Weather cache was reset', 503))
+    pending.clear()
+    queue.clear()
+    cache.clear()
+    invalidUntil.clear()
+    lastAttempt = 0
+    cooldownUntil = 0
+    failures = 0
+    rateLimited = false
+}
+export async function forecast(lat: unknown, lon: unknown): Promise<Forecast> {
+    const point = coordinates(lat, lon),
+        key = keyFor(point)
+    const old = getCachedForecast(lat, lon)
+    // All callers, including browser refresh and AI/context endpoints, obey TTL.
+    if (old && old.freshness !== 'stale') return old
+    const existing = pending.get(key)
+    if (existing) return existing.promise
+    if (Date.now() < cooldownUntil || Date.now() < (invalidUntil.get(key) || 0)) {
+        if (old) return old
+        throw unavailable()
+    }
+    if (pending.size >= MAX_CACHE) {
+        if (old) return old
+        throw new CustomError('Weather request queue is busy; retry later', 503)
+    }
+    let resolve!: Job['resolve'], reject!: Job['reject']
+    const promise = new Promise<Forecast>((ok, fail) => {
+        resolve = ok
+        reject = fail
+    })
+    const job: Job = { point, key, promise, resolve, reject }
+    pending.set(key, job)
+    queue.set(key, job)
+    schedule()
+    return promise
+}
+function schedule() {
+    if (running || timer || !queue.size) return
+    // Coalesce district overview/detail requests and serialize all upstream work.
+    timer = setTimeout(
+        () => {
+            timer = undefined
+            void flush()
+        },
+        Math.max(20, 1000 - (Date.now() - lastAttempt))
+    )
+}
+function openCircuit(status: number | null, retryAfter?: string | null) {
+    failures = Math.min(failures + 1, 6)
+    rateLimited = status === 429
+    const base = rateLimited ? 60000 : status !== null && status < 500 ? 300000 : 30000
+    const backoff = Math.min(1800000, base * 2 ** (failures - 1) * (1 + Math.random() * 0.2))
+    const seconds = retryAfter?.trim() ? Number(retryAfter) : NaN
+    const requested = Number.isFinite(seconds) ? Date.now() + Math.max(0, seconds) * 1000 : Date.parse(retryAfter || '')
+    cooldownUntil = Math.max(Date.now() + backoff, Number.isFinite(requested) ? requested : 0)
+    logWeather('weather.provider_cooldown', { status, failures, retryAt: new Date(cooldownUntil).toISOString() })
+}
+function providerRows(body: unknown, length: number): unknown[] {
+    const rows: unknown[] = Array.isArray(body) ? (body as unknown[]) : length === 1 ? [body] : []
+    if (rows.length !== length) throw new CustomError('Weather provider location count mismatch', 502)
+    const ordered = new Array<unknown>(length)
+    const seen = new Set<number>()
+    rows.forEach((row, index) => {
+        const id = row && typeof row === 'object' && 'location_id' in row ? row.location_id : index
+        if (typeof id !== 'number' || !Number.isInteger(id) || id < 0 || id >= length || seen.has(id))
+            throw new CustomError('Weather provider location mapping is invalid', 502)
+        seen.add(id)
+        ordered[id] = row
+    })
+    return ordered
+}
+async function flush() {
+    if (running || !queue.size) return
+    const jobs = [...queue.values()].slice(0, 50)
+    for (const job of jobs) queue.delete(job.key)
+    if (Date.now() < cooldownUntil) {
+        jobs.forEach((job) => finish(job))
+        schedule()
+        return
+    }
+    running = true
+    const epoch = generation
+    controller = new AbortController()
+    const timeout = setTimeout(() => controller?.abort(), 8000)
+    lastAttempt = Date.now()
+    try {
+        const query = new URLSearchParams({
+            latitude: jobs.map((job) => job.point.latitude.toFixed(3)).join(','),
+            longitude: jobs.map((job) => job.point.longitude.toFixed(3)).join(','),
+            timezone: 'Asia/Karachi',
+            timeformat: 'unixtime',
+            forecast_days: '4',
+            temperature_unit: 'celsius',
+            wind_speed_unit: 'kmh',
+            precipitation_unit: 'mm',
+            current: 'temperature_2m,weather_code,wind_speed_10m',
+            hourly: 'precipitation,precipitation_probability,wind_speed_10m',
+            daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max'
+        })
+        const response = await fetch(`https://api.open-meteo.com/v1/forecast?${query}`, { signal: controller.signal })
+        if (epoch !== generation) return
+        if (!response.ok) {
+            openCircuit(response.status, response.headers?.get('retry-after'))
+            jobs.forEach((job) => finish(job))
+            return
+        }
+        const rows = providerRows((await response.json()) as unknown, jobs.length)
+        if (epoch !== generation) return
+        if (failures) logWeather('weather.provider_recovered', { locations: jobs.length })
+        failures = 0
+        cooldownUntil = 0
+        rateLimited = false
+        jobs.forEach((job, index) => {
+            try {
+                const value = normalizeWeather(rows[index])
+                if (cache.size >= MAX_CACHE && !cache.has(job.key)) cache.delete(cache.keys().next().value as string)
+                cache.set(job.key, value)
+                invalidUntil.delete(job.key)
+                finish(job, value)
+            } catch (error) {
+                logWeather('weather.payload_invalid', {
+                    coordinates: job.key,
+                    error: error instanceof CustomError ? error.message : 'Invalid payload'
+                })
+                if (invalidUntil.size >= MAX_CACHE) invalidUntil.delete(invalidUntil.keys().next().value as string)
+                invalidUntil.set(job.key, Date.now() + 60000)
+                finish(job, undefined, new CustomError('Weather provider returned incomplete data', 502))
+            }
+        })
+    } catch (error) {
+        if (epoch === generation) {
+            openCircuit(null)
+            logWeather('weather.provider_request_failed', { error: error instanceof Error ? error.name : 'UnknownError', locations: jobs.length })
+            jobs.forEach((job) => finish(job, undefined, error instanceof CustomError ? error : unavailable()))
+        }
+    } finally {
+        clearTimeout(timeout)
+        controller = undefined
+        running = false
+        schedule()
+    }
+}

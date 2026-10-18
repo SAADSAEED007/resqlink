@@ -10,7 +10,7 @@ function forecast(rain = 24) {
     longitude: 68.4,
     timezone: "Asia/Karachi",
     retrievedAt: new Date().toISOString(),
-    freshness: "cached" as const,
+    freshness: "cached" as "cached" | "stale",
     current: {
       time: start.toISOString(),
       temperatureC: 28.4,
@@ -46,25 +46,29 @@ async function setup(
     configured?: boolean;
     aiFail?: boolean;
     allUnavailable?: boolean;
+    cooldown?: boolean;
+    stale?: boolean;
   } = {},
 ) {
   let aiCalls = 0;
   const writes: { path: string; body: Record<string, unknown> }[] = [];
   const communities: RiskZone[] = [];
   const items: MonitoredDistrict[] = districts.map((record, index) => {
-    const level = options.allUnavailable
-      ? "DATA_UNAVAILABLE"
-      : index === 0
-        ? "ELEVATED"
-        : index === 1
-          ? "URGENT_REVIEW"
-          : index === 2
-            ? "DATA_UNAVAILABLE"
-            : "ROUTINE";
+    const level =
+      options.allUnavailable || options.stale
+        ? "DATA_UNAVAILABLE"
+        : index === 0
+          ? "ELEVATED"
+          : index === 1
+            ? "URGENT_REVIEW"
+            : index === 2
+              ? "DATA_UNAVAILABLE"
+              : "ROUTINE";
     return {
       ...record,
-      weather:
-        level === "DATA_UNAVAILABLE"
+      weather: options.stale
+        ? { ...forecast(), freshness: "stale" }
+        : level === "DATA_UNAVAILABLE"
           ? null
           : forecast(index === 1 ? 60 : index === 0 ? 24 : 0),
       attention: {
@@ -185,6 +189,14 @@ async function setup(
           "Verified seven-district subset; remaining Sindh districts are not configured.",
         datasetVersion: "test",
         retrievedAt: new Date().toISOString(),
+        provider: options.cooldown
+          ? {
+              state: "COOLDOWN",
+              reason: "RATE_LIMITED",
+              retryAt: new Date(Date.now() + 300000).toISOString(),
+              cacheTtlSeconds: 1200,
+            }
+          : undefined,
       });
     if (path.startsWith("/api/weather/districts/"))
       return reply(items.find((item) => item.id === path.split("/").at(-1)));
@@ -259,7 +271,7 @@ async function open(page: Page) {
   await expect(page.locator(".siDistrictRow")).toHaveCount(7);
 }
 
-test("refresh bypasses the backend weather cache and completes", async ({
+test("refresh respects the backend weather cache and completes", async ({
   page,
 }) => {
   await setup(page);
@@ -273,7 +285,7 @@ test("refresh bypasses the backend weather cache and completes", async ({
     const url = new URL(req.url());
     return (
       url.pathname === "/api/weather/districts/overview" &&
-      url.searchParams.get("refresh") === "true"
+      !url.searchParams.has("refresh")
     );
   });
   await refresh.click();
@@ -301,6 +313,76 @@ test("automatic monitoring works with zero communities and honest partial covera
   await expect(
     page.getByText("No local community assessments recorded yet."),
   ).toBeVisible();
+});
+
+test("cooldown refresh keeps stale timestamps and unavailable classification without refetching detail", async ({
+  page,
+}) => {
+  await setup(page, { cooldown: true, stale: true, configured: true });
+  const reads: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/weather/districts")) reads.push(request.url());
+  });
+  await open(page);
+  await expect(page.getByText(/Weather provider rate limited/)).toBeVisible();
+  await expect(page.locator(".siMetric strong")).toHaveText([
+    "7",
+    "0",
+    "0",
+    "0",
+  ]);
+  await expect(
+    page.getByRole("button", { name: "Generate Updated Analysis" }),
+  ).toBeDisabled();
+  await expect
+    .poll(
+      () =>
+        reads.filter((url) => new URL(url).pathname.endsWith("/hyderabad"))
+          .length,
+    )
+    .toBe(1);
+  const stamp = await page.getByText(/Last forecast update/).innerText();
+  for (let i = 0; i < 2; i++) {
+    await page
+      .getByRole("button", { name: "Refresh Weather", exact: true })
+      .click();
+    await expect(
+      page.getByRole("button", { name: "Refresh Weather", exact: true }),
+    ).toBeEnabled();
+  }
+  expect(reads.some((url) => new URL(url).searchParams.has("refresh"))).toBe(
+    false,
+  );
+  expect(
+    reads.filter((url) => new URL(url).pathname.endsWith("/hyderabad")),
+  ).toHaveLength(1);
+  await expect(page.getByText(/Last forecast update/)).toHaveText(stamp);
+});
+
+test("cooldown with no cache finishes loading and does not request district weather", async ({
+  page,
+}) => {
+  await setup(page, { cooldown: true, allUnavailable: true });
+  const details: string[] = [];
+  page.on("request", (request) => {
+    if (/\/weather\/districts\/hyderabad/.test(request.url()))
+      details.push(request.url());
+  });
+  await open(page);
+  await expect(page.getByText(/Weather provider rate limited/)).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Refresh Weather", exact: true }),
+  ).toBeEnabled();
+  await expect(page.locator(".siCoverage")).toContainText(
+    "No successful forecast update",
+  );
+  await expect(page.locator(".siMetric strong")).toHaveText([
+    "7",
+    "0",
+    "0",
+    "0",
+  ]);
+  expect(details).toEqual([]);
 });
 test("search, attention filter and map-directory selection synchronize", async ({
   page,
