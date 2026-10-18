@@ -9,6 +9,7 @@ import {
   getIncidentLocationInfo,
   formatIncidentTime,
 } from "./incident-location-utils";
+import { IncidentMiniMap, IncidentLocationEmptyState } from "./IncidentMiniMap";
 import {
   X,
   MapPin,
@@ -276,12 +277,13 @@ export function IncidentQuickPreview({
                 </div>
               )}
 
-              {locationInfo.hasCoordinates && locationInfo.coordinatesText && (
-                <div className="rqQuickPreviewCoordinates">
-                  <span className="text-[10px] font-mono text-[var(--command-muted)]">
-                    GPS Coordinates: {locationInfo.coordinatesText}
-                  </span>
-                </div>
+              {locationInfo.hasCoordinates ? (
+                <IncidentMiniMap incident={incident} />
+              ) : (
+                <IncidentLocationEmptyState
+                  label={locationInfo.label}
+                  subtext={locationInfo.subtext}
+                />
               )}
             </div>
           </div>

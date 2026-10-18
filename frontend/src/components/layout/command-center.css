@@ -1696,5 +1696,133 @@
     animation: none !important;
   }
 }
+/* ==========================================================================
+   INCIDENT MINI MAP (QUICK PREVIEW EMBEDDED MAP)
+   ========================================================================== */
+
+.rqMiniMapWrapper {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rqMiniMapContainer {
+  position: relative;
+  width: 100%;
+  height: 170px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--command-border);
+  box-shadow: 0 2px 8px rgba(6, 23, 43, 0.08);
+  background: var(--command-soft);
+}
+
+.rqIncidentMiniMapCanvas {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 10px;
+}
+
+.rqMiniMapControls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rqMiniMapControls button {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: var(--command-surface);
+  border: 1px solid var(--command-border);
+  color: var(--command-ink);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: all 0.15s ease;
+}
+
+.rqMiniMapControls button:hover {
+  background: var(--command-soft);
+  color: var(--command-blue);
+  border-color: var(--command-blue);
+}
+
+.rqMiniMapMetaBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 2px;
+}
+
+.rqMiniMapCoordText {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--command-ink);
+}
+
+.rqMiniMapExpandLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--command-blue);
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.rqMiniMapExpandLink:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
+.rqMiniMapEmptyState {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--command-surface);
+  border: 1px dashed var(--command-border);
+}
+
+.rqMiniMapPlaceholder {
+  height: 170px;
+  border-radius: 10px;
+  background: var(--command-soft);
+  border: 1px solid var(--command-border);
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.rqMiniMapPopup .leaflet-popup-content-wrapper {
+  padding: 4px 6px !important;
+  border-radius: 8px !important;
+  background: var(--command-surface) !important;
+  color: var(--command-ink) !important;
+  border: 1px solid var(--command-border) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+.rqMiniMapPopup .leaflet-popup-tip {
+  background: var(--command-surface) !important;
+}
+
+@media (max-width: 639px) {
+  .rqMiniMapContainer {
+    height: 150px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) { .rqCommand *, .rqCommand *::before, .rqCommand *::after { animation: none !important; transition: none !important; } }
+
 
